@@ -17,6 +17,22 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Build
         run: chmod +x gradlew && ./gradlew build --stacktrace 2>&1 | tee build-log.txt; exit ${PIPESTATUS[0]}
+      # Dumps signatures of the Minecraft classes listed in .github/javap.txt (for checking mixin targets)
+      - name: Dump class signatures
+        if: always() && hashFiles('.github/javap.txt') != ''
+        run: |
+          find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i minecraft | grep -v sources > /tmp/mcjars.txt || true
+          cat /tmp/mcjars.txt > javap-out.txt
+          while read -r cls; do
+            [ -z "$cls" ] && continue
+            for jar in $(cat /tmp/mcjars.txt); do
+              if unzip -l "$jar" "${cls//.//}.class" >/dev/null 2>&1; then
+                echo "=== $cls ($jar)" >> javap-out.txt
+                javap -p -cp "$jar" "$cls" >> javap-out.txt 2>&1
+                break
+              fi
+            done
+          done < .github/javap.txt
       - uses: actions/upload-artifact@v4
         with:
           name: fancybars
@@ -28,6 +44,7 @@ jobs:
           mkdir -p /tmp/out
           cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
           cp build-log.txt /tmp/out/ 2>/dev/null || true
+          cp javap-out.txt /tmp/out/ 2>/dev/null || true
           cd /tmp/out
           git init -q -b jar
           git config user.name "github-actions"

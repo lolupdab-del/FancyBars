@@ -1,0 +1,8 @@
+net.minecraft.client.renderer.entity.LivingEntityRenderer
+net.minecraft.client.renderer.entity.EntityRenderer
+net.minecraft.client.renderer.entity.player.AvatarRenderer
+net.minecraft.client.renderer.entity.state.AvatarRenderState
+net.minecraft.client.renderer.entity.state.LivingEntityRenderState
+net.minecraft.client.renderer.entity.state.EntityRenderState
+net.minecraft.client.gui.components.PlayerTabOverlay
+net.minecraft.client.multiplayer.PlayerInfo
