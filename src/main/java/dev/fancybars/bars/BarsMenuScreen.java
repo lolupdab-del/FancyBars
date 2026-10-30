@@ -370,6 +370,22 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
 			}
+			case MINING -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.commissions"), null));
+				list.add(new ToggleItem("commissionsEnabled", () -> config.commissionsEnabled, value -> config.commissionsEnabled = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.COMMISSIONS.reset())));
+			}
+			case PLAYER -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.playerSize"), null));
+				list.add(new ToggleItem("playerSizeEnabled", () -> config.playerSizeEnabled, value -> config.playerSizeEnabled = value));
+				list.add(new ValueCycleItem("playerSize", new int[]{25, 50, 75, 90, 100, 110, 125, 150, 200, 300}, () -> Math.round(config.playerSize * 100),
+						value -> config.playerSize = value / 100f, value -> Component.literal(value + "%")));
+				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.nametag"), null));
+				list.add(new ToggleItem("ownNametagInF5", () -> config.ownNametagInF5, value -> config.ownNametagInF5 = value));
+			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
 				list.add(new ToggleItem("shikiMode", () -> config.shikiMode, value -> config.shikiMode = value));
@@ -599,6 +615,8 @@ public class BarsMenuScreen extends Screen {
 		DUNGEONS("fancybars.category.dungeons"),
 		ACTION_BAR("fancybars.category.actionBar"),
 		HUD("fancybars.category.hud"),
+		MINING("fancybars.category.mining"),
+		PLAYER("fancybars.category.player"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
 

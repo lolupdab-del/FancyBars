@@ -303,8 +303,12 @@ public class BarEditorScreen extends Screen {
 			float[] r = draggingElement.rect(width, height);
 			float x = (float) click.x() - elementGrabX;
 			float y = (float) click.y() - elementGrabY;
-			// snap the centre to the middle of the screen unless Shift is held
-			if (draggingElement.snapsToCenter() && snapping() && Math.abs(x + r[2] / 2f - width / 2f) <= SNAP_DISTANCE) x = width / 2f - r[2] / 2f;
+			// snap to the screen edges / centre, the bars and the other elements (unless snapping is off or Shift is held)
+			guides.clear();
+			if (snapping()) {
+				x = snapX(draggingElement, Math.round(x), Math.round(r[2]));
+				y = snapY(draggingElement, Math.round(y), Math.round(r[3]));
+			}
 			draggingElement.moveTo(x, y, width, height);
 			return true;
 		}
@@ -352,6 +356,7 @@ public class BarEditorScreen extends Screen {
 	public boolean mouseReleased(MouseButtonEvent click) {
 		if (draggingElement != null) {
 			draggingElement = null;
+			guides.clear();
 			FancyBarsConfig.save();
 			return true;
 		}
@@ -426,8 +431,26 @@ public class BarEditorScreen extends Screen {
 		return FancyBarsConfig.get().editorSnapping && !minecraft.hasShiftDown();
 	}
 
-	private List<int[]> snapTargetsX(StatusBar self) {
+	/** Edges of the movable HUD elements other than {@code self}: {x0, y0, x1, y1}. */
+	private List<int[]> elementEdges(Object self) {
+		List<int[]> edges = new ArrayList<>();
+		for (MovableElement element : MovableElement.ALL) {
+			if (element == self || !element.enabled()) continue;
+			float[] r = element.rect(width, height);
+			edges.add(new int[]{Math.round(r[0]), Math.round(r[1]), Math.round(r[0] + r[2]), Math.round(r[1] + r[3])});
+		}
+		return edges;
+	}
+
+	private List<int[]> snapTargetsX(Object self) {
 		List<int[]> targets = new ArrayList<>();
+		targets.add(new int[]{0});
+		targets.add(new int[]{width});
+		for (int[] e : elementEdges(self)) {
+			targets.add(new int[]{e[0]});
+			targets.add(new int[]{e[2]});
+			targets.add(new int[]{(e[0] + e[2]) / 2});
+		}
 		targets.add(new int[]{width / 2});
 		targets.add(new int[]{width / 2 - HOTBAR_WIDTH / 2});
 		targets.add(new int[]{width / 2 + HOTBAR_WIDTH / 2});
@@ -439,8 +462,15 @@ public class BarEditorScreen extends Screen {
 		return targets;
 	}
 
-	private List<int[]> snapTargetsY(StatusBar self) {
+	private List<int[]> snapTargetsY(Object self) {
 		List<int[]> targets = new ArrayList<>();
+		targets.add(new int[]{0});
+		targets.add(new int[]{height});
+		targets.add(new int[]{height / 2});
+		for (int[] e : elementEdges(self)) {
+			targets.add(new int[]{e[1]});
+			targets.add(new int[]{e[3]});
+		}
 		targets.add(new int[]{height - 22});
 		for (StatusBar other : bars.statusBars.values()) {
 			if (other == self || !other.enabled) continue;
@@ -452,7 +482,7 @@ public class BarEditorScreen extends Screen {
 		return targets;
 	}
 
-	private int snapX(StatusBar bar, int x, int w) {
+	private int snapX(Object bar, int x, int w) {
 		int best = x;
 		int bestDist = SNAP_DISTANCE + 1;
 		int guide = -1;
@@ -473,13 +503,13 @@ public class BarEditorScreen extends Screen {
 		return best;
 	}
 
-	private int snapY(StatusBar bar, int y, int h) {
+	private int snapY(Object bar, int y, int h) {
 		int best = y;
 		int bestDist = SNAP_DISTANCE + 1;
 		int guide = -1;
 		for (int[] t : snapTargetsY(bar)) {
 			int target = t[0];
-			int[][] candidates = {{target, target}, {target - h, target}};
+			int[][] candidates = {{target, target}, {target - h, target}, {target - h / 2, target}};
 			for (int[] c : candidates) {
 				int dist = Math.abs(c[0] - y);
 				if (dist < bestDist) {

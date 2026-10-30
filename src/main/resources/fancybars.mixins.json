@@ -3,6 +3,7 @@
 	"package": "dev.fancybars.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"AvatarRendererMixin",
 		"ContainerScreenAccessor",
 		"ContainerScreenBackpackMixin",
 		"ContainerScreenProtectionMixin",

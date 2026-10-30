@@ -73,6 +73,11 @@ public class SkyblockLocation {
 		return onSkyblock && mode.equals("dungeon_hub");
 	}
 
+	/** Dwarven Mines, Crystal Hollows or a Glacite Mineshaft. */
+	public static boolean isInMiningIsland() {
+		return onSkyblock && (mode.equals("mining_3") || mode.equals("crystal_hollows") || mode.equals("mineshaft"));
+	}
+
 	public static boolean isInGarden() {
 		return onSkyblock && mode.equals("garden");
 	}

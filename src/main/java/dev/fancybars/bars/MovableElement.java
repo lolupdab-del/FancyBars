@@ -444,5 +444,75 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES};
+	// ---------------------------------------------------------------- Commissions
+
+	MovableElement COMMISSIONS = new MovableElement() {
+		private java.util.List<dev.fancybars.mining.Commissions.Commission> list() {
+			java.util.List<dev.fancybars.mining.Commissions.Commission> current = dev.fancybars.mining.Commissions.current();
+			return current.isEmpty() ? dev.fancybars.mining.Commissions.sample() : current;
+		}
+
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.mining.Commissions.position(screenW, screenH, list());
+			return new float[]{pos[0], pos[1], dev.fancybars.mining.Commissions.WIDTH * config.commissionsScale, dev.fancybars.mining.Commissions.height(list()) * config.commissionsScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.mining.Commissions.position(screenW, screenH, list());
+			dev.fancybars.mining.Commissions.renderAt(graphics, pos[0], pos[1], config.commissionsScale, list(), enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.commissionsX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.commissionsY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().commissionsScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().commissionsScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().commissionsEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().commissionsEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.commissionsX = -1;
+			config.commissionsY = -1;
+			config.commissionsScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.commissions");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS};
 }

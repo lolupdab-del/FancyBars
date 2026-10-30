@@ -116,6 +116,28 @@ public class FancyBarsConfig {
 	/** SHIKIMODE: the pink ShikiClient look and logo instead of SBCLIENT's pink → blue gradient. */
 	public boolean shikiMode = false;
 
+	// ---------------------------------------------------------------- Player
+
+	/** Draw yourself at {@link #playerSize}. */
+	public boolean playerSizeEnabled = false;
+
+	public float playerSize = 1;
+
+	/** Show other SBCLIENT users at the sizes in the shared list. */
+	public boolean playerSizeShowOthers = true;
+
+	public boolean ownNametagInF5 = false;
+
+	// ---------------------------------------------------------------- Commissions
+
+	public boolean commissionsEnabled = true;
+
+	public float commissionsX = -1;
+
+	public float commissionsY = -1;
+
+	public float commissionsScale = 1;
+
 	// ---------------------------------------------------------------- Inventory HUD
 
 	public boolean invHudEnabled = true;
@@ -246,6 +268,8 @@ public class FancyBarsConfig {
 			if (instance.rareDropsScale <= 0) instance.rareDropsScale = 1;
 			if (instance.watermarkScale <= 0) instance.watermarkScale = 1;
 			if (instance.invHudScale <= 0) instance.invHudScale = 1;
+			if (instance.commissionsScale <= 0) instance.commissionsScale = 1;
+			if (instance.playerSize <= 0) instance.playerSize = 1;
 			if (instance.keystrokesScale <= 0) instance.keystrokesScale = 1;
 			instance.keystrokesMode = Math.clamp(instance.keystrokesMode, 0, 2);
 			if (instance.rareDropsUntracked == null) instance.rareDropsUntracked = new java.util.HashSet<>();
