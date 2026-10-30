@@ -229,6 +229,8 @@
 	"fancybars.config.heldItemNameEnabled.@Tooltip": "Turn off to hide the item name that appears when you switch items.",
 	"fancybars.config.hideMana": "Hide Mana Consumption Messages from Action Bar",
 	"fancybars.config.hideMana.@Tooltip": "Gives a better experience when using Fancy Status Bars.",
+	"fancybars.config.hideOwnFireF5": "Disable Fire in F5",
+	"fancybars.config.hideOwnFireF5.@Tooltip": "Don't show the flames on yourself in third person when you're burning.",
 	"fancybars.config.intelligenceDisplay": "Intelligence Display",
 	"fancybars.config.intelligenceDisplay.@Tooltip": "Original: overflow mana is drawn over the mana bar.\nAccurate: the bar is split between mana and overflow mana.\nSmallest In Front: whichever is smaller is drawn on top.",
 	"fancybars.config.intelligenceDisplay.ACCURATE": "Accurate",

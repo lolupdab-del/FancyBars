@@ -29,6 +29,9 @@ public abstract class AvatarRendererMixin {
 	/** Keep the nametag right above the head of resized players. */
 	@Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
 	private void fancybars$nametagHeight(Avatar entity, AvatarRenderState state, float partialTick, CallbackInfo ci) {
+		// Hide the flames on yourself in third person
+		if (entity == Minecraft.getInstance().player && dev.fancybars.config.FancyBarsConfig.get().hideOwnFireF5) state.displayFireAnimation = false;
+
 		// Cape picked in the menu (only on yourself)
 		if (entity == Minecraft.getInstance().player) {
 			net.minecraft.core.ClientAsset.Texture cape = dev.fancybars.capes.Capes.selectedTexture();

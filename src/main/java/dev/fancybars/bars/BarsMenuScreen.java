@@ -528,6 +528,7 @@ public class BarsMenuScreen extends Screen {
 								})))));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.nametag"), null));
 				list.add(new ToggleItem("ownNametagInF5", () -> config.ownNametagInF5, value -> config.ownNametagInF5 = value));
+				list.add(new ToggleItem("hideOwnFireF5", () -> config.hideOwnFireF5, value -> config.hideOwnFireF5 = value));
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));

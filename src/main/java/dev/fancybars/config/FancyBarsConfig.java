@@ -135,6 +135,9 @@ public class FancyBarsConfig {
 
 	public boolean ownNametagInF5 = false;
 
+	/** Don't draw the fire on yourself in third person. */
+	public boolean hideOwnFireF5 = false;
+
 	// ---------------------------------------------------------------- Screen images
 
 	public static final class ScreenImage {
