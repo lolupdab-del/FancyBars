@@ -1,8 +1,9 @@
-net.minecraft.client.renderer.entity.LivingEntityRenderer
-net.minecraft.client.renderer.entity.EntityRenderer
-net.minecraft.client.renderer.entity.player.AvatarRenderer
-net.minecraft.client.renderer.entity.state.AvatarRenderState
-net.minecraft.client.renderer.entity.state.LivingEntityRenderState
-net.minecraft.client.renderer.entity.state.EntityRenderState
-net.minecraft.client.gui.components.PlayerTabOverlay
-net.minecraft.client.multiplayer.PlayerInfo
+net.minecraft.world.entity.player.PlayerSkin
+net.minecraft.core.ClientAsset
+net.minecraft.core.ClientAsset$Texture
+net.minecraft.core.ClientAsset$ResourceTexture
+net.minecraft.core.ClientAsset$DownloadedTexture
+net.minecraft.client.renderer.texture.DynamicTexture
+net.minecraft.client.renderer.texture.TextureManager
+net.minecraft.client.renderer.entity.layers.CapeLayer
+com.mojang.blaze3d.platform.NativeImage
