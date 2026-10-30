@@ -70,6 +70,8 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.dungeons.RareDropTracker.init();
 		dev.fancybars.actionbar.ActionBar.init();
 		dev.fancybars.hud.Watermark.init();
+		dev.fancybars.hud.InventoryHud.init();
+		dev.fancybars.hud.Keystrokes.init();
 		BackpackPreview.init();
 
 		// /sbclient, with /shikiclient and /fancybars kept as aliases

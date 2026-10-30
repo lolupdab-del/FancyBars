@@ -113,6 +113,33 @@ public class FancyBarsConfig {
 	/** SHIKIMODE: the pink ShikiClient look and logo instead of SBCLIENT's pink → blue gradient. */
 	public boolean shikiMode = false;
 
+	// ---------------------------------------------------------------- Inventory HUD
+
+	public boolean invHudEnabled = true;
+
+	public boolean invHudBackground = true;
+
+	public boolean invHudSlots = true;
+
+	public float invHudX = -1;
+
+	public float invHudY = -1;
+
+	public float invHudScale = 1;
+
+	// ---------------------------------------------------------------- Keystrokes
+
+	public boolean keystrokesEnabled = true;
+
+	/** 0 = mouse only, 1 = WASD + space + mouse, 2 = full keyboard. */
+	public int keystrokesMode = 1;
+
+	public float keystrokesX = -1;
+
+	public float keystrokesY = -1;
+
+	public float keystrokesScale = 1;
+
 	// ---------------------------------------------------------------- Watermark
 
 	public boolean watermarkEnabled = true;
@@ -211,6 +238,9 @@ public class FancyBarsConfig {
 			if (instance.actionBarScale <= 0) instance.actionBarScale = 1;
 			if (instance.rareDropsScale <= 0) instance.rareDropsScale = 1;
 			if (instance.watermarkScale <= 0) instance.watermarkScale = 1;
+			if (instance.invHudScale <= 0) instance.invHudScale = 1;
+			if (instance.keystrokesScale <= 0) instance.keystrokesScale = 1;
+			instance.keystrokesMode = Math.clamp(instance.keystrokesMode, 0, 2);
 			if (instance.rareDropsUntracked == null) instance.rareDropsUntracked = new java.util.HashSet<>();
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;

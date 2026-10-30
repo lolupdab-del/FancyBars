@@ -352,10 +352,30 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("actionBarUseCustomColor", () -> config.actionBarUseCustomColor, value -> config.actionBarUseCustomColor = value));
 				list.add(new SwatchItem("actionBarColor", () -> new Color(config.actionBarColor, false), color -> config.actionBarColor = color.getRGB() | 0xFF000000));
 			}
+			case HUD -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.keystrokes"), null));
+				list.add(new ToggleItem("keystrokesEnabled", () -> config.keystrokesEnabled, value -> config.keystrokesEnabled = value));
+				list.add(new ValueCycleItem("keystrokesMode", new int[]{0, 1, 2}, () -> config.keystrokesMode,
+						value -> config.keystrokesMode = value, dev.fancybars.hud.Keystrokes::modeName));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.KEYSTROKES.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.inventoryHud"), null));
+				list.add(new ToggleItem("invHudEnabled", () -> config.invHudEnabled, value -> config.invHudEnabled = value));
+				list.add(new ToggleItem("invHudBackground", () -> config.invHudBackground, value -> config.invHudBackground = value));
+				list.add(new ToggleItem("invHudSlots", () -> config.invHudSlots, value -> config.invHudSlots = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.watermark"), null));
+				list.add(new ToggleItem("watermarkEnabled", () -> config.watermarkEnabled, value -> config.watermarkEnabled = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.WATERMARK.reset())));
+			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
 				list.add(new ToggleItem("shikiMode", () -> config.shikiMode, value -> config.shikiMode = value));
-				list.add(new ToggleItem("watermarkEnabled", () -> config.watermarkEnabled, value -> config.watermarkEnabled = value));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
 				list.add(new ToggleItem("riftHealthHP", () -> config.riftHealthHP, value -> config.riftHealthHP = value));
@@ -581,6 +601,7 @@ public class BarsMenuScreen extends Screen {
 		GIFS("fancybars.category.gifs"),
 		DUNGEONS("fancybars.category.dungeons"),
 		ACTION_BAR("fancybars.category.actionBar"),
+		HUD("fancybars.category.hud"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
 
@@ -1351,7 +1372,7 @@ public class BarsMenuScreen extends Screen {
 			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
 			this.searchText = Component.translatable("fancybars.config." + key).getString() + " " + this.tooltip.getString();
 			ModernButton[] holder = new ModernButton[1];
-			holder[0] = new ModernButton(70, 18, label.apply(getter.get()), () -> {
+			holder[0] = new ModernButton(Math.max(70, Theme.width(font, label.apply(values[values.length - 1])) + 20), 18, label.apply(getter.get()), () -> {
 				int current = getter.get();
 				int next = values[0];
 				for (int i = 0; i < values.length; i++) {

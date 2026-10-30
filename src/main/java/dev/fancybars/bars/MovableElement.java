@@ -377,5 +377,135 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, WATERMARK};
+	// ---------------------------------------------------------------- Inventory HUD / keystrokes
+
+	MovableElement INVENTORY = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.hud.InventoryHud.position(screenW, screenH);
+			float[] size = new float[]{dev.fancybars.hud.InventoryHud.WIDTH, dev.fancybars.hud.InventoryHud.HEIGHT};
+			return new float[]{pos[0], pos[1], size[0] * config.invHudScale, size[1] * config.invHudScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.hud.InventoryHud.position(screenW, screenH);
+			dev.fancybars.hud.InventoryHud.renderAt(graphics, pos[0], pos[1], config.invHudScale, enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.invHudX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.invHudY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().invHudScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().invHudScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().invHudEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().invHudEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.invHudX = -1;
+			config.invHudY = -1;
+			config.invHudScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.inventory");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement KEYSTROKES = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.hud.Keystrokes.position(screenW, screenH);
+			float[] size = dev.fancybars.hud.Keystrokes.size(config.keystrokesMode);
+			return new float[]{pos[0], pos[1], size[0] * config.keystrokesScale, size[1] * config.keystrokesScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.hud.Keystrokes.position(screenW, screenH);
+			dev.fancybars.hud.Keystrokes.renderAt(graphics, pos[0], pos[1], config.keystrokesScale, config.keystrokesMode, enabled() ? 1 : 0.35f, true);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.keystrokesX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.keystrokesY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().keystrokesScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().keystrokesScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().keystrokesEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().keystrokesEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.keystrokesX = -1;
+			config.keystrokesY = -1;
+			config.keystrokesScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.keystrokes");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, WATERMARK, INVENTORY, KEYSTROKES};
 }

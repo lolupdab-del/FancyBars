@@ -29,6 +29,8 @@ plus the optional vanilla-style mana bar.
 
 **Action bar**: its own menu page. Hide it, move/scale it in the editor, hide individual parts (health, defense, mana, mana use, skill XP gains, secrets, vitality, rift time), and with *Custom Look* draw it with a smooth font, shadow, rounded background (adjustable opacity), one custom colour and fade-out.
 
+**Keystrokes**: three layouts (Mouse; WASD + space; Full with Tab, Caps, Shift, Q E R Z X C V F). **Inventory HUD**: your inventory as a small clean grid. Both on the HUD page, movable in the editor.
+
 **Held item name**: the name that pops up when you switch items can be hidden, moved and scaled (menu → Items, or drag it in the editor).
 
 While fancy bars are active the vanilla XP bar is always hidden, even if you turn the fancy XP bar off.

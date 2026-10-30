@@ -309,8 +309,13 @@ public final class Theme {
 	 */
 	public static void panel(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
 		shadow(graphics, x, y, width, height, PANEL_RADIUS, 0, 2);
-		roundedRect(graphics, x, y, width, height, PANEL_RADIUS, PANEL);
-		roundedOutline(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER);
+		smoothNext = true;
+		try {
+			roundedRect(graphics, x, y, width, height, PANEL_RADIUS, PANEL);
+			roundedOutline(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER);
+		} finally {
+			smoothNext = false;
+		}
 	}
 
 	public static void backdrop(GuiGraphicsExtractor graphics, int width, int height) {
@@ -323,7 +328,9 @@ public final class Theme {
 	private static final java.util.Map<Integer, Integer> TO_BLUE = new java.util.HashMap<>();
 	public static final int BRAND_PINK = 0xFFFF8FC8;
 	public static final int BRAND_BLUE = 0xFF7CC8FF;
-	private static final int STRIP = 6;
+	private static final int PANEL_SLICES = 12;
+	/** Set while drawing a main panel, the only shapes drawn as a smooth gradient. */
+	private static boolean smoothNext = false;
 	private static float rangeStart;
 	private static float rangeEnd;
 	private static long rangeSetAt;
@@ -415,13 +422,17 @@ public final class Theme {
 		}
 		float f0 = fraction(graphics, x);
 		float f1 = fraction(graphics, x + width);
-		// tiny shapes or ones that barely span the gradient: a single colour is indistinguishable
-		if (Math.abs(f1 - f0) < 0.02f || width <= STRIP) {
+		// Most shapes get one colour picked from where they sit in the gradient: cheap, and the gradient still
+		// reads across the whole menu. Only the few big panels are drawn as a smooth gradient, using a small,
+		// fixed number of clipped slices (every slice is a separate draw, so this must stay rare).
+		if (!smoothNext || Math.abs(f1 - f0) < 0.02f) {
 			painter.paint(gradientColor(color, (f0 + f1) / 2));
 			return;
 		}
-		for (int sx = x; sx < x + width; sx += STRIP) {
-			int ex = Math.min(x + width, sx + STRIP);
+		int slices = Math.clamp(width / 12, 2, PANEL_SLICES);
+		for (int i = 0; i < slices; i++) {
+			int sx = x + width * i / slices;
+			int ex = x + width * (i + 1) / slices;
 			graphics.enableScissor(sx, y - 1, ex, y + height + 1);
 			painter.paint(gradientColor(color, fraction(graphics, (sx + ex) / 2f)));
 			graphics.disableScissor();
