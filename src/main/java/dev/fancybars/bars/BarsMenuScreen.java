@@ -410,8 +410,23 @@ public class BarsMenuScreen extends Screen {
 		Component titleText = Theme.title(Component.empty()
 				.append(Component.translatable("fancybars.menu.titleAccent").withColor(Theme.ACCENT & 0xFFFFFF))
 				.append(Component.translatable("fancybars.menu.titleRest").withColor(Theme.TEXT & 0xFFFFFF)));
-		float titleX = x0 + (SIDEBAR_WIDTH - font.width(titleText)) / 2f;
-		Theme.drawAtCapTop(graphics, font, titleText, titleX, y0 + (TOP_HEIGHT - Theme.TITLE_CAP) / 2f, Theme.TITLE_CAP, 0xFFFFFFFF);
+		// Thumbnail + title, centred together; the text shrinks if it would not fit
+		int iconSize = 18;
+		int iconGap = 5;
+		float textW = font.width(titleText);
+		float maxText = SIDEBAR_WIDTH - 12 - iconSize - iconGap;
+		float textScale = Math.min(1, maxText / textW);
+		float groupW = iconSize + iconGap + textW * textScale;
+		float gx = x0 + (SIDEBAR_WIDTH - groupW) / 2f;
+		dev.fancybars.hud.Watermark.drawIcon(graphics, gx, y0 + (TOP_HEIGHT - iconSize) / 2f, iconSize, 255);
+		float textX = gx + iconSize + iconGap;
+		float capTop = y0 + (TOP_HEIGHT - Theme.TITLE_CAP * textScale) / 2f;
+		org.joml.Matrix3x2fStack titlePose = graphics.pose();
+		titlePose.pushMatrix();
+		titlePose.translate(textX, capTop);
+		titlePose.scale(textScale, textScale);
+		Theme.drawAtCapTop(graphics, font, titleText, 0, 0, Theme.TITLE_CAP, 0xFFFFFFFF);
+		titlePose.popMatrix();
 
 		// Version at the bottom of the sidebar
 		Theme.centeredInBox(graphics, font, Component.literal("v" + FancyBarsMod.VERSION), x0 + SIDEBAR_WIDTH / 2f, y0 + totalHeight - 18, 12, Theme.TEXT_DISABLED);

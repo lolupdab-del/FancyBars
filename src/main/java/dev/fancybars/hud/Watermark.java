@@ -7,7 +7,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import dev.fancybars.FancyBarsMod;
 import dev.fancybars.config.FancyBarsConfig;
@@ -15,11 +17,25 @@ import dev.fancybars.util.gui.Theme;
 
 /** "ShikiClient" in the top-left corner of the HUD. Movable / scalable in the editor. */
 public final class Watermark {
+	public static final Identifier ICON = FancyBarsMod.id("textures/gui/shiki_icon.png");
+	private static final int ICON_SIZE = 12;
+	private static final int ICON_GAP = 4;
+
 	private Watermark() {}
+
+	/** Draws the ShikiClient thumbnail as a size × size square. */
+	public static void drawIcon(GuiGraphicsExtractor graphics, float x, float y, float size, int alpha) {
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(x, y);
+		pose.scale(size / 64f, size / 64f);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, ICON, 0, 0, 0, 0, 64, 64, 64, 64, (alpha << 24) | 0xFFFFFF);
+		pose.popMatrix();
+	}
 
 	public static void init() {
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("watermark"), (graphics, tickCounter) -> {
-			if (FancyBarsConfig.get().watermarkEnabled && Minecraft.getInstance().screen == null) render(graphics, 1);
+			if (FancyBarsConfig.get().watermarkEnabled && Minecraft.getInstance().gui.screen() == null) render(graphics, 1);
 		});
 	}
 
@@ -31,7 +47,7 @@ public final class Watermark {
 
 	/** Unscaled {width, height}. */
 	public static int[] size() {
-		return new int[]{Minecraft.getInstance().font.width(text()), Math.round(Theme.TITLE_CAP) + 2};
+		return new int[]{ICON_SIZE + ICON_GAP + Minecraft.getInstance().font.width(text()), ICON_SIZE};
 	}
 
 	public static void render(GuiGraphicsExtractor graphics, float alpha) {
@@ -41,8 +57,9 @@ public final class Watermark {
 		pose.pushMatrix();
 		pose.translate(config.watermarkX, config.watermarkY);
 		pose.scale(config.watermarkScale, config.watermarkScale);
-		int a = Math.round(alpha * 255) << 24;
-		Theme.drawAtCapTop(graphics, font, text(), 0, 1, Theme.TITLE_CAP, a | 0xFFFFFF, true);
+		int a = Math.round(alpha * 255);
+		drawIcon(graphics, 0, 0, ICON_SIZE, a);
+		Theme.drawAtCapTop(graphics, font, text(), ICON_SIZE + ICON_GAP, (ICON_SIZE - Theme.TITLE_CAP) / 2f, Theme.TITLE_CAP, (a << 24) | 0xFFFFFF, true);
 		pose.popMatrix();
 	}
 }
