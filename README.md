@@ -25,6 +25,8 @@ plus the optional vanilla-style mana bar.
 
 **Backpack preview** (from Skyblocker): hover a backpack or ender chest page in the Storage menu to see its contents.
 
+**Action bar**: its own menu page. Hide it, move/scale it in the editor, hide individual parts (health, defense, mana, mana use, skill XP gains, secrets, vitality, rift time), and with *Custom Look* draw it with a smooth font, shadow, rounded background (adjustable opacity), one custom colour and fade-out.
+
 **Held item name**: the name that pops up when you switch items can be hidden, moved and scaled (menu → Items, or drag it in the editor).
 
 While fancy bars are active the vanilla XP bar is always hidden, even if you turn the fancy XP bar off.

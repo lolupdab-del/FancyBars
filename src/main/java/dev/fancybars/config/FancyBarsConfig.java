@@ -110,6 +110,46 @@ public class FancyBarsConfig {
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
 
+	// ---------------------------------------------------------------- Action bar
+
+	public boolean actionBarShown = true;
+
+	/** Draw the action bar with Fancy Bars' renderer (font, shadow, background, colour, fade options). */
+	public boolean actionBarCustomize = false;
+
+	public int actionBarX = 0;
+
+	public int actionBarY = 0;
+
+	public float actionBarScale = 1;
+
+	public boolean actionBarSmoothFont = true;
+
+	public boolean actionBarShadow = true;
+
+	public boolean actionBarBackground = false;
+
+	/** Background opacity in percent. */
+	public int actionBarBackgroundOpacity = 50;
+
+	public boolean actionBarUseCustomColor = false;
+
+	public int actionBarColor = 0xFFFFFFFF;
+
+	public boolean actionBarFade = true;
+
+	public boolean actionBarHideHealth = false;
+
+	public boolean actionBarHideDefense = false;
+
+	public boolean actionBarHideMana = false;
+
+	public boolean actionBarHideSkillXp = false;
+
+	public boolean actionBarHideRiftTime = false;
+
+	public boolean actionBarHideVitality = false;
+
 	// ---------------------------------------------------------------- Held item name (the tooltip shown when switching items)
 
 	public boolean heldItemNameEnabled = true;
@@ -136,6 +176,7 @@ public class FancyBarsConfig {
 			if (instance.protectedItemInfo == null) instance.protectedItemInfo = new java.util.LinkedHashMap<>();
 			if (instance.heldItemNameScale <= 0) instance.heldItemNameScale = 1;
 			if (instance.secretsScale <= 0) instance.secretsScale = 1;
+			if (instance.actionBarScale <= 0) instance.actionBarScale = 1;
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;
 				instance.segmentedBars = false;

@@ -180,5 +180,70 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS};
+	// ---------------------------------------------------------------- Action bar
+
+	MovableElement ACTION_BAR = new MovableElement() {
+		private Component text() {
+			Component current = dev.fancybars.actionbar.ActionBar.current();
+			return current != null && !current.getString().isBlank() ? current : dev.fancybars.actionbar.ActionBar.sample();
+		}
+
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			int[] center = dev.fancybars.actionbar.ActionBar.center(screenW, screenH);
+			int[] size = dev.fancybars.actionbar.ActionBar.size(text());
+			float s = scale();
+			return new float[]{center[0] - size[0] * s / 2f, center[1] - 8.5f * s, size[0] * s, size[1] * s};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			int[] center = dev.fancybars.actionbar.ActionBar.center(screenW, screenH);
+			dev.fancybars.actionbar.ActionBar.draw(graphics, text(), center[0], center[1], scale(), enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			float[] r = rect(screenW, screenH);
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.actionBarX = Math.round(x + r[2] / 2f - screenW / 2f);
+			config.actionBarY = Math.round(y + r[3] / 2f - (screenH - dev.fancybars.actionbar.ActionBar.VANILLA_FROM_BOTTOM));
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().actionBarScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().actionBarScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().actionBarShown;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().actionBarShown = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.actionBarX = 0;
+			config.actionBarY = 0;
+			config.actionBarScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.actionBar");
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR};
 }

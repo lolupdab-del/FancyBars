@@ -40,6 +40,8 @@ public final class DungeonSecrets {
 
 	private static int secrets = -1;
 	private static int maxSecrets = 0;
+	/** When a "X/Y Secrets" part was last seen; a backup in case the location packet says something unexpected. */
+	private static long lastSeen = 0;
 
 	private DungeonSecrets() {}
 
@@ -50,13 +52,32 @@ public final class DungeonSecrets {
 	}
 
 	public static boolean shouldShow() {
-		return FancyBarsConfig.get().secretsEnabled && SkyblockLocation.isInDungeons();
+		return FancyBarsConfig.get().secretsEnabled && inDungeon();
+	}
+
+	private static boolean inDungeon() {
+		return SkyblockLocation.isInDungeons() || SkyblockLocation.isOnSkyblock() && net.minecraft.util.Util.getMillis() - lastSeen < 15_000;
 	}
 
 	/** Called by the action bar parser with the (formatting-stripped) part that matched {@link #SECRETS}. */
 	public static void update(Matcher matcher) {
 		secrets = Integer.parseInt(matcher.group(1));
 		maxSecrets = Integer.parseInt(matcher.group(2));
+		lastSeen = net.minecraft.util.Util.getMillis();
+	}
+
+	/**
+	 * Backup path: reads the action bar the HUD is currently holding. If another mod handled the message through a
+	 * route our chat listener never saw, the counter still updates as long as the text reached the screen.
+	 */
+	public static void pollHud() {
+		if (!FancyBarsConfig.get().secretsEnabled || !SkyblockLocation.isOnSkyblock()) return;
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+		if (mc.gui == null || mc.gui.hud == null) return;
+		net.minecraft.network.chat.Component message = ((dev.fancybars.mixin.HudAccessor) mc.gui.hud).getOverlayMessageString();
+		if (message == null) return;
+		Matcher matcher = SECRETS.matcher(stripped(message.getString()));
+		if (matcher.find()) update(matcher);
 	}
 
 	/** Called when an action bar message had no secrets part (room without secrets). */
@@ -66,7 +87,7 @@ public final class DungeonSecrets {
 	}
 
 	public static boolean hideFromActionBar() {
-		return FancyBarsConfig.get().secretsEnabled && FancyBarsConfig.get().secretsHideActionBar && SkyblockLocation.isInDungeons();
+		return FancyBarsConfig.get().secretsEnabled && FancyBarsConfig.get().secretsHideActionBar && inDungeon();
 	}
 
 	// ---------------------------------------------------------------- Layout / drawing

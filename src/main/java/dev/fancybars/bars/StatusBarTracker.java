@@ -34,6 +34,7 @@ public class StatusBarTracker {
 	private static final Pattern VITALITY_STATUS = Pattern.compile(String.format("(?<vitality>[\\d,]+)/(?<max>[\\d,]+)%s", SkyBlockIcons.VITALITY));
 	private static final Pattern HEALING = Pattern.compile(String.format("(?:§[\\da-z])*[❤%s]", SkyBlockIcons.HEALTH));
 	private static final Pattern DEFENSE_STATUS = Pattern.compile(String.format("(?<defense>[\\d,]+)[❈%s]( Defense)?", SkyBlockIcons.DEFENSE));
+	private static final Pattern SKILL_XP = Pattern.compile("^\\+[\\d,.]+ [A-Za-z ]+ \\(");
 	private static final Pattern MANA_USE = Pattern.compile("-([\\d,]+) Mana \\(.*?\\)");
 	private static final Pattern MANA_STATUS = Pattern.compile(String.format("(?<mana>[\\d,]+)/(?<max>[\\d,]+)[✎%s] ?(?:Mana|(?<overflow>[\\d,]+)[ʬ%s])?", SkyBlockIcons.MANA, SkyBlockIcons.OVERFLOW_MANA));
 
@@ -56,8 +57,13 @@ public class StatusBarTracker {
 	private static int ticks;
 
 	public static void init() {
-		ClientReceiveMessageEvents.ALLOW_GAME.register(StatusBarTracker::allowOverlayMessage);
-		ClientReceiveMessageEvents.MODIFY_GAME.register(StatusBarTracker::onOverlayMessage);
+		// Run before other mods' listeners: lots of SkyBlock mods (SkyHanni, Odin, ...) also edit or swallow the action bar,
+		// and if one of them cancels it first we'd never see the health / mana / secrets text.
+		net.minecraft.resources.Identifier early = dev.fancybars.FancyBarsMod.id("early");
+		ClientReceiveMessageEvents.ALLOW_GAME.addPhaseOrdering(early, net.fabricmc.fabric.api.event.Event.DEFAULT_PHASE);
+		ClientReceiveMessageEvents.MODIFY_GAME.addPhaseOrdering(early, net.fabricmc.fabric.api.event.Event.DEFAULT_PHASE);
+		ClientReceiveMessageEvents.ALLOW_GAME.register(early, StatusBarTracker::allowOverlayMessage);
+		ClientReceiveMessageEvents.MODIFY_GAME.register(early, StatusBarTracker::onOverlayMessage);
 		UseItemCallback.EVENT.register(StatusBarTracker::interactItem);
 		ClientTickEvents.END_CLIENT_TICK.register(_ -> tick());
 	}
@@ -89,6 +95,7 @@ public class StatusBarTracker {
 	private static void tick() {
 		if (MINECRAFT.player == null || !SkyblockLocation.isOnSkyblock()) return;
 		ticks++;
+		DungeonSecrets.pollHud();
 		updateHealth(health.value, health.max);
 		updateSpeed();
 		updateAir();
@@ -129,7 +136,7 @@ public class StatusBarTracker {
 			// Always update values for other parts of the mod to use
 			String returned = update(stringified, FancyBarsConfig.get().hideMana);
 
-			if ((FancyStatusBars.INSTANCE.isEnabled() || DungeonSecrets.hideFromActionBar()) && !stringified.equals(returned)) {
+			if (!stringified.equals(returned)) {
 				// TODO This may still strip formatting from partially consumed message
 				return lastReturn = Component.literal(returned);
 			}
@@ -147,6 +154,7 @@ public class StatusBarTracker {
 		var output = new StringBuilder();
 		boolean sawSecrets = false;
 		boolean barsActive = FancyStatusBars.INSTANCE.isEnabled();
+		FancyBarsConfig config = FancyBarsConfig.get();
 
 		while (statuses.find()) {
 			Matcher status;
@@ -160,11 +168,17 @@ public class StatusBarTracker {
 				continue;
 			}
 
+			// Skill XP gains ("+12.5 Combat (1,234/5,000)")
+			if (config.actionBarHideSkillXp && SKILL_XP.matcher(DungeonSecrets.stripped(statuses.group("status"))).find()) {
+				statuses.appendReplacement(output, "");
+				continue;
+			}
+
 			if (SkyblockLocation.isInTheRift()) {
 				status = RIFT_TIME_STATUS.matcher(ChatFormatting.stripFormatting(statuses.group("status")));
 
 				// Rift time
-				if (barsActive && FancyStatusBars.INSTANCE.isExperienceFancyBarEnabled() && status.find())
+				if ((config.actionBarHideRiftTime || barsActive && FancyStatusBars.INSTANCE.isExperienceFancyBarEnabled()) && status.find())
 					statuses.appendReplacement(output, "");
 			} else {
 				status = HEALTH_STATUS.matcher(ChatFormatting.stripFormatting(statuses.group("status")));
@@ -173,7 +187,9 @@ public class StatusBarTracker {
 				if (status.find()) {
 					updateHealth(status);
 
-					if (barsActive && FancyStatusBars.INSTANCE.isHealthFancyBarEnabled()) {
+					if (config.actionBarHideHealth) {
+						statuses.appendReplacement(output, "");
+					} else if (barsActive && FancyStatusBars.INSTANCE.isHealthFancyBarEnabled()) {
 						if (status.group("healing") == null) {
 							statuses.appendReplacement(output, "");
 						// Parse healing again to add back formatting
@@ -193,14 +209,14 @@ public class StatusBarTracker {
 				} else if (status.usePattern(DEFENSE_STATUS).find()) {
 					defense = RegexUtils.parseIntFromMatcher(status, "defense");
 
-					if (barsActive && FancyStatusBars.INSTANCE.isHealthFancyBarEnabled())
+					if (config.actionBarHideDefense || barsActive && FancyStatusBars.INSTANCE.isHealthFancyBarEnabled())
 						statuses.appendReplacement(output, "");
 					else
 						statuses.appendReplacement(output, "$0");
 				// Vitality
 				} else if (status.usePattern(VITALITY_STATUS).find()) {
 					updateVitality(status);
-					if (barsActive && FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.VITALITY))
+					if (config.actionBarHideVitality || barsActive && FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.VITALITY))
 						statuses.appendReplacement(output, "");
 					else
 						statuses.appendReplacement(output, "$0");
@@ -214,7 +230,7 @@ public class StatusBarTracker {
 			} else if (status.usePattern(MANA_STATUS).find()) {
 				updateMana(status);
 
-				if (barsActive && FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.INTELLIGENCE))
+				if (config.actionBarHideMana || barsActive && FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.INTELLIGENCE))
 					statuses.appendReplacement(output, "");
 				else
 					statuses.appendReplacement(output, "$0");

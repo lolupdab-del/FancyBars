@@ -160,11 +160,14 @@ public class BarsMenuScreen extends Screen {
 
 		// Sidebar categories
 		int sy = y0 + TOP_HEIGHT + GAP + 8;
+		int available = totalHeight - TOP_HEIGHT - GAP - 8 - 22;
+		int step = Math.clamp(available / Category.values().length, 16, 23);
+		int itemH = Math.min(20, step - 2);
 		for (Category c : Category.values()) {
-			SidebarItem item = new SidebarItem(c, SIDEBAR_WIDTH - 16, 20);
+			SidebarItem item = new SidebarItem(c, SIDEBAR_WIDTH - 16, itemH);
 			item.setPosition(x0 + 8, sy);
 			addRenderableWidget(item);
-			sy += 23;
+			sy += step;
 		}
 
 		// Content
@@ -291,6 +294,33 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.SECRETS.reset())));
+			}
+			case ACTION_BAR -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.actionBar"), null));
+				list.add(new ActionBarPreviewItem());
+				list.add(new ToggleItem("actionBarShown", () -> config.actionBarShown, value -> config.actionBarShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.ACTION_BAR.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.actionBar.parts"), null));
+				list.add(new ToggleItem("actionBarHideHealth", () -> config.actionBarHideHealth, value -> config.actionBarHideHealth = value));
+				list.add(new ToggleItem("actionBarHideDefense", () -> config.actionBarHideDefense, value -> config.actionBarHideDefense = value));
+				list.add(new ToggleItem("actionBarHideMana", () -> config.actionBarHideMana, value -> config.actionBarHideMana = value));
+				list.add(new ToggleItem("hideMana", () -> config.hideMana, value -> config.hideMana = value));
+				list.add(new ToggleItem("actionBarHideSkillXp", () -> config.actionBarHideSkillXp, value -> config.actionBarHideSkillXp = value));
+				list.add(new ToggleItem("secretsHideActionBar", () -> config.secretsHideActionBar, value -> config.secretsHideActionBar = value));
+				list.add(new ToggleItem("actionBarHideVitality", () -> config.actionBarHideVitality, value -> config.actionBarHideVitality = value));
+				list.add(new ToggleItem("actionBarHideRiftTime", () -> config.actionBarHideRiftTime, value -> config.actionBarHideRiftTime = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.actionBar.look"), null));
+				list.add(new ToggleItem("actionBarCustomize", () -> config.actionBarCustomize, value -> config.actionBarCustomize = value));
+				list.add(new ToggleItem("actionBarSmoothFont", () -> config.actionBarSmoothFont, value -> config.actionBarSmoothFont = value));
+				list.add(new ToggleItem("actionBarShadow", () -> config.actionBarShadow, value -> config.actionBarShadow = value));
+				list.add(new ToggleItem("actionBarFade", () -> config.actionBarFade, value -> config.actionBarFade = value));
+				list.add(new ToggleItem("actionBarBackground", () -> config.actionBarBackground, value -> config.actionBarBackground = value));
+				list.add(new ValueCycleItem("actionBarBackgroundOpacity", new int[]{25, 50, 75, 100}, () -> config.actionBarBackgroundOpacity,
+						value -> config.actionBarBackgroundOpacity = value, value -> Component.literal(value + "%")));
+				list.add(new ToggleItem("actionBarUseCustomColor", () -> config.actionBarUseCustomColor, value -> config.actionBarUseCustomColor = value));
+				list.add(new SwatchItem("actionBarColor", () -> new Color(config.actionBarColor, false), color -> config.actionBarColor = color.getRGB() | 0xFF000000));
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
@@ -504,6 +534,7 @@ public class BarsMenuScreen extends Screen {
 		ITEMS("fancybars.category.items"),
 		GIFS("fancybars.category.gifs"),
 		DUNGEONS("fancybars.category.dungeons"),
+		ACTION_BAR("fancybars.category.actionBar"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
 
@@ -1170,6 +1201,102 @@ public class BarsMenuScreen extends Screen {
 			float py = y + (height - size[1]) / 2f;
 			graphics.nextStratum();
 			dev.fancybars.dungeons.DungeonSecrets.renderAt(graphics, px, py, 1, 5, 10);
+		}
+	}
+
+	/** Live preview of the action bar with the current look settings. */
+	private class ActionBarPreviewItem extends Item {
+		ActionBarPreviewItem() {
+			this.height = 40;
+		}
+
+		@Override
+		void layout(int x, int y, int w) {}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			Component text = dev.fancybars.actionbar.ActionBar.current();
+			if (text == null || text.getString().isBlank()) text = dev.fancybars.actionbar.ActionBar.sample();
+			int[] size = dev.fancybars.actionbar.ActionBar.size(text);
+			float scale = Math.min(1, (w - 16) / (float) size[0]);
+			graphics.nextStratum();
+			graphics.enableScissor(x + 2, y + 2, x + w - 2, y + height - 2);
+			dev.fancybars.actionbar.ActionBar.draw(graphics, text, x + w / 2f, y + height / 2f, scale, config.actionBarShown ? 1 : 0.35f);
+			graphics.disableScissor();
+		}
+	}
+
+	/** A labelled button cycling through a fixed set of integer values. */
+	private class ValueCycleItem extends Item {
+		private final String key;
+		private final ModernButton button;
+
+		ValueCycleItem(String key, int[] values, Supplier<Integer> getter, Consumer<Integer> setter, java.util.function.IntFunction<Component> label) {
+			this.key = key;
+			this.height = 24;
+			this.searchable = true;
+			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
+			this.searchText = Component.translatable("fancybars.config." + key).getString() + " " + this.tooltip.getString();
+			ModernButton[] holder = new ModernButton[1];
+			holder[0] = new ModernButton(70, 18, label.apply(getter.get()), () -> {
+				int current = getter.get();
+				int next = values[0];
+				for (int i = 0; i < values.length; i++) {
+					if (values[i] == current) {
+						next = values[(i + 1) % values.length];
+						break;
+					}
+				}
+				setter.accept(next);
+				FancyBarsConfig.save();
+				holder[0].setMessage(label.apply(next));
+			});
+			this.button = holder[0];
+			widgets.add(button);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			button.setPosition(x + w - button.getWidth() - 8, y + (height - button.getHeight()) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 100), x + 10, y, height, Theme.TEXT);
+		}
+	}
+
+	/** A labelled colour swatch. */
+	private class SwatchItem extends Item {
+		private final String key;
+		private final ColorSwatch swatch;
+
+		SwatchItem(String key, Supplier<Color> getter, Consumer<Color> setter) {
+			this.key = key;
+			this.height = 24;
+			this.searchable = true;
+			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
+			this.searchText = Component.translatable("fancybars.config." + key).getString() + " colour color";
+			swatch = new ColorSwatch(Component.translatable("fancybars.config." + key), getter, color -> {
+				setter.accept(color);
+				FancyBarsConfig.save();
+			});
+			widgets.add(swatch);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			swatch.setPosition(x + w - SWATCH - 12, y + (height - SWATCH) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 60), x + 10, y, height, Theme.TEXT);
 		}
 	}
 

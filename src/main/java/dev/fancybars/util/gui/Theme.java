@@ -153,6 +153,10 @@ public final class Theme {
 	 * snapped to the physical pixel grid so it stays crisp.
 	 */
 	public static void drawAtCapTop(GuiGraphicsExtractor graphics, Font font, Component styledText, float x, float capTop, float capHeight, int color) {
+		drawAtCapTop(graphics, font, styledText, x, capTop, capHeight, color, false);
+	}
+
+	public static void drawAtCapTop(GuiGraphicsExtractor graphics, Font font, Component styledText, float x, float capTop, float capHeight, int color, boolean shadow) {
 		float scale = guiScale();
 		float originY = capTop + capHeight - BASELINE;
 		float sx = Math.round(x * scale) / scale;
@@ -160,7 +164,7 @@ public final class Theme {
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(sx, sy);
-		graphics.text(font, styledText, 0, 0, color, false);
+		graphics.text(font, styledText, 0, 0, color, shadow);
 		pose.popMatrix();
 	}
 
