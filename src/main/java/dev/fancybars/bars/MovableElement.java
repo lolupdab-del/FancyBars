@@ -836,5 +836,131 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY};
+	// ---------------------------------------------------------------- Melody / terminals (Odin)
+
+	MovableElement MELODY = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			float[] p = dev.fancybars.dungeons.MelodyMessage.position(screenW, screenH);
+			int[] s = dev.fancybars.dungeons.MelodyMessage.size(true);
+			return new float[]{p[0], p[1], s[0] * scale(), s[1] * scale()};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			float[] p = dev.fancybars.dungeons.MelodyMessage.position(screenW, screenH);
+			dev.fancybars.dungeons.MelodyMessage.renderAt(graphics, p[0], p[1], scale(), true);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			c.melodyX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			c.melodyY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().melodyScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().melodyScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().melodyGui;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().melodyGui = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.melodyX = -1;
+			c.melodyY = -1;
+			c.melodyScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.melody");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement TERM_INFO = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			float[] p = dev.fancybars.dungeons.TerminalsStatus.position(screenW, screenH);
+			int[] s = dev.fancybars.dungeons.TerminalsStatus.size();
+			return new float[]{p[0], p[1], s[0] * scale(), s[1] * scale()};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			float[] p = dev.fancybars.dungeons.TerminalsStatus.position(screenW, screenH);
+			dev.fancybars.dungeons.TerminalsStatus.renderAt(graphics, p[0], p[1], scale());
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			c.termX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			c.termY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().termScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().termScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().termHud;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().termHud = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.termX = -1;
+			c.termY = -1;
+			c.termScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.termInfo");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY, MELODY, TERM_INFO};
 }

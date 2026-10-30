@@ -331,6 +331,29 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.SECRETS.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.melody"), Component.translatable("fancybars.melody.description")));
+				list.add(new ToggleItem("melodyEnabled", () -> config.melodyEnabled, value -> config.melodyEnabled = value));
+				list.add(new ToggleItem("melodyProgress", () -> config.melodyProgress, value -> config.melodyProgress = value));
+				list.add(new ToggleItem("melodySendCoords", () -> config.melodySendCoords, value -> config.melodySendCoords = value));
+				list.add(new ToggleItem("melodyGui", () -> config.melodyGui, value -> config.melodyGui = value));
+				list.add(new ValueCycleItem("melodyShowPlayer", new int[]{0, 1, 2, 3}, () -> config.melodyShowPlayer, value -> config.melodyShowPlayer = value,
+						value -> Component.translatable("fancybars.melody.showPlayer." + value)));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.MELODY.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.terminals"), Component.translatable("fancybars.terminals.description")));
+				list.add(new ToggleItem("termStatusEnabled", () -> config.termStatusEnabled, value -> config.termStatusEnabled = value));
+				list.add(new ToggleItem("termHud", () -> config.termHud, value -> config.termHud = value));
+				list.add(new ValueCycleItem("termShow", new int[]{0, 1, 2, 3, 4}, () -> config.termShow, value -> config.termShow = value,
+						value -> Component.translatable("fancybars.terminals.show." + value)));
+				list.add(new ValueCycleItem("termStyle", new int[]{0, 1, 2, 3}, () -> config.termStyle, value -> config.termStyle = value,
+						value -> Component.translatable("fancybars.terminals.style." + value)));
+				list.add(new SwatchItem("termColor", () -> new Color(config.termColor, false), color -> config.termColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("termThroughWalls", () -> config.termThroughWalls, value -> config.termThroughWalls = value));
+				list.add(new ToggleItem("termHideDefault", () -> config.termHideDefault, value -> config.termHideDefault = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TERM_INFO.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.rareDrops"), null));
 				list.add(new RareDropsPreviewItem());
 				list.add(new ToggleItem("rareDropsEnabled", () -> config.rareDropsEnabled, value -> config.rareDropsEnabled = value));

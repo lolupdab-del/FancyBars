@@ -156,6 +156,53 @@ public class FancyBarsConfig {
 	/** File name → settings. */
 	public java.util.Map<String, ScreenImage> screenImages = new java.util.HashMap<>();
 
+	// ---------------------------------------------------------------- Melody Message (Odin)
+
+	public boolean melodyEnabled = true;
+
+	/** Tell the party "Melody 33%" / "Melody 67%". */
+	public boolean melodyProgress = false;
+
+	/** Send your coordinates to party chat when opening melody. */
+	public boolean melodySendCoords = false;
+
+	/** Melody progress HUD. */
+	public boolean melodyGui = true;
+
+	/** 0 none, 1 class, 2 name, 3 class and name. */
+	public int melodyShowPlayer = 0;
+
+	public float melodyX = -1;
+
+	public float melodyY = -1;
+
+	public float melodyScale = 1;
+
+	// ---------------------------------------------------------------- Terminals Status (Odin)
+
+	public boolean termStatusEnabled = true;
+
+	/** Term Info HUD. */
+	public boolean termHud = false;
+
+	/** 0 all, 1 terms & levers, 2 terminals, 3 devices, 4 levers. */
+	public int termShow = 0;
+
+	/** 0 box, text & beacon, 1 box & text, 2 box, 3 text. */
+	public int termStyle = 0;
+
+	public int termColor = 0xFFFF55;
+
+	public boolean termThroughWalls = true;
+
+	public boolean termHideDefault = true;
+
+	public float termX = -1;
+
+	public float termY = -1;
+
+	public float termScale = 1;
+
 	// ---------------------------------------------------------------- Commands
 
 	public boolean calculatorEnabled = true;
@@ -529,6 +576,8 @@ public class FancyBarsConfig {
 			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
 			if (instance.spotifyScale <= 0) instance.spotifyScale = 1;
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
+			if (instance.melodyScale <= 0) instance.melodyScale = 1;
+			if (instance.termScale <= 0) instance.termScale = 1;
 			if (instance.commandAliases == null) instance.commandAliases = new java.util.ArrayList<>();
 			if (instance.shitterList == null) instance.shitterList = new java.util.ArrayList<>();
 			if (instance.spotifyClientId == null) instance.spotifyClientId = "";

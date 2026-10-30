@@ -61,6 +61,8 @@ No JDK? Push this folder to a GitHub repo: the included workflow builds it, and 
 
 ## Credits
 
+- Melody Message and Terminals Status ported from [Odin](https://github.com/odtheking/OdinFabric) (BSD-3-Clause).
+
 - Chat toggles ported from [Skytils](https://github.com/Skytils/SkytilsMod) (AGPL-3.0) Spam Hider.
 - Item customization (paintbrush) from Skyblocker.
 
