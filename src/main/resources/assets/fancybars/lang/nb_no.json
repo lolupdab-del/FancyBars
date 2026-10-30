@@ -1,0 +1,17 @@
+{
+	"fancybars.bars.config.air": "Luft",
+	"fancybars.bars.config.commonPosition.LEFT": "Venstre",
+	"fancybars.bars.config.commonPosition.RIGHT": "Høyre",
+	"fancybars.bars.config.explanationTitle": "Hva er dette?",
+	"fancybars.bars.config.hide": "Gjem",
+	"fancybars.bars.config.intelligence": "Intelligens",
+	"fancybars.bars.config.mainColor": "Hoved Farge",
+	"fancybars.bars.config.showMax": "Vis Maks",
+	"fancybars.bars.config.speed": "Fart",
+	"fancybars.bars.config.text": "Tekst",
+	"fancybars.bars.config.textColor": "Tekst Farge",
+	"fancybars.bars.config.textPosition.CENTER": "Senter",
+	"fancybars.config.enableBars": "Aktiver Barer",
+	"fancybars.config.enableBarsRift": "Aktiver i Rift",
+	"fancybars.config.intelligenceDisplay.ORIGINAL": "Opprinnelig"
+}

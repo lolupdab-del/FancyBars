@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "fancybars",
+	"version": "${version}",
+	"name": "Fancy Bars",
+	"description": "Skyblocker's Fancy Status Bars for Hypixel SkyBlock as a standalone mod: customizable health, mana, defense, vitality, speed, air and XP bars. Run /fancybars to edit the layout.",
+	"authors": ["Skyblocker team (original code)"],
+	"contact": {
+		"sources": "https://github.com/SkyblockerMod/Skyblocker"
+	},
+	"license": "LGPL-3.0-or-later",
+	"icon": "assets/fancybars/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.fancybars.FancyBarsMod"],
+		"modmenu": ["dev.fancybars.compat.ModMenuEntry"]
+	},
+	"mixins": ["fancybars.mixins.json"],
+	"accessWidener": "fancybars.classtweaker",
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"fabric-api": ">=0.157.0+26.2",
+		"minecraft": "~26.2",
+		"java": ">=25"
+	}
+}

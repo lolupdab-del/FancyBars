@@ -1,0 +1,23 @@
+{
+	"fancybars.bars.config.air": "Udara",
+	"fancybars.bars.config.commonPosition.LEFT": "Kiri",
+	"fancybars.bars.config.commonPosition.RIGHT": "Kanan",
+	"fancybars.bars.config.defense": "Perlindungan",
+	"fancybars.bars.config.experience": "Pengalaman",
+	"fancybars.bars.config.explanation": "Selamat datang di layar konfigurasi bilah status!\n\nSeret dan lepas bilah untuk menempelkannya ke jangkar (kotak putih), bilah yang sudah ada, atau Anda dapat meletakkannya di mana saja.\nAnda dapat mengklik kanan untuk mengedit berbagai properti.\nDengan mengarahkan kursor mouse di antara 2 bilah (kursor Anda akan berubah), Anda dapat mengubah ukurannya.\n\nSemua pengaturan akan tersimpan saat Anda keluar.",
+	"fancybars.bars.config.explanationTitle": "Apa ini?",
+	"fancybars.bars.config.health": "Kesehatan",
+	"fancybars.bars.config.hide": "Sembunyikan",
+	"fancybars.bars.config.icon": "Ikon",
+	"fancybars.bars.config.intelligence": "Kecerdasan",
+	"fancybars.bars.config.mainColor": "Warna Utama",
+	"fancybars.bars.config.overflowColor": "Warna Luapan",
+	"fancybars.bars.config.showMax": "Tampilkan Maksimum",
+	"fancybars.bars.config.showOverflow": "Tampilkan Luapan",
+	"fancybars.bars.config.speed": "Kecepatan",
+	"fancybars.bars.config.text": "Teks",
+	"fancybars.bars.config.textColor": "Warna Teks",
+	"fancybars.bars.config.textPosition.BAR_CENTER": "Pusat Bar",
+	"fancybars.bars.config.textPosition.CENTER": "Tengah",
+	"fancybars.config.enableBars": "Aktifkan Bar"
+}

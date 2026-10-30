@@ -1,0 +1,9 @@
+{
+	"fancybars.bars.config.defense": "Defence",
+	"fancybars.bars.config.mainColor": "Main Colour",
+	"fancybars.bars.config.overflowColor": "Overflow Colour",
+	"fancybars.bars.config.textColor": "Text Colour",
+	"fancybars.bars.config.textPosition.BAR_CENTER": "Bar Centre",
+	"fancybars.bars.config.textPosition.CENTER": "Centre",
+	"fancybars.config.enableBars.@Tooltip": "Enables the fancy Health, Mana, Defence, Vitality, Speed, and XP Bars."
+}

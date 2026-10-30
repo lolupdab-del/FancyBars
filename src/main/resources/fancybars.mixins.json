@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "dev.fancybars.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"FontAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

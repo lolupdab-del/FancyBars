@@ -1,0 +1,23 @@
+{
+	"fancybars.bars.config.air": "ว่างเปล่า",
+	"fancybars.bars.config.commonPosition.LEFT": "ซ้าย",
+	"fancybars.bars.config.commonPosition.OFF": "ปิด",
+	"fancybars.bars.config.commonPosition.RIGHT": "ขวา",
+	"fancybars.bars.config.defense": "พลังป้องกัน",
+	"fancybars.bars.config.experience": "ค่าประสบการณ์",
+	"fancybars.bars.config.health": "เลือด",
+	"fancybars.bars.config.hide": "ซ่อน",
+	"fancybars.bars.config.icon": "สัญลักษณ์",
+	"fancybars.bars.config.intelligence": "มานา",
+	"fancybars.bars.config.mainColor": "สีหลัก",
+	"fancybars.bars.config.overflowColor": "สีที่หลากหลาย",
+	"fancybars.bars.config.showMax": "แสดงค่าสูงสุด",
+	"fancybars.bars.config.showOverflow": "แสดงค่าล้น",
+	"fancybars.bars.config.speed": "ความเร็ว",
+	"fancybars.bars.config.text": "ข้อความ",
+	"fancybars.bars.config.textColor": "สีของข้อความ",
+	"fancybars.bars.config.textPosition.BAR_CENTER": "กึ่งกลางของบาร์",
+	"fancybars.bars.config.textPosition.CENTER": "กึ่งกลาง",
+	"fancybars.config.hideMana": "ซ่อนมานาที่ใช้ไปตรง Action Bar",
+	"fancybars.config.hideMana.@Tooltip": "ให้ฟีลลิงที่ดีขึ้นเมื่อใช้แถบสถานะแฟนซี"
+}

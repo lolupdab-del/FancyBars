@@ -1,0 +1,75 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = "${project.mod_version}+${project.minecraft_version}"
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// HM API (Hypixel Mod API)
+	maven {
+		url = "https://maven.azureaaron.net/releases"
+		content {
+			includeGroup "net.azureaaron"
+		}
+	}
+
+	// Mod Menu
+	exclusiveContent {
+		forRepository {
+			maven {
+				name = "Modrinth"
+				url = "https://api.modrinth.com/maven"
+			}
+		}
+		filter {
+			includeGroup "maven.modrinth"
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	include implementation("net.azureaaron:hm-api:${project.hm_api_version}")
+
+	compileOnly "maven.modrinth:modmenu:${project.mod_menu_version}"
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/fancybars.classtweaker")
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+jar {
+	def archivesName = project.base.archivesName
+	inputs.property "archivesName", archivesName.get()
+
+	from("LICENSE") {
+		rename { "${it}_${archivesName.get()}" }
+	}
+}

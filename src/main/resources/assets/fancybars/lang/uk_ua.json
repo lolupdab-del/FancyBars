@@ -1,0 +1,14 @@
+{
+	"fancybars.bars.config.air": "Повітря",
+	"fancybars.bars.config.explanation": "Вітаємо на екрані конфігурації панелей статусів!\n\nПеретягуйте панелі, щоб прив'язати їх до якорей (білих квадратів), інших панелей або деінде.\nНатискайте ПКМ на них, щоб змінювати їхні властивості.\nНавівши курсор між двома панелями (він повинен змінитися), можна змінювати їхній розмір.\n\nНалаштування зберігаються при виході.",
+	"fancybars.bars.config.explanationTitle": "Що це?",
+	"fancybars.bars.config.health": "Здоров'я",
+	"fancybars.bars.config.icon": "Значок",
+	"fancybars.bars.config.intelligence": "Інтелект",
+	"fancybars.bars.config.mainColor": "Основний колір",
+	"fancybars.bars.config.speed": "Швидкість",
+	"fancybars.bars.config.text": "Текст",
+	"fancybars.bars.config.textColor": "Колір тексту",
+	"fancybars.bars.config.textPosition.BAR_CENTER": "Центр панелі",
+	"fancybars.bars.config.textPosition.CENTER": "Центр"
+}
