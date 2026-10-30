@@ -195,7 +195,7 @@ public class ItemProtection {
 
 	private static MutableComponent prefix() {
 		return Component.literal("[").withStyle(ChatFormatting.DARK_GRAY)
-				.append(Component.literal("Fancy Bars").withColor(0x7CC8FF))
+				.append(Component.literal("ShikiClient").withColor(0x7CC8FF))
 				.append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY));
 	}
 

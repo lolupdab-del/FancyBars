@@ -116,9 +116,6 @@ public class FancyBarsConfig {
 
 	public boolean rareDropsHud = true;
 
-	/** Show the tracker HUD everywhere on SkyBlock instead of only in dungeons and the Dungeon Hub. */
-	public boolean rareDropsHudEverywhere = false;
-
 	public boolean rareDropsBackground = true;
 
 	public boolean rareDropsChat = true;

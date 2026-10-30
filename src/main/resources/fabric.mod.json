@@ -2,9 +2,11 @@
 	"schemaVersion": 1,
 	"id": "fancybars",
 	"version": "${version}",
-	"name": "Fancy Bars",
-	"description": "Skyblocker's Fancy Status Bars for Hypixel SkyBlock as a standalone mod: customizable health, mana, defense, vitality, speed, air and XP bars. Run /fancybars to edit the layout.",
-	"authors": ["Skyblocker team (original code)"],
+	"name": "ShikiClient",
+	"description": "Hypixel SkyBlock client mod: customizable status bars, action bar, dungeon secrets display, rare drop tracker, item protection, backpack previews and inventory GIFs. Run /shikiclient to open the menu.",
+	"authors": [
+		"Skyblocker team (original code)"
+	],
 	"contact": {
 		"sources": "https://github.com/SkyblockerMod/Skyblocker"
 	},
@@ -12,10 +14,16 @@
 	"icon": "assets/fancybars/icon.png",
 	"environment": "client",
 	"entrypoints": {
-		"client": ["dev.fancybars.FancyBarsMod"],
-		"modmenu": ["dev.fancybars.compat.ModMenuEntry"]
+		"client": [
+			"dev.fancybars.FancyBarsMod"
+		],
+		"modmenu": [
+			"dev.fancybars.compat.ModMenuEntry"
+		]
 	},
-	"mixins": ["fancybars.mixins.json"],
+	"mixins": [
+		"fancybars.mixins.json"
+	],
 	"accessWidener": "fancybars.classtweaker",
 	"depends": {
 		"fabricloader": ">=0.19.3",

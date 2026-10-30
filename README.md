@@ -1,4 +1,4 @@
-# Fancy Bars
+# ShikiClient
 
 Skyblocker's **Fancy Status Bars** for Hypixel SkyBlock, pulled out into a standalone Fabric mod.
 
@@ -12,10 +12,10 @@ plus the optional vanilla-style mana bar.
 
 | Command | What it does |
 |---|---|
-| `/fancybars` | Open the Fancy Bars menu (also via Mod Menu): Home, Bars (switch each bar and its icon on/off, recolour bars, overflow mana, absorption and text), Style (Classic / Segmented / SkyblockAddons), General and Vanilla Mana pages, with search |
-| `/fancybars edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
-| `/fancybars config` | Open the menu on the General page |
-| `/fancybars protect` | Protect / unprotect the held item (or press **V**, also works while hovering items in inventories) |
+| `/shikiclient` | Open the Fancy Bars menu (also via Mod Menu): Home, Bars (switch each bar and its icon on/off, recolour bars, overflow mana, absorption and text), Style (Classic / Segmented / SkyblockAddons), General and Vanilla Mana pages, with search |
+| `/shikiclient edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
+| `/shikiclient config` | Open the menu on the General page |
+| `/shikiclient protect` | Protect / unprotect the held item (or press **V**, also works while hovering items in inventories) |
 
 **Item protection** (from Skyblocker): protected items can't be dropped, sold to NPCs, salvaged, traded or auctioned. The star shown on them can be recoloured and put in any corner (menu → Items).
 
@@ -23,7 +23,7 @@ plus the optional vanilla-style mana bar.
 
 **Dungeon secrets display** (from SkyblockAddons): chest icon + "Secrets" + found/total for the current room, colour coded. The chest icon and the word can each be turned off; move/scale it in the editor.
 
-**Rare drop tracker** (Dungeons page): counts rare dungeon chest drops (Necron's Handle, master stars, scrolls, Dark Claymore, Giant's Sword, Recombobulators, …, plus anything Hypixel marks "RARE REWARD!"), your runs and runs since your last rare drop. Movable HUD, a chat message on each drop, recent drop history, and each item can be untracked. Data is in `config/fancybars/rare-drops.json`.
+**Rare drop tracker** (Dungeons page): counts rare dungeon chest drops (Necron's Handle, master stars, scrolls, Dark Claymore, Giant's Sword, Recombobulators, …, plus anything Hypixel marks "RARE REWARD!"), your runs and runs since your last rare drop. Movable HUD (shown in the Dungeon Hub), a chat message on each drop, recent drop history, and each item can be untracked. Data is in `config/fancybars/rare-drops.json`.
 
 **Backpack preview** (from Skyblocker): hover a backpack or ender chest page in the Storage menu to see its contents.
 

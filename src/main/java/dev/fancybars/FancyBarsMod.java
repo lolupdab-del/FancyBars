@@ -71,12 +71,16 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.actionbar.ActionBar.init();
 		BackpackPreview.init();
 
-		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> dispatcher.register(
-				ClientCommands.literal(NAMESPACE)
+		// /shikiclient, with /fancybars kept as an alias
+		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> {
+			for (String name : new String[]{"shikiclient", NAMESPACE}) {
+				dispatcher.register(ClientCommands.literal(name)
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
-						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.GENERAL))))));
+						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.GENERAL)))));
+			}
+		});
 	}
 
 	/**

@@ -298,7 +298,6 @@ public class BarsMenuScreen extends Screen {
 				list.add(new RareDropsPreviewItem());
 				list.add(new ToggleItem("rareDropsEnabled", () -> config.rareDropsEnabled, value -> config.rareDropsEnabled = value));
 				list.add(new ToggleItem("rareDropsHud", () -> config.rareDropsHud, value -> config.rareDropsHud = value));
-				list.add(new ToggleItem("rareDropsHudEverywhere", () -> config.rareDropsHudEverywhere, value -> config.rareDropsHudEverywhere = value));
 				list.add(new ToggleItem("rareDropsBackground", () -> config.rareDropsBackground, value -> config.rareDropsBackground = value));
 				list.add(new ToggleItem("rareDropsChat", () -> config.rareDropsChat, value -> config.rareDropsChat = value));
 				list.add(new ButtonRowItem(

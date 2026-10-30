@@ -118,8 +118,7 @@ public final class RareDropTracker {
 	public static boolean shouldShowHud() {
 		FancyBarsConfig config = FancyBarsConfig.get();
 		if (!config.rareDropsEnabled || !config.rareDropsHud) return false;
-		if (config.rareDropsHudEverywhere) return SkyblockLocation.isOnSkyblock();
-		return SkyblockLocation.isInDungeons() || SkyblockLocation.isInDungeonHub();
+		return SkyblockLocation.isInDungeonHub();
 	}
 
 	public static boolean isTracked(String item) {
@@ -193,7 +192,7 @@ public final class RareDropTracker {
 		if (FancyBarsConfig.get().rareDropsChat && Minecraft.getInstance().player != null) {
 			RareItem known = find(item);
 			String color = known != null ? known.color() : "§d";
-			Minecraft.getInstance().player.sendSystemMessage(Component.literal("§b[Fancy Bars] §d§lRARE DROP! §r" + color + item
+			Minecraft.getInstance().player.sendSystemMessage(Component.literal("§d[ShikiClient] §d§lRARE DROP! §r" + color + item
 					+ " §7(#" + data.counts.get(item) + (sinceLast > 0 ? ", " + sinceLast + " runs since last rare drop" : "") + ")"));
 		}
 	}
