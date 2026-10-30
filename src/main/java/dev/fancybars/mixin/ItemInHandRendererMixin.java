@@ -66,7 +66,7 @@ public abstract class ItemInHandRendererMixin {
 		}
 
 		// "Swing in Place": undo the swing's sideways / up / forward movement, keep the rotation
-		if (c.viewmodelSwingInPlace && !c.viewmodelNoSwing && swingProgress > 0 && !player.isUsingItem() && !stack.is(Items.CROSSBOW) && !stack.is(Items.FILLED_MAP)) {
+		if (c.viewmodelSwingInPlace && !(empty && c.viewmodelSwingInPlaceItemsOnly) && !c.viewmodelNoSwing && swingProgress > 0 && !player.isUsingItem() && !stack.is(Items.CROSSBOW) && !stack.is(Items.FILLED_MAP)) {
 			float root = (float) Math.sqrt(swingProgress);
 			if (empty) {
 				float dx = -0.3f * (float) Math.sin(root * Math.PI);

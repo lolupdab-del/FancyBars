@@ -318,6 +318,8 @@
 	"fancybars.config.viewmodelScale.@Tooltip": "How big it is.",
 	"fancybars.config.viewmodelSwingInPlace": "Swing in Place",
 	"fancybars.config.viewmodelSwingInPlace.@Tooltip": "Your hand swings without moving around the screen: it only tilts.",
+	"fancybars.config.viewmodelSwingInPlaceItemsOnly": "Swing in Place: Items Only",
+	"fancybars.config.viewmodelSwingInPlaceItemsOnly.@Tooltip": "Only swing in place while holding an item; your empty hand swings normally.",
 	"fancybars.config.viewmodelSwingSpeed": "Swing Speed",
 	"fancybars.config.viewmodelSwingSpeed.@Tooltip": "How fast your hand swings (100% = normal, higher = faster). Visual only.",
 	"fancybars.config.viewmodelX": "Left / Right",

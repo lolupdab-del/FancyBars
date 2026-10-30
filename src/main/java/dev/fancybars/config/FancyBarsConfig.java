@@ -185,6 +185,9 @@ public class FancyBarsConfig {
 	/** Swing without the hand moving around (rotation only). */
 	public boolean viewmodelSwingInPlace = false;
 
+	/** Swing in Place only when holding an item; the empty hand swings normally. */
+	public boolean viewmodelSwingInPlaceItemsOnly = false;
+
 	/** Swing animation speed multiplier (1 = normal). */
 	public float viewmodelSwingSpeed = 1;
 
