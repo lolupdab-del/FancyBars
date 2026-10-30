@@ -1,14 +1,4 @@
-net.minecraft.client.renderer.SubmitNodeCollector
-net.minecraft.client.renderer.SubmitNodeCollector$CustomGeometryRenderer
-net.minecraft.client.renderer.rendertype.RenderTypes
-net.minecraft.client.renderer.blockentity.BeaconRenderer
-net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
-net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
-net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents$CollectSubmits
+net.minecraft.client.renderer.OrderedSubmitNodeCollector
+com.mojang.blaze3d.vertex.VertexConsumer
 net.minecraft.client.renderer.state.level.LevelRenderState
-net.minecraft.client.renderer.state.level.CameraRenderState
-net.minecraft.client.renderer.ShapeRenderer
-net.minecraft.world.item.Items
-net.minecraft.client.renderer.entity.ArmorStandRenderer
-net.minecraft.world.entity.decoration.ArmorStand
-net.minecraft.client.renderer.RenderPipelines
+net.minecraft.world.item.DyeColor
