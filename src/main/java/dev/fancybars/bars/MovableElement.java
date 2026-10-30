@@ -771,5 +771,70 @@ public interface MovableElement {
 		return list;
 	}
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR};
+	// ---------------------------------------------------------------- Spotify
+
+	MovableElement SPOTIFY = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			float[] pos = dev.fancybars.spotify.SpotifyHud.position(screenW, screenH);
+			float s = scale();
+			return new float[]{pos[0], pos[1], dev.fancybars.spotify.SpotifyHud.WIDTH * s, dev.fancybars.spotify.SpotifyHud.HEIGHT * s};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			float[] pos = dev.fancybars.spotify.SpotifyHud.position(screenW, screenH);
+			dev.fancybars.spotify.Spotify.State s = dev.fancybars.spotify.Spotify.state().active ? dev.fancybars.spotify.Spotify.state() : dev.fancybars.spotify.SpotifyHud.sample();
+			dev.fancybars.spotify.SpotifyHud.renderAt(graphics, pos[0], pos[1], scale(), s, enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			c.spotifyX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			c.spotifyY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().spotifyScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().spotifyScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().spotifyHud;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().spotifyHud = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.spotifyX = -1;
+			c.spotifyY = -1;
+			c.spotifyScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.spotify");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY};
 }

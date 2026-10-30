@@ -156,6 +156,21 @@ public class FancyBarsConfig {
 	/** File name → settings. */
 	public java.util.Map<String, ScreenImage> screenImages = new java.util.HashMap<>();
 
+	// ---------------------------------------------------------------- Spotify
+
+	public boolean spotifyEnabled = true;
+
+	public boolean spotifyHud = true;
+
+	/** Your own Spotify app's Client ID (developer.spotify.com). */
+	public String spotifyClientId = "";
+
+	public float spotifyX = -1;
+
+	public float spotifyY = -1;
+
+	public float spotifyScale = 1;
+
 	// ---------------------------------------------------------------- Crosshair
 
 	public boolean crosshairEnabled = false;
@@ -481,6 +496,8 @@ public class FancyBarsConfig {
 			if (instance.hotbarScale <= 0) instance.hotbarScale = 1;
 			if (instance.crosshairSize < 5 || instance.crosshairSize % 2 == 0) instance.crosshairSize = 15;
 			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
+			if (instance.spotifyScale <= 0) instance.spotifyScale = 1;
+			if (instance.spotifyClientId == null) instance.spotifyClientId = "";
 			if (instance.viewmodelItemScale <= 0) instance.viewmodelItemScale = 1;
 			if (instance.viewmodelArmScale <= 0) instance.viewmodelArmScale = 1;
 			if (instance.viewmodelSwingSpeed <= 0) instance.viewmodelSwingSpeed = 1;

@@ -421,6 +421,18 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
 			}
+			case SPOTIFY -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.spotify"), null));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.spotify.open"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.spotify.SpotifyScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)))));
+				list.add(new ToggleItem("spotifyEnabled", () -> config.spotifyEnabled, value -> config.spotifyEnabled = value));
+				list.add(new ToggleItem("spotifyHud", () -> config.spotifyHud, value -> config.spotifyHud = value));
+				list.add(new InfoCardItem(Component.translatable("fancybars.spotify.aboutTitle"), List.of(
+						Component.translatable(dev.fancybars.spotify.Spotify.connected() ? "fancybars.spotify.connected" : "fancybars.spotify.notConnected"),
+						Component.translatable("fancybars.spotify.premium"),
+						Component.translatable("fancybars.spotify.keys")), false));
+			}
 			case CHAT -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.chatTabs"), null));
 				list.add(new ToggleItem("chatTabsEnabled", () -> config.chatTabsEnabled, value -> {
@@ -761,6 +773,7 @@ public class BarsMenuScreen extends Screen {
 		HUD("fancybars.category.hud"),
 		MINING("fancybars.category.mining"),
 		CHAT("fancybars.category.chat"),
+		SPOTIFY("fancybars.category.spotify"),
 		PLAYER("fancybars.category.player"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
