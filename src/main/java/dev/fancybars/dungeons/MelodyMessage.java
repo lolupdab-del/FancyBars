@@ -60,7 +60,7 @@ public final class MelodyMessage {
 	public static void init() {
 		ClientTickEvents.END_CLIENT_TICK.register(MelodyMessage::tick);
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
-			if (overlay || !F7Phase.inP3()) return;
+			if (overlay || !dev.fancybars.util.SkyblockLocation.isInDungeons()) return;
 			String text = ChatFormatting.stripFormatting(message.getString());
 			if (text == null) return;
 			Matcher m = PARTY_MELODY.matcher(text.trim());
@@ -79,9 +79,17 @@ public final class MelodyMessage {
 			data.updated = System.currentTimeMillis();
 		});
 		F7Phase.onEnd(MelodyMessage::reset);
+		dev.fancybars.util.SkyblockLocation.onLocationChange(MelodyMessage::reset);
+		net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			if (config.melodyEnabled && config.melodyGui && screen instanceof AbstractContainerScreen<?> container
+					&& MELODY_TITLE.equals(container.getTitle().getString())) {
+				net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(screen).add(new Overlay());
+			}
+		});
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("melody_progress"), (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
-			if (config.melodyEnabled && config.melodyGui && F7Phase.inP3() && hasRows()) render(graphics);
+			if (config.melodyEnabled && config.melodyGui && (F7Phase.inP3() || inMelody || !PLAYERS.isEmpty()) && hasRows()) render(graphics);
 		});
 	}
 
@@ -93,7 +101,7 @@ public final class MelodyMessage {
 
 	private static void tick(Minecraft mc) {
 		FancyBarsConfig config = FancyBarsConfig.get();
-		if (!config.melodyEnabled || mc.player == null || !F7Phase.inP3()) {
+		if (!config.melodyEnabled || mc.player == null) {
 			inMelody = false;
 			return;
 		}
@@ -149,12 +157,34 @@ public final class MelodyMessage {
 		return null;
 	}
 
+	/** Draws the progress GUI over the melody terminal screen (the HUD is hidden behind open screens). */
+	private static final class Overlay extends net.minecraft.client.gui.components.AbstractWidget {
+		Overlay() {
+			super(0, 0, 0, 0, Component.empty());
+			this.active = false;
+		}
+
+		@Override
+		protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+			graphics.nextStratum();
+			render(graphics);
+		}
+
+		@Override
+		protected void updateWidgetNarration(net.minecraft.client.gui.narration.NarrationElementOutput output) {}
+
+		@Override
+		public net.minecraft.client.gui.@Nullable ComponentPath nextFocusPath(net.minecraft.client.gui.navigation.FocusNavigationEvent event) {
+			return null;
+		}
+	}
+
 	// ---------------------------------------------------------------- Progress GUI
 
 	private static final int CELL = 9;
 
 	private static boolean hasRows() {
-		return !PLAYERS.isEmpty() || own.clay != null && FancyBarsConfig.get().melodyShowPlayer != 0;
+		return !PLAYERS.isEmpty() || own.clay != null || inMelody;
 	}
 
 	private static String classOf(String name) {
@@ -198,14 +228,13 @@ public final class MelodyMessage {
 			graphics.text(font, Component.literal(color + "■"), i * CELL, y, 0xFFFFFFFF, true);
 		}
 		String label = label(name);
-		if (data.clay != null) {
-			graphics.text(font, Component.literal("§e" + data.clay + "/4" + (label == null ? "" : " " + label)), 5 * CELL + 3, y, 0xFFFFFFFF, true);
-		}
+		String progress = data.clay != null ? "§e" + data.clay + "/4" : "§70/4";
+		graphics.text(font, Component.literal(progress + (label == null ? "" : " " + label)), 5 * CELL + 3, y, 0xFFFFFFFF, true);
 	}
 
 	public static int[] size(boolean sample) {
 		Font font = Minecraft.getInstance().font;
-		int rows = sample ? 2 : (PLAYERS.size() + (FancyBarsConfig.get().melodyShowPlayer != 0 && own.clay != null ? 1 : 0));
+		int rows = sample ? 2 : PLAYERS.size() + (own.clay != null || inMelody ? 1 : 0);
 		int labelW = font.width("4/4 BigMMan (archer)");
 		return new int[]{5 * CELL + 3 + labelW, Math.max(1, rows) * (CELL + 1)};
 	}
@@ -240,7 +269,7 @@ public final class MelodyMessage {
 			b.clay = 2;
 			drawRow(graphics, font, b, row, "Teammate");
 		} else {
-			if (FancyBarsConfig.get().melodyShowPlayer != 0 && own.clay != null) drawRow(graphics, font, own, row++, me);
+			if (own.clay != null || inMelody) drawRow(graphics, font, own, row++, me);
 			for (Map.Entry<String, Data> e : PLAYERS.entrySet()) drawRow(graphics, font, e.getValue(), row++, e.getKey());
 		}
 		pose.popMatrix();

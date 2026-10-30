@@ -294,7 +294,7 @@
 	"fancybars.config.melodySendCoords": "Melody Send Coords",
 	"fancybars.config.melodySendCoords.@Tooltip": "Sends your coordinates to party chat when you open the melody terminal.",
 	"fancybars.config.melodyShowPlayer": "Show Player",
-	"fancybars.config.melodyShowPlayer.@Tooltip": "How player details are shown in the progress GUI.",
+	"fancybars.config.melodyShowPlayer.@Tooltip": "Show your class and/or name next to each row (None = just the progress).",
 	"fancybars.config.ownNametagInF5": "Own Nametag in F5",
 	"fancybars.config.ownNametagInF5.@Tooltip": "Show your own nametag above you in third person.",
 	"fancybars.config.playerSizeEnabled": "Custom Size",
