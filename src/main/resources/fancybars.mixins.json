@@ -19,6 +19,7 @@
 		"ItemInHandRendererMixin",
 		"ItemModelResolverMixin",
 		"ItemStackNameMixin",
+		"LivingEntitySwingMixin",
 		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor"

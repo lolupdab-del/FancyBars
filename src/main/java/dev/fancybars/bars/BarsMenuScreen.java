@@ -458,6 +458,9 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.viewmodel"), null));
 				list.add(new ToggleItem("viewmodelEnabled", () -> config.viewmodelEnabled, value -> config.viewmodelEnabled = value));
+				list.add(new ToggleItem("viewmodelIgnoreHaste", () -> config.viewmodelIgnoreHaste, value -> config.viewmodelIgnoreHaste = value));
+				list.add(new ToggleItem("viewmodelNoSwing", () -> config.viewmodelNoSwing, value -> config.viewmodelNoSwing = value));
+				list.add(new ToggleItem("viewmodelApplyToHand", () -> config.viewmodelApplyToHand, value -> config.viewmodelApplyToHand = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.viewmodel.item"), null));
 				list.add(new SliderItem("viewmodelX", -1, 1, 0.02f, false, () -> config.viewmodelItemX, value -> config.viewmodelItemX = value));
 				list.add(new SliderItem("viewmodelY", -1, 1, 0.02f, false, () -> config.viewmodelItemY, value -> config.viewmodelItemY = value));

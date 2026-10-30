@@ -1,4 +1,1 @@
-net.minecraft.client.renderer.ItemInHandRenderer
-net.minecraft.client.renderer.RenderPipelines
-net.minecraft.client.gui.Gui
-net.minecraft.client.gui.Hud
+net.minecraft.world.entity.LivingEntity

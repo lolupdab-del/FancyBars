@@ -173,6 +173,15 @@ public class FancyBarsConfig {
 
 	public boolean viewmodelEnabled = false;
 
+	/** Swing at normal speed even with Haste / Mining Fatigue. */
+	public boolean viewmodelIgnoreHaste = false;
+
+	/** No first-person swing animation. */
+	public boolean viewmodelNoSwing = false;
+
+	/** The empty hand uses the held item settings. */
+	public boolean viewmodelApplyToHand = false;
+
 	public float viewmodelItemX = 0;
 
 	public float viewmodelItemY = 0;
