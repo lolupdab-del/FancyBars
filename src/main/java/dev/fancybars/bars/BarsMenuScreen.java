@@ -354,6 +354,7 @@ public class BarsMenuScreen extends Screen {
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
+				list.add(new ToggleItem("shikiMode", () -> config.shikiMode, value -> config.shikiMode = value));
 				list.add(new ToggleItem("watermarkEnabled", () -> config.watermarkEnabled, value -> config.watermarkEnabled = value));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
@@ -400,16 +401,15 @@ public class BarsMenuScreen extends Screen {
 		int rightX = x0 + SIDEBAR_WIDTH + GAP;
 		int rightW = totalWidth - SIDEBAR_WIDTH - GAP;
 
-		// Panels
+		// Panels (the SBCLIENT gradient spans the whole menu, pink on the left to blue on the right)
+		Theme.gradientRange(x0, x0 + totalWidth);
 		Theme.panel(graphics, x0, y0, SIDEBAR_WIDTH, TOP_HEIGHT);
 		Theme.panel(graphics, rightX, y0, rightW, TOP_HEIGHT);
 		Theme.panel(graphics, x0, y0 + TOP_HEIGHT + GAP, SIDEBAR_WIDTH, totalHeight - TOP_HEIGHT - GAP);
 		Theme.panel(graphics, rightX, y0 + TOP_HEIGHT + GAP, rightW, totalHeight - TOP_HEIGHT - GAP);
 
-		// Title: "Shiki" in pink, "Client" in white, measured as one string and centred exactly in the box
-		Component titleText = Theme.title(Component.empty()
-				.append(Component.translatable("fancybars.menu.titleAccent").withColor(Theme.ACCENT & 0xFFFFFF))
-				.append(Component.translatable("fancybars.menu.titleRest").withColor(Theme.TEXT & 0xFFFFFF)));
+		// Title: SBCLIENT (S pink, B blue, CLIENT pink → blue) or ShikiClient in SHIKIMODE, measured as one string and centred exactly in the box
+		Component titleText = Theme.title(Theme.brand());
 		// Thumbnail + title, centred together; the text shrinks if it would not fit
 		int iconSize = 18;
 		int iconGap = 5;
@@ -418,7 +418,7 @@ public class BarsMenuScreen extends Screen {
 		float textScale = Math.min(1, maxText / textW);
 		float groupW = iconSize + iconGap + textW * textScale;
 		float gx = x0 + (SIDEBAR_WIDTH - groupW) / 2f;
-		dev.fancybars.hud.Watermark.drawIcon(graphics, gx, y0 + (TOP_HEIGHT - iconSize) / 2f, iconSize, 255);
+		dev.fancybars.hud.Watermark.drawIcon(graphics, Theme.brandIcon(), gx, y0 + (TOP_HEIGHT - iconSize) / 2f, iconSize, 255);
 		float textX = gx + iconSize + iconGap;
 		float capTop = y0 + (TOP_HEIGHT - Theme.TITLE_CAP * textScale) / 2f;
 		org.joml.Matrix3x2fStack titlePose = graphics.pose();
@@ -743,7 +743,7 @@ public class BarsMenuScreen extends Screen {
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
 			int tx = x + 12;
 			Component heading = accentTitle
-					? Component.empty().append(Component.translatable("fancybars.menu.titleAccent").withColor(Theme.ACCENT & 0xFFFFFF)).append(" ").append(title.copy().withColor(Theme.TEXT & 0xFFFFFF))
+					? Component.empty().append(Theme.brand()).append(" ").append(title.copy().withColor(Theme.TEXT & 0xFFFFFF))
 					: title.copy().withColor(Theme.TEXT & 0xFFFFFF);
 			Theme.titleInBox(graphics, font, heading, tx, y + 6, 20, 0xFFFFFFFF);
 			int ly = y + 32;

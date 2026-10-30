@@ -110,6 +110,9 @@ public class FancyBarsConfig {
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
 
+	/** SHIKIMODE: the pink ShikiClient look and logo instead of SBCLIENT's pink → blue gradient. */
+	public boolean shikiMode = false;
+
 	// ---------------------------------------------------------------- Watermark
 
 	public boolean watermarkEnabled = true;

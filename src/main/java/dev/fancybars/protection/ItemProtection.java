@@ -27,6 +27,7 @@ import net.minecraft.world.item.component.CustomData;
 
 import dev.fancybars.FancyBarsMod;
 import dev.fancybars.config.FancyBarsConfig;
+import dev.fancybars.util.gui.Theme;
 import dev.fancybars.mixin.CustomDataAccessor;
 import dev.fancybars.util.ItemUtils;
 import dev.fancybars.util.SkyblockLocation;
@@ -194,9 +195,7 @@ public class ItemProtection {
 	}
 
 	private static MutableComponent prefix() {
-		return Component.literal("[").withStyle(ChatFormatting.DARK_GRAY)
-				.append(Component.literal("ShikiClient").withColor(0xFF8FC8))
-				.append(Component.literal("] ").withStyle(ChatFormatting.DARK_GRAY));
+		return Theme.chatPrefix();
 	}
 
 	// ---------------------------------------------------------------- Star rendering

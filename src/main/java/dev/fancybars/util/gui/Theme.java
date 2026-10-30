@@ -243,10 +243,11 @@ public final class Theme {
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
 		if (radius <= 1 || Math.min(width, height) < 4) {
-			graphics.fill(x, y, x + width, y + height, color);
+			paintGradient(graphics, x, y, width, height, color, c -> graphics.fill(x, y, x + width, y + height, c));
 			return;
 		}
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, RECTS[radiusIndex(radius, width, height)], x, y, width, height, color);
+		Identifier sprite = RECTS[radiusIndex(radius, width, height)];
+		paintGradient(graphics, x, y, width, height, color, c -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, c));
 	}
 
 	/**
@@ -269,7 +270,8 @@ public final class Theme {
 	 */
 	public static void roundedOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(radius, width, height)], x, y, width, height, color);
+		Identifier sprite = OUTLINES[radiusIndex(radius, width, height)];
+		paintGradient(graphics, x, y, width, height, color, c -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, c));
 	}
 
 	/**
@@ -281,7 +283,7 @@ public final class Theme {
 	}
 
 	public static void circle(GuiGraphicsExtractor graphics, int x, int y, int size, int color) {
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, CIRCLE, x, y, size, size, color);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, CIRCLE, x, y, size, size, colorAt(graphics, color, x + size / 2f));
 	}
 
 	/**
@@ -299,7 +301,7 @@ public final class Theme {
 		if (strength <= 0.01f) return;
 		int pad = 14;
 		int alpha = Math.round(0xAA * Math.clamp(strength, 0, 1));
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - pad, y - pad, width + pad * 2, height + pad * 2, (alpha << 24) | (ACCENT & 0xFFFFFF));
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - pad, y - pad, width + pad * 2, height + pad * 2, (alpha << 24) | (colorAt(graphics, ACCENT, x + width / 2f) & 0xFFFFFF));
 	}
 
 	/**
@@ -313,6 +315,147 @@ public final class Theme {
 
 	public static void backdrop(GuiGraphicsExtractor graphics, int width, int height) {
 		graphics.fill(0, 0, width, height, BACKDROP);
+	}
+
+	// ------------------------------------------------------------ SBCLIENT pink → blue gradient
+
+	/** Pink-theme colour (RGB) → its blue counterpart; colours in here are drawn as a left-to-right gradient. */
+	private static final java.util.Map<Integer, Integer> TO_BLUE = new java.util.HashMap<>();
+	public static final int BRAND_PINK = 0xFFFF8FC8;
+	public static final int BRAND_BLUE = 0xFF7CC8FF;
+	private static final int STRIP = 6;
+	private static float rangeStart;
+	private static float rangeEnd;
+	private static long rangeSetAt;
+
+	static {
+		TO_BLUE.put(0xFF8FC8, 0x7CC8FF);
+		TO_BLUE.put(0xFFC4E1, 0xB4E1FF);
+		TO_BLUE.put(0xD6448F, 0x3E8FD6);
+		TO_BLUE.put(0xFFAED6, 0x9DD6FF);
+		TO_BLUE.put(0xAF3D78, 0x3D7FAF);
+		TO_BLUE.put(0xC47CA6, 0x7C82C4);
+		TO_BLUE.put(0x52233A, 0x233A52);
+		TO_BLUE.put(0x6C2B4C, 0x2B4C6C);
+		TO_BLUE.put(0x271A1F, 0x181A27);
+		TO_BLUE.put(0x2D1E24, 0x1C1E2D);
+		TO_BLUE.put(0x24181D, 0x161824);
+		TO_BLUE.put(0x49313B, 0x2E3149);
+		TO_BLUE.put(0x332229, 0x202233);
+		TO_BLUE.put(0x4F3641, 0x33364F);
+		TO_BLUE.put(0x3F2A33, 0x272A3F);
+		TO_BLUE.put(0x39282F, 0x252839);
+		TO_BLUE.put(0x47323A, 0x2E3247);
+		TO_BLUE.put(0x2B1F24, 0x1D1F2B);
+		TO_BLUE.put(0x5A3A48, 0x363A5A);
+		TO_BLUE.put(0x422D36, 0x2A2D42);
+		TO_BLUE.put(0x312128, 0x1F2131);
+		TO_BLUE.put(0x3A272F, 0x24273A);
+		TO_BLUE.put(0x573D48, 0x3A3D57);
+		TO_BLUE.put(0x684A57, 0x464A68);
+		TO_BLUE.put(0x36232B, 0x202336);
+		TO_BLUE.put(0x22161B, 0x141622);
+		TO_BLUE.put(0x201318, 0x111320);
+		TO_BLUE.put(0x6B4E5A, 0x4A4E6B);
+		TO_BLUE.put(0x1C1216, 0x10121C);
+	}
+
+	/** True for the SBCLIENT look (pink → blue gradient), false in SHIKIMODE (all pink). */
+	public static boolean gradient() {
+		return !dev.fancybars.config.FancyBarsConfig.get().shikiMode;
+	}
+
+	public static boolean shikiMode() {
+		return dev.fancybars.config.FancyBarsConfig.get().shikiMode;
+	}
+
+	/** Screens can span the gradient over their own bounds (call every frame); otherwise it spans the whole screen. */
+	public static void gradientRange(float startX, float endX) {
+		rangeStart = startX;
+		rangeEnd = endX;
+		rangeSetAt = Util.getMillis();
+	}
+
+	private static float fraction(GuiGraphicsExtractor graphics, float localX) {
+		org.joml.Vector2f v = graphics.pose().transformPosition(localX, 0, new org.joml.Vector2f());
+		float start = 0;
+		float end = graphics.guiWidth();
+		if (Util.getMillis() - rangeSetAt < 150 && rangeEnd > rangeStart) {
+			start = rangeStart;
+			end = rangeEnd;
+		}
+		return Math.clamp((v.x - start) / (end - start), 0, 1);
+	}
+
+	/** The colour to use at a screen position: pink-theme colours are blended toward blue from left to right. */
+	public static int gradientColor(int color, float fraction) {
+		Integer blue = TO_BLUE.get(color & 0xFFFFFF);
+		if (blue == null) return color;
+		return (color & 0xFF000000) | (lerpColor(color | 0xFF000000, blue | 0xFF000000, fraction) & 0xFFFFFF);
+	}
+
+	/** Pink → blue at {@code fraction}, opaque. */
+	public static int brandGradient(float fraction) {
+		return lerpColor(BRAND_PINK, BRAND_BLUE, fraction);
+	}
+
+	public static int colorAt(GuiGraphicsExtractor graphics, int color, float localX) {
+		if (!gradient()) return color;
+		return gradientColor(color, fraction(graphics, localX));
+	}
+
+	private interface Painter {
+		void paint(int color);
+	}
+
+	private static void paintGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int color, Painter painter) {
+		if (!gradient() || !TO_BLUE.containsKey(color & 0xFFFFFF)) {
+			painter.paint(color);
+			return;
+		}
+		float f0 = fraction(graphics, x);
+		float f1 = fraction(graphics, x + width);
+		// tiny shapes or ones that barely span the gradient: a single colour is indistinguishable
+		if (Math.abs(f1 - f0) < 0.02f || width <= STRIP) {
+			painter.paint(gradientColor(color, (f0 + f1) / 2));
+			return;
+		}
+		for (int sx = x; sx < x + width; sx += STRIP) {
+			int ex = Math.min(x + width, sx + STRIP);
+			graphics.enableScissor(sx, y - 1, ex, y + height + 1);
+			painter.paint(gradientColor(color, fraction(graphics, (sx + ex) / 2f)));
+			graphics.disableScissor();
+		}
+	}
+
+	/** SBCLIENT / ShikiClient name, coloured for the current mode (vanilla font). */
+	public static MutableComponent brand() {
+		if (shikiMode()) {
+			return Component.empty().append(Component.literal("Shiki").withColor(ACCENT & 0xFFFFFF)).append(Component.literal("Client").withColor(TEXT & 0xFFFFFF));
+		}
+		MutableComponent text = Component.empty()
+				.append(Component.literal("S").withColor(BRAND_PINK & 0xFFFFFF))
+				.append(Component.literal("B").withColor(BRAND_BLUE & 0xFFFFFF));
+		String rest = "CLIENT";
+		for (int i = 0; i < rest.length(); i++) {
+			text.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(brandGradient(i / (float) (rest.length() - 1)) & 0xFFFFFF));
+		}
+		return text;
+	}
+
+	public static String brandName() {
+		return shikiMode() ? "ShikiClient" : "SBCLIENT";
+	}
+
+	/** "[SBCLIENT] " chat prefix. */
+	public static MutableComponent chatPrefix() {
+		return Component.literal("[").withStyle(net.minecraft.ChatFormatting.DARK_GRAY)
+				.append(brand())
+				.append(Component.literal("] ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
+	}
+
+	public static Identifier brandIcon() {
+		return FancyBarsMod.id(shikiMode() ? "textures/gui/shiki_icon.png" : "textures/gui/sb_icon.png");
 	}
 
 	// ------------------------------------------------------------ Colour / animation helpers

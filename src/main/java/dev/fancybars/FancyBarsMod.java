@@ -72,9 +72,9 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.hud.Watermark.init();
 		BackpackPreview.init();
 
-		// /shikiclient, with /fancybars kept as an alias
+		// /sbclient, with /shikiclient and /fancybars kept as aliases
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> {
-			for (String name : new String[]{"shikiclient", NAMESPACE}) {
+			for (String name : new String[]{"sbclient", "shikiclient", NAMESPACE}) {
 				dispatcher.register(ClientCommands.literal(name)
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))

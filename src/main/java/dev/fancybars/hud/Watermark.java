@@ -15,21 +15,20 @@ import dev.fancybars.FancyBarsMod;
 import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.util.gui.Theme;
 
-/** "ShikiClient" in the top-left corner of the HUD. Movable / scalable in the editor. */
+/** SBCLIENT / ShikiClient logo in the top-left corner of the HUD. Movable / scalable in the editor. */
 public final class Watermark {
-	public static final Identifier ICON = FancyBarsMod.id("textures/gui/shiki_icon.png");
 	private static final int ICON_SIZE = 12;
 	private static final int ICON_GAP = 4;
 
 	private Watermark() {}
 
 	/** Draws the ShikiClient thumbnail as a size × size square. */
-	public static void drawIcon(GuiGraphicsExtractor graphics, float x, float y, float size, int alpha) {
+	public static void drawIcon(GuiGraphicsExtractor graphics, Identifier icon, float x, float y, float size, int alpha) {
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(size / 64f, size / 64f);
-		graphics.blit(RenderPipelines.GUI_TEXTURED, ICON, 0, 0, 0, 0, 64, 64, 64, 64, (alpha << 24) | 0xFFFFFF);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, icon, 0, 0, 0, 0, 64, 64, 64, 64, (alpha << 24) | 0xFFFFFF);
 		pose.popMatrix();
 	}
 
@@ -40,9 +39,7 @@ public final class Watermark {
 	}
 
 	public static Component text() {
-		return Theme.title(Component.empty()
-				.append(Component.literal("Shiki").withColor(Theme.ACCENT & 0xFFFFFF))
-				.append(Component.literal("Client").withColor(Theme.TEXT & 0xFFFFFF)));
+		return Theme.title(Theme.brand());
 	}
 
 	/** Unscaled {width, height}. */
@@ -58,7 +55,7 @@ public final class Watermark {
 		pose.translate(config.watermarkX, config.watermarkY);
 		pose.scale(config.watermarkScale, config.watermarkScale);
 		int a = Math.round(alpha * 255);
-		drawIcon(graphics, 0, 0, ICON_SIZE, a);
+		drawIcon(graphics, Theme.brandIcon(), 0, 0, ICON_SIZE, a);
 		Theme.drawAtCapTop(graphics, font, text(), ICON_SIZE + ICON_GAP, (ICON_SIZE - Theme.TITLE_CAP) / 2f, Theme.TITLE_CAP, (a << 24) | 0xFFFFFF, true);
 		pose.popMatrix();
 	}

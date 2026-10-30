@@ -192,7 +192,7 @@ public final class RareDropTracker {
 		if (FancyBarsConfig.get().rareDropsChat && Minecraft.getInstance().player != null) {
 			RareItem known = find(item);
 			String color = known != null ? known.color() : "§d";
-			Minecraft.getInstance().player.sendSystemMessage(Component.literal("§d[ShikiClient] §d§lRARE DROP! §r" + color + item
+			Minecraft.getInstance().player.sendSystemMessage(Theme.chatPrefix().append("§d§lRARE DROP! §r" + color + item
 					+ " §7(#" + data.counts.get(item) + (sinceLast > 0 ? ", " + sinceLast + " runs since last rare drop" : "") + ")"));
 		}
 	}

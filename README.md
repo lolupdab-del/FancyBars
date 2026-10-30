@@ -1,4 +1,4 @@
-# ShikiClient
+# SBCLIENT
 
 Skyblocker's **Fancy Status Bars** for Hypixel SkyBlock, pulled out into a standalone Fabric mod.
 
@@ -12,10 +12,10 @@ plus the optional vanilla-style mana bar.
 
 | Command | What it does |
 |---|---|
-| `/shikiclient` | Open the Fancy Bars menu (also via Mod Menu): Home, Bars (switch each bar and its icon on/off, recolour bars, overflow mana, absorption and text), Style (Classic / Segmented / SkyblockAddons), General and Vanilla Mana pages, with search |
-| `/shikiclient edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
-| `/shikiclient config` | Open the menu on the General page |
-| `/shikiclient protect` | Protect / unprotect the held item (or press **V**, also works while hovering items in inventories) |
+| `/sbclient` | Open the Fancy Bars menu (also via Mod Menu): Home, Bars (switch each bar and its icon on/off, recolour bars, overflow mana, absorption and text), Style (Classic / Segmented / SkyblockAddons), General and Vanilla Mana pages, with search |
+| `/sbclient edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
+| `/sbclient config` | Open the menu on the General page |
+| `/sbclient protect` | Protect / unprotect the held item (or press **V**, also works while hovering items in inventories) |
 
 **Item protection** (from Skyblocker): protected items can't be dropped, sold to NPCs, salvaged, traded or auctioned. The star shown on them can be recoloured and put in any corner (menu → Items).
 
