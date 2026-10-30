@@ -31,6 +31,16 @@ public final class Commands {
 	private static final Pattern MEMBER_JOINED = Pattern.compile("^(?:\\[[^]]+] )?(\\w+) joined the party\\.?$");
 	private static final Pattern PF_JOINED = Pattern.compile("^Party Finder > (\\w+) joined the (?:dungeon )?group!");
 	private static final long NUKE_TIMEOUT = 5 * 60_000;
+	/** Hypixel blocks commands sent too quickly ("Woah slow down, you're doing that too fast!"). */
+	private static final long COMMAND_GAP_MS = 1100;
+	private static final Pattern TOO_FAST = Pattern.compile("(?i)woah slow down|doing that too fast");
+
+	private record Queued(String command, int retries) {}
+
+	private static final java.util.ArrayDeque<Queued> QUEUE = new java.util.ArrayDeque<>();
+	private static long nextSendAt;
+	private static @org.jspecify.annotations.Nullable Queued lastSent;
+	private static long lastSentAt;
 
 	private static long nukeArmedAt = 0;
 	private static boolean nukeJoined = false;
@@ -43,6 +53,15 @@ public final class Commands {
 		ClientSendMessageEvents.MODIFY_COMMAND.register(Commands::expandAlias);
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (!overlay) onChat(message);
+		});
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			long now = System.currentTimeMillis();
+			if (QUEUE.isEmpty() || now < nextSendAt || mc.getConnection() == null) return;
+			Queued next = QUEUE.poll();
+			mc.getConnection().sendCommand(next.command());
+			lastSent = next;
+			lastSentAt = now;
+			nextSendAt = now + COMMAND_GAP_MS;
 		});
 	}
 
@@ -82,8 +101,11 @@ public final class Commands {
 		if (Minecraft.getInstance().player != null) Minecraft.getInstance().player.sendSystemMessage(Theme.chatPrefix().append(message));
 	}
 
+	/** Queues a command; queued commands go out at least ~1 second apart, the first one after a 1 second wait. */
 	private static void send(String command) {
-		if (Minecraft.getInstance().getConnection() != null) Minecraft.getInstance().getConnection().sendCommand(command);
+		long now = System.currentTimeMillis();
+		if (QUEUE.isEmpty()) nextSendAt = Math.max(nextSendAt, now + COMMAND_GAP_MS);
+		QUEUE.add(new Queued(command, 0));
 	}
 
 	// ---------------------------------------------------------------- Calculator
@@ -149,6 +171,16 @@ public final class Commands {
 		text = text.trim();
 		Minecraft mc = Minecraft.getInstance();
 		String me = mc.player != null ? mc.player.getGameProfile().name() : "";
+
+		// Hypixel rejected our last command for being too fast: try it again a bit later (twice at most)
+		if (lastSent != null && System.currentTimeMillis() - lastSentAt < 3000 && TOO_FAST.matcher(text).find()) {
+			if (lastSent.retries() < 2) {
+				QUEUE.addFirst(new Queued(lastSent.command(), lastSent.retries() + 1));
+				nextSendAt = System.currentTimeMillis() + 1500;
+			}
+			lastSent = null;
+			return;
+		}
 
 		// /nuke party
 		if (nukeArmedAt > 0) {
