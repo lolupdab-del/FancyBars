@@ -401,6 +401,7 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.KEYSTROKES.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.crosshair"), null));
 				list.add(new ToggleItem("crosshairEnabled", () -> config.crosshairEnabled, value -> config.crosshairEnabled = value));
+				list.add(new ToggleItem("crosshairInThirdPerson", () -> config.crosshairInThirdPerson, value -> config.crosshairInThirdPerson = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.crosshair.edit"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.crosshair.CrosshairEditorScreen(BarsMenuScreen.this)))));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
@@ -455,6 +456,34 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.viewmodel"), null));
+				list.add(new ToggleItem("viewmodelEnabled", () -> config.viewmodelEnabled, value -> config.viewmodelEnabled = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.viewmodel.item"), null));
+				list.add(new SliderItem("viewmodelX", -1, 1, 0.02f, false, () -> config.viewmodelItemX, value -> config.viewmodelItemX = value));
+				list.add(new SliderItem("viewmodelY", -1, 1, 0.02f, false, () -> config.viewmodelItemY, value -> config.viewmodelItemY = value));
+				list.add(new SliderItem("viewmodelZ", -1, 1, 0.02f, false, () -> config.viewmodelItemZ, value -> config.viewmodelItemZ = value));
+				list.add(new SliderItem("viewmodelRotX", -180, 180, 5, false, () -> config.viewmodelItemRotX, value -> config.viewmodelItemRotX = value));
+				list.add(new SliderItem("viewmodelRotY", -180, 180, 5, false, () -> config.viewmodelItemRotY, value -> config.viewmodelItemRotY = value));
+				list.add(new SliderItem("viewmodelRotZ", -180, 180, 5, false, () -> config.viewmodelItemRotZ, value -> config.viewmodelItemRotZ = value));
+				list.add(new SliderItem("viewmodelScale", 0.1f, 2, 0.05f, true, () -> config.viewmodelItemScale, value -> config.viewmodelItemScale = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.viewmodel.arm"), null));
+				list.add(new SliderItem("viewmodelX", -1, 1, 0.02f, false, () -> config.viewmodelArmX, value -> config.viewmodelArmX = value));
+				list.add(new SliderItem("viewmodelY", -1, 1, 0.02f, false, () -> config.viewmodelArmY, value -> config.viewmodelArmY = value));
+				list.add(new SliderItem("viewmodelZ", -1, 1, 0.02f, false, () -> config.viewmodelArmZ, value -> config.viewmodelArmZ = value));
+				list.add(new SliderItem("viewmodelRotX", -180, 180, 5, false, () -> config.viewmodelArmRotX, value -> config.viewmodelArmRotX = value));
+				list.add(new SliderItem("viewmodelRotY", -180, 180, 5, false, () -> config.viewmodelArmRotY, value -> config.viewmodelArmRotY = value));
+				list.add(new SliderItem("viewmodelRotZ", -180, 180, 5, false, () -> config.viewmodelArmRotZ, value -> config.viewmodelArmRotZ = value));
+				list.add(new SliderItem("viewmodelScale", 0.1f, 2, 0.05f, true, () -> config.viewmodelArmScale, value -> config.viewmodelArmScale = value));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.viewmodel.reset"), () -> {
+					config.viewmodelItemX = config.viewmodelItemY = config.viewmodelItemZ = 0;
+					config.viewmodelItemRotX = config.viewmodelItemRotY = config.viewmodelItemRotZ = 0;
+					config.viewmodelItemScale = 1;
+					config.viewmodelArmX = config.viewmodelArmY = config.viewmodelArmZ = 0;
+					config.viewmodelArmRotX = config.viewmodelArmRotY = config.viewmodelArmRotZ = 0;
+					config.viewmodelArmScale = 1;
+					FancyBarsConfig.save();
+					rebuildNextTick = true;
+				})));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.capes"), null));
 				list.add(new ToggleItem("capeEnabled", () -> config.capeEnabled, value -> config.capeEnabled = value));
 				list.add(new CapeGridItem());
@@ -1678,15 +1707,25 @@ public class BarsMenuScreen extends Screen {
 		private final Supplier<Float> getter;
 		private final dev.fancybars.util.gui.ModernSlider slider;
 
+		private boolean percent = true;
+
+		SliderItem(String key, float min, float max, float step, boolean percent, Supplier<Float> getter, Consumer<Float> setter) {
+			this(key, getter, setter, min, max, step);
+			this.percent = percent;
+		}
+
 		SliderItem(String key, Supplier<Float> getter, Consumer<Float> setter) {
+			this(key, getter, setter, dev.fancybars.players.PlayerSizes.MIN, dev.fancybars.players.PlayerSizes.MAX, 0.05f);
+		}
+
+		SliderItem(String key, Supplier<Float> getter, Consumer<Float> setter, float min, float max, float step) {
 			this.key = key;
 			this.getter = getter;
 			this.height = 24;
 			this.searchable = true;
 			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
 			this.searchText = Component.translatable("fancybars.config." + key).getString() + " size scale";
-			slider = new dev.fancybars.util.gui.ModernSlider(130, 16, dev.fancybars.players.PlayerSizes.MIN, dev.fancybars.players.PlayerSizes.MAX, 0.05f, getter.get(),
-					setter, FancyBarsConfig::save);
+			slider = new dev.fancybars.util.gui.ModernSlider(130, 16, min, max, step, getter.get(), setter, FancyBarsConfig::save);
 			widgets.add(slider);
 		}
 
@@ -1700,7 +1739,8 @@ public class BarsMenuScreen extends Screen {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
 			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 200), x + 10, y, height, Theme.TEXT);
-			Component value = Component.literal(Math.round(getter.get() * 100) + "%");
+			float v = getter.get();
+			Component value = Component.literal(percent ? Math.round(v * 100) + "%" : Math.abs(v) >= 5 ? String.valueOf(Math.round(v)) + "°" : String.format("%.2f", v));
 			Theme.textInBox(graphics, font, value, slider.getX() - Theme.width(font, value) - 8, y, height, Theme.TEXT_MUTED);
 		}
 	}

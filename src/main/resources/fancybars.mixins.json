@@ -16,6 +16,7 @@
 		"GifInventoryScreenMixin",
 		"HudAccessor",
 		"HudProtectionMixin",
+		"ItemInHandRendererMixin",
 		"ItemModelResolverMixin",
 		"ItemStackNameMixin",
 		"LocalPlayerProtectionMixin",

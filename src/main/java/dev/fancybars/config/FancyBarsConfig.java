@@ -166,6 +166,41 @@ public class FancyBarsConfig {
 	/** GUI pixels per grid cell. */
 	public float crosshairScale = 1;
 
+	/** Also show the crosshair in third person (F5). */
+	public boolean crosshairInThirdPerson = false;
+
+	// ---------------------------------------------------------------- Viewmodel
+
+	public boolean viewmodelEnabled = false;
+
+	public float viewmodelItemX = 0;
+
+	public float viewmodelItemY = 0;
+
+	public float viewmodelItemZ = 0;
+
+	public float viewmodelItemRotX = 0;
+
+	public float viewmodelItemRotY = 0;
+
+	public float viewmodelItemRotZ = 0;
+
+	public float viewmodelItemScale = 1;
+
+	public float viewmodelArmX = 0;
+
+	public float viewmodelArmY = 0;
+
+	public float viewmodelArmZ = 0;
+
+	public float viewmodelArmRotX = 0;
+
+	public float viewmodelArmRotY = 0;
+
+	public float viewmodelArmRotZ = 0;
+
+	public float viewmodelArmScale = 1;
+
 	// ---------------------------------------------------------------- Titles / hotbar
 
 	public boolean titlesShown = true;
@@ -425,6 +460,8 @@ public class FancyBarsConfig {
 			if (instance.hotbarScale <= 0) instance.hotbarScale = 1;
 			if (instance.crosshairSize < 5 || instance.crosshairSize % 2 == 0) instance.crosshairSize = 15;
 			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
+			if (instance.viewmodelItemScale <= 0) instance.viewmodelItemScale = 1;
+			if (instance.viewmodelArmScale <= 0) instance.viewmodelArmScale = 1;
 			if (instance.playerSize <= 0) instance.playerSize = 1;
 			if (instance.playerSize != 1 && instance.playerSizeWidth == 1 && instance.playerSizeHeight == 1 && instance.playerSizeLength == 1) {
 				instance.playerSizeWidth = instance.playerSizeHeight = instance.playerSizeLength = instance.playerSize;

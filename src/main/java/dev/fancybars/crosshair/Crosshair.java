@@ -12,18 +12,25 @@ import dev.fancybars.config.FancyBarsConfig;
 /** A crosshair you draw yourself on a pixel grid (any colours), replacing the vanilla one. */
 public final class Crosshair {
 	public static final int[] SIZES = {7, 9, 11, 13, 15, 17, 19, 21, 25};
+	private static final net.minecraft.resources.Identifier VANILLA = net.minecraft.resources.Identifier.withDefaultNamespace("hud/crosshair");
 
 	private Crosshair() {}
 
 	public static void init() {
 		HudElementRegistry.replaceElement(VanillaHudElements.CROSSHAIR, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
+			Minecraft mc = Minecraft.getInstance();
+			boolean firstPerson = mc.options.getCameraType().isFirstPerson();
 			if (!config.crosshairEnabled) {
-				original.extractRenderState(graphics, tickCounter);
+				if (firstPerson || !config.crosshairInThirdPerson) {
+					original.extractRenderState(graphics, tickCounter);
+				} else {
+					// vanilla only draws it in first person: draw the normal crosshair ourselves in F5
+					graphics.blitSprite(net.minecraft.client.renderer.RenderPipelines.CROSSHAIR, VANILLA, (graphics.guiWidth() - 15) / 2, (graphics.guiHeight() - 15) / 2, 15, 15);
+				}
 				return;
 			}
-			Minecraft mc = Minecraft.getInstance();
-			if (!mc.options.getCameraType().isFirstPerson()) return;
+			if (!firstPerson && !config.crosshairInThirdPerson) return;
 			draw(graphics, graphics.guiWidth() / 2f, graphics.guiHeight() / 2f, config.crosshairScale, 1);
 		});
 	}
