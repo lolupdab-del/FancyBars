@@ -68,6 +68,23 @@ public class FancyBarsConfig {
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();
 
+	/** Display info for protected items (uuid -> name / colour / item id), so they can be listed in the menu. */
+	public java.util.Map<String, ProtectedItem> protectedItemInfo = new java.util.LinkedHashMap<>();
+
+	public static class ProtectedItem {
+		public String name = "";
+		public int color = 0xFFFFFF;
+		public String itemId = "minecraft:barrier";
+	}
+
+	// ---------------------------------------------------------------- Inventory GIFs (ported from Inventory GIFs by lolupdab)
+
+	public boolean gifsEnabled = true;
+
+	public boolean gifsHideCraftingGrid = true;
+
+	public boolean gifsHideRecipeBook = true;
+
 	// ---------------------------------------------------------------- Held item name (the tooltip shown when switching items)
 
 	public boolean heldItemNameEnabled = true;
@@ -91,6 +108,7 @@ public class FancyBarsConfig {
 			if (instance.barStyle == null) instance.barStyle = BarStyle.CLASSIC;
 			if (instance.protectionStarCorner == null) instance.protectionStarCorner = StarCorner.BOTTOM_RIGHT;
 			if (instance.protectedItems == null) instance.protectedItems = new java.util.LinkedHashSet<>();
+			if (instance.protectedItemInfo == null) instance.protectedItemInfo = new java.util.LinkedHashMap<>();
 			if (instance.heldItemNameScale <= 0) instance.heldItemNameScale = 1;
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;

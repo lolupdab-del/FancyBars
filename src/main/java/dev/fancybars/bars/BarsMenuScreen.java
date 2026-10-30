@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -67,6 +67,29 @@ public class BarsMenuScreen extends Screen {
 	private boolean rebuildNextTick = false;
 	private boolean focusSearch = false;
 
+	// Themed hover tooltips (descriptions only show when you hover something)
+	private final java.util.Map<AbstractWidget, Component> widgetTips = new java.util.IdentityHashMap<>();
+	private @Nullable Component pendingTip;
+	private @Nullable Object tipOwner;
+	private long tipSince;
+	private int tipMouseX;
+	private int tipMouseY;
+
+	private void tip(Object owner, Component text) {
+		if (pendingTip == null) {
+			pendingTip = text;
+			if (owner != tipOwner) {
+				tipOwner = owner;
+				tipSince = Util.getMillis();
+			}
+		}
+	}
+
+	private <W extends AbstractWidget> W tipFor(W widget, Component text) {
+		widgetTips.put(widget, text);
+		return widget;
+	}
+
 	public BarsMenuScreen(@Nullable Screen parent) {
 		super(Component.translatable("fancybars.menu.title"));
 		this.parent = parent;
@@ -89,6 +112,9 @@ public class BarsMenuScreen extends Screen {
 		super.init();
 		if (openedAt < 0) openedAt = Util.getMillis();
 		bars.updatePositions(false);
+		widgetTips.clear();
+		dev.fancybars.gifs.GifStore.ensureLoaded();
+		ItemProtection.refreshFromInventory();
 
 		totalWidth = Math.min(width - 20, 480);
 		totalHeight = Math.min(height - 16, 300);
@@ -122,9 +148,9 @@ public class BarsMenuScreen extends Screen {
 		ModernButton prev = new ModernButton(20, 18, Component.literal("‹"), () -> switchCategory(Category.values()[(category.ordinal() + Category.values().length - 1) % Category.values().length]));
 		ModernButton next = new ModernButton(20, 18, Component.literal("›"), () -> switchCategory(EnumUtils.cycle(category)));
 		ModernButton close = new ModernButton(20, 18, Component.literal("✕"), this::onClose);
-		prev.setTooltip(Tooltip.create(Component.translatable("fancybars.menu.previous")));
-		next.setTooltip(Tooltip.create(Component.translatable("fancybars.menu.next")));
-		close.setTooltip(Tooltip.create(Component.translatable("gui.done")));
+		tipFor(prev, Component.translatable("fancybars.menu.previous"));
+		tipFor(next, Component.translatable("fancybars.menu.next"));
+		tipFor(close, Component.translatable("gui.done"));
 		prev.setPosition(navX, y0 + 6);
 		next.setPosition(navX + 22, y0 + 6);
 		close.setPosition(navX + 46, y0 + 6);
@@ -214,26 +240,43 @@ public class BarsMenuScreen extends Screen {
 						Component.translatable("fancybars.home.change3")), false));
 			}
 			case BARS -> {
-				list.add(new HeaderItem(Component.translatable("fancybars.category.bars"), Component.translatable("fancybars.bars.description")));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.bars"), null));
 				for (StatusBarType type : StatusBarType.values()) {
 					StatusBar bar = bars.statusBars.get(type);
 					if (bar != null) list.add(new BarItem(bar));
 				}
 			}
 			case STYLE -> {
-				list.add(new HeaderItem(Component.translatable("fancybars.category.style"), Component.translatable("fancybars.style.description")));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.style"), null));
 				for (FancyBarsConfig.BarStyle style : FancyBarsConfig.BarStyle.values()) list.add(new StyleItem(style));
 				list.add(new ToggleItem("smoothBarText", () -> config.smoothBarText, value -> config.smoothBarText = value));
 			}
 			case ITEMS -> {
-				list.add(new HeaderItem(Component.translatable("fancybars.category.protection"), Component.translatable("fancybars.protection.description")));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.protection"), null));
 				list.add(new ToggleItem("itemProtectionEnabled", () -> config.itemProtectionEnabled, value -> config.itemProtectionEnabled = value));
 				list.add(new ToggleItem("protectionChatNotification", () -> config.protectionChatNotification, value -> config.protectionChatNotification = value));
 				list.add(new StarItem());
 				list.add(new ProtectedItemsItem());
-				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), Component.translatable("fancybars.heldItem.description")));
+				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), null));
 				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
 				list.add(new HeldItemActionsItem());
+			}
+			case GIFS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.gifs"), null));
+				list.add(new ToggleItem("gifsEnabled", () -> config.gifsEnabled, value -> config.gifsEnabled = value));
+				list.add(new ToggleItem("gifsHideCraftingGrid", () -> config.gifsHideCraftingGrid, value -> config.gifsHideCraftingGrid = value));
+				list.add(new ToggleItem("gifsHideRecipeBook", () -> config.gifsHideRecipeBook, value -> config.gifsHideRecipeBook = value));
+				list.add(new GifActionsItem());
+				List<dev.fancybars.gifs.GifStore.Gif> gifs = dev.fancybars.gifs.GifStore.all();
+				if (gifs.isEmpty()) {
+					list.add(new InfoCardItem(Component.translatable("fancybars.gifs.emptyTitle"), List.of(
+							Component.translatable("fancybars.gifs.empty1"),
+							Component.translatable("fancybars.gifs.empty2"),
+							Component.translatable("fancybars.gifs.empty3")), false));
+				} else {
+					for (dev.fancybars.gifs.GifStore.Gif gif : gifs) list.add(new GifItem(gif));
+				}
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
@@ -245,7 +288,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new CycleItem());
 			}
 			case VANILLA_MANA -> {
-				list.add(new HeaderItem(Component.translatable("fancybars.category.vanillaMana"), Component.translatable("fancybars.vanillaMana.description")));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.vanillaMana"), null));
 				list.add(new ToggleItem("enableVanillaStyleManaBar", () -> config.enableVanillaStyleManaBar, value -> config.enableVanillaStyleManaBar = value));
 				list.add(new ToggleItem("enableVanillaStyleManaBarBlinking", () -> config.enableVanillaStyleManaBarBlinking, value -> config.enableVanillaStyleManaBarBlinking = value));
 				list.add(new ToggleItem("useHungerBarSprites", () -> config.useHungerBarSprites, value -> config.useHungerBarSprites = value));
@@ -299,7 +342,13 @@ public class BarsMenuScreen extends Screen {
 		Theme.centeredInBox(graphics, font, Component.literal("v" + FancyBarsMod.VERSION), x0 + SIDEBAR_WIDTH / 2f, y0 + totalHeight - 18, 12, Theme.TEXT_DISABLED);
 
 		// Fixed widgets (search, nav, sidebar)
+		pendingTip = null;
 		super.extractRenderState(graphics, mouseX, my, a);
+		for (GuiEventListener child : children()) {
+			if (child instanceof AbstractWidget widget && !contentWidgets.contains(widget) && widget.visible && widget.isMouseOver(mouseX, my) && widgetTips.containsKey(widget)) {
+				tip(widget, widgetTips.get(widget));
+			}
+		}
 
 		// Scrolling content
 		graphics.enableScissor(contentX - 2, contentY - 2, contentX + contentW + 2, contentY + contentH + 2);
@@ -313,6 +362,16 @@ public class BarsMenuScreen extends Screen {
 			if (widget.visible) widget.extractRenderState(graphics, mouseX, contentMouseY, a);
 		}
 		graphics.disableScissor();
+		if (mouseInContent) {
+			for (AbstractWidget widget : contentWidgets) {
+				if (widget.visible && widget.isMouseOver(mouseX, my) && widgetTips.containsKey(widget)) tip(widget, widgetTips.get(widget));
+			}
+		}
+		if (mouseInContent && pendingTip == null) {
+			for (Item item : items) {
+				if (item.tooltip != null && item.isHovered(contentX, contentW - 6, mouseX, my)) tip(item, item.tooltip);
+			}
+		}
 
 		// Scrollbar
 		if (maxScroll() > 0) {
@@ -325,6 +384,37 @@ public class BarsMenuScreen extends Screen {
 		}
 
 		Theme.popOffset(graphics);
+
+		// Tooltip (after a short delay, drawn on top of everything)
+		if (pendingTip == null) {
+			tipOwner = null;
+		} else if (Util.getMillis() - tipSince > 350) {
+			drawTooltip(graphics, pendingTip, mouseX, mouseY);
+		}
+	}
+
+	private void drawTooltip(GuiGraphicsExtractor graphics, Component text, int mouseX, int mouseY) {
+		graphics.nextStratum();
+		List<net.minecraft.util.FormattedCharSequence> lines = font.split(Theme.styled(text), 190);
+		int w = 0;
+		for (net.minecraft.util.FormattedCharSequence line : lines) w = Math.max(w, font.width(line));
+		w += 16;
+		int lineH = 11;
+		int h = lines.size() * lineH + 9;
+		int x = mouseX + 10;
+		int y = mouseY + 12;
+		if (x + w > width - 4) x = mouseX - w - 6;
+		if (y + h > height - 4) y = mouseY - h - 6;
+		x = Math.max(4, x);
+		y = Math.max(4, y);
+		float fade = Math.min(1, (Util.getMillis() - tipSince - 350) / 120f);
+		Theme.shadow(graphics, x, y, w, h, 6, 0, 2);
+		Theme.card(graphics, x, y, w, h, 6, Theme.withAlpha(0xF5202336, fade), Theme.withAlpha(Theme.SELECTED_BORDER, fade));
+		int ly = y + 5;
+		for (net.minecraft.util.FormattedCharSequence line : lines) {
+			Theme.drawSeqInBox(graphics, font, line, x + 8, ly, lineH, Theme.withAlpha(Theme.TEXT_SOFT, fade));
+			ly += lineH;
+		}
 	}
 
 	// ================================================================ Input
@@ -398,6 +488,7 @@ public class BarsMenuScreen extends Screen {
 		BARS("fancybars.category.bars"),
 		STYLE("fancybars.category.style"),
 		ITEMS("fancybars.category.items"),
+		GIFS("fancybars.category.gifs"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
 
@@ -455,6 +546,7 @@ public class BarsMenuScreen extends Screen {
 		int height;
 		boolean searchable = false;
 		String searchText = "";
+		@Nullable Component tooltip;
 		final List<AbstractWidget> widgets = new ArrayList<>();
 
 		abstract void layout(int x, int y, int w);
@@ -504,7 +596,7 @@ public class BarsMenuScreen extends Screen {
 		ActionRowItem() {
 			height = 26;
 			edit = new ModernButton(10, 26, Component.translatable("fancybars.menu.editGui"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
-			edit.setTooltip(Tooltip.create(Component.translatable("fancybars.menu.editGui.@Tooltip")));
+			tipFor(edit, Component.translatable("fancybars.menu.editGui.@Tooltip"));
 			reset = new ModernButton(10, 26, Component.translatable("fancybars.menu.resetLayout"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
 					Component.translatable("fancybars.bars.config.resetTitle"),
 					Component.translatable("fancybars.bars.config.reset"),
@@ -577,7 +669,8 @@ public class BarsMenuScreen extends Screen {
 
 		ToggleItem(String key, Supplier<Boolean> getter, Consumer<Boolean> setter) {
 			this.key = key;
-			this.height = 34;
+			this.height = 24;
+			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
 			this.searchable = true;
 			this.searchText = Component.translatable("fancybars.config." + key).getString() + " " + Component.translatable("fancybars.config." + key + ".@Tooltip").getString();
 			this.toggle = new ModernToggle(ModernToggle.SWITCH_WIDTH, ModernToggle.SWITCH_HEIGHT, null, getter.get(), value -> {
@@ -596,8 +689,7 @@ public class BarsMenuScreen extends Screen {
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
-			Theme.boldInBox(graphics, font, Component.translatable("fancybars.config." + key), x + 10, y + 6, 11, Theme.TEXT);
-			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.config." + key + ".@Tooltip"), w - 60), x + 10, y + 18, 10, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 60), x + 10, y, height, Theme.TEXT);
 			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 
@@ -616,16 +708,16 @@ public class BarsMenuScreen extends Screen {
 		private final ModernButton button;
 
 		CycleItem() {
-			this.height = 34;
+			this.height = 24;
 			this.searchable = true;
 			this.searchText = Component.translatable("fancybars.config.intelligenceDisplay").getString() + " mana overflow";
+			this.tooltip = Component.translatable("fancybars.config.intelligenceDisplay.@Tooltip");
 			ModernButton[] holder = new ModernButton[1];
-			holder[0] = new ModernButton(116, 20, Component.translatable(config.intelligenceDisplay.translationKey()), () -> {
+			holder[0] = new ModernButton(116, 18, Component.translatable(config.intelligenceDisplay.translationKey()), () -> {
 				config.intelligenceDisplay = EnumUtils.cycle(config.intelligenceDisplay);
 				FancyBarsConfig.save();
 				holder[0].setMessage(Component.translatable(config.intelligenceDisplay.translationKey()));
 			});
-			holder[0].setTooltip(Tooltip.create(Component.translatable("fancybars.config.intelligenceDisplay.@Tooltip")));
 			this.button = holder[0];
 			widgets.add(button);
 		}
@@ -639,8 +731,7 @@ public class BarsMenuScreen extends Screen {
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
-			Theme.boldInBox(graphics, font, Component.translatable("fancybars.config.intelligenceDisplay"), x + 10, y + 6, 11, Theme.TEXT);
-			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.config.intelligenceDisplay.short"), w - 140), x + 10, y + 18, 10, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config.intelligenceDisplay"), w - 140), x + 10, y, height, Theme.TEXT);
 		}
 	}
 
@@ -661,12 +752,12 @@ public class BarsMenuScreen extends Screen {
 				bars.saveBarConfig();
 				rebuildNextTick = true;
 			});
-			shown.setTooltip(Tooltip.create(Component.translatable("fancybars.menu.shown.@Tooltip")));
+			tipFor(shown, Component.translatable("fancybars.menu.shown.@Tooltip"));
 			icon = new ModernToggle(ModernToggle.SWITCH_WIDTH, ModernToggle.SWITCH_HEIGHT, null, bar.getIconPosition() != StatusBar.IconPosition.OFF, value -> {
 				bar.setIconPosition(value ? StatusBar.IconPosition.LEFT : StatusBar.IconPosition.OFF);
 				bars.saveBarConfig();
 			});
-			icon.setTooltip(Tooltip.create(Component.translatable("fancybars.menu.icon.@Tooltip")));
+			tipFor(icon, Component.translatable("fancybars.menu.icon.@Tooltip"));
 			icon.active = bar.enabled;
 			widgets.add(shown);
 			widgets.add(icon);
@@ -720,9 +811,10 @@ public class BarsMenuScreen extends Screen {
 
 		StyleItem(FancyBarsConfig.BarStyle style) {
 			this.style = style;
-			this.height = 40;
+			this.height = 30;
 			this.searchable = true;
 			this.searchText = Component.translatable(style.translationKey()).getString() + " style texture bars";
+			this.tooltip = Component.translatable(style.translationKey() + ".description");
 		}
 
 		@Override
@@ -743,18 +835,17 @@ public class BarsMenuScreen extends Screen {
 			Theme.circle(graphics, rx + 2, ry + 2, 8, selected ? Theme.SELECTED : 0xFF202233);
 			if (selected) Theme.circle(graphics, rx + 3, ry + 3, 6, Theme.ACCENT);
 
-			int previewWidth = Math.min(110, w / 3);
-			Theme.boldInBox(graphics, font, Component.translatable(style.translationKey()), x + 30, y + 7, 12, Theme.TEXT);
-			Theme.textInBox(graphics, font, clip(Component.translatable(style.translationKey() + ".description"), w - 30 - previewWidth - 20), x + 30, y + 21, 12, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, Component.translatable(style.translationKey()), x + 30, y, height, Theme.TEXT);
 
 			// Live preview of health + mana drawn in this style
+			int previewWidth = Math.min(120, w / 2 - 20);
 			FancyBarsConfig.BarStyle previous = config.barStyle;
 			config.barStyle = style;
 			StatusBar health = bars.statusBars.get(StatusBarType.HEALTH);
 			StatusBar mana = bars.statusBars.get(StatusBarType.INTELLIGENCE);
 			int px = x + w - previewWidth - 10;
-			if (health != null) health.extractPreview(graphics, px, y + 9, previewWidth);
-			if (mana != null) mana.extractPreview(graphics, px, y + 22, previewWidth);
+			if (health != null) health.extractPreview(graphics, px, y + 4, previewWidth);
+			if (mana != null) mana.extractPreview(graphics, px, y + 16, previewWidth);
 			config.barStyle = previous;
 			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
@@ -778,9 +869,10 @@ public class BarsMenuScreen extends Screen {
 		private int slotsX;
 
 		StarItem() {
-			this.height = 52;
+			this.height = 30;
 			this.searchable = true;
 			this.searchText = Component.translatable("fancybars.protection.star").getString() + " star colour color corner protection";
+			this.tooltip = Component.translatable("fancybars.protection.star.description");
 			swatch = new ColorSwatch(Component.translatable("fancybars.protection.starColor"),
 					() -> new Color(config.protectionStarColor, false),
 					color -> {
@@ -792,14 +884,14 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void layout(int x, int y, int w) {
-			slotsX = x + w - 10 - 4 * SLOT - 3 * 5;
-			swatch.setPosition(slotsX - 24, y + 26);
+			slotsX = x + w - 8 - 4 * SLOT - 3 * 4;
+			swatch.setPosition(slotsX - SWATCH - 12, y + (height - SWATCH) / 2);
 		}
 
-		private FancyBarsConfig.StarCorner cornerAt(double mouseX, double mouseY) {
+		private FancyBarsConfig.@Nullable StarCorner cornerAt(double mouseX, double mouseY) {
 			for (FancyBarsConfig.StarCorner corner : FancyBarsConfig.StarCorner.values()) {
-				int sx = slotsX + corner.ordinal() * (SLOT + 5);
-				int sy = y + 22;
+				int sx = slotsX + corner.ordinal() * (SLOT + 4);
+				int sy = y + (height - SLOT) / 2;
 				if (mouseX >= sx && mouseX < sx + SLOT && mouseY >= sy && mouseY < sy + SLOT) return corner;
 			}
 			return null;
@@ -808,24 +900,21 @@ public class BarsMenuScreen extends Screen {
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
-			Theme.boldInBox(graphics, font, Component.translatable("fancybars.protection.star"), x + 10, y + 6, 11, Theme.TEXT);
-			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.protection.star.description"), slotsX - x - 50), x + 10, y + 18, 10, Theme.TEXT_MUTED);
-			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.menu.header.colors"), swatch.getX() + SWATCH / 2f, y + 6, 11, Theme.TEXT_MUTED);
-			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.protection.corner"), slotsX + (4 * SLOT + 15) / 2f, y + 6, 11, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, Component.translatable("fancybars.protection.star"), x + 10, y, height, Theme.TEXT);
 
 			FancyBarsConfig.StarCorner hoveredCorner = cornerAt(mouseX, mouseY);
 			for (FancyBarsConfig.StarCorner corner : FancyBarsConfig.StarCorner.values()) {
-				int sx = slotsX + corner.ordinal() * (SLOT + 5);
-				int sy = y + 22;
+				int sx = slotsX + corner.ordinal() * (SLOT + 4);
+				int sy = y + (height - SLOT) / 2;
 				boolean selected = config.protectionStarCorner == corner;
 				boolean hovered = hoveredCorner == corner;
-				if (selected) Theme.glow(graphics, sx, sy, SLOT, SLOT, 4, 0.4f);
 				Theme.card(graphics, sx, sy, SLOT, SLOT, 4, selected ? Theme.SELECTED : hovered ? Theme.SURFACE_HOVER : Theme.SURFACE,
 						selected ? Theme.ACCENT : hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
-				ItemProtection.drawStar(graphics, sx + 3, sy + 3, corner, config.protectionStarColor);
 				graphics.item(sample, sx + 3, sy + 3);
+				graphics.nextStratum();
+				ItemProtection.drawStar(graphics, sx + 3, sy + 3, corner, config.protectionStarColor);
 				if (hovered) {
-					graphics.setTooltipForNextFrame(font, Component.translatable(corner.translationKey()), mouseX, mouseY);
+					tip(corner, Component.translatable(corner.translationKey()));
 					graphics.requestCursor(CursorTypes.POINTING_HAND);
 				}
 			}
@@ -843,15 +932,17 @@ public class BarsMenuScreen extends Screen {
 		}
 	}
 
-	/** How to protect items + count + clear all. */
+	/** Protected item count + clear all. The items themselves are listed below as {@link ProtectedRowItem}s. */
 	private class ProtectedItemsItem extends Item {
 		private final ModernButton clear;
 
 		ProtectedItemsItem() {
-			this.height = 58;
+			this.height = 26;
 			this.searchable = true;
 			this.searchText = "protected items protect keybind clear";
-			clear = new ModernButton(90, 20, Component.translatable("fancybars.protection.clearAll"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
+			Component key = ItemProtection.protectKey != null ? ItemProtection.protectKey.getTranslatedKeyMessage() : Component.literal("V");
+			this.tooltip = Component.translatable("fancybars.protection.howTo", key);
+			clear = new ModernButton(80, 18, Component.translatable("fancybars.protection.clearAll"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
 					Component.translatable("fancybars.protection.clearAll.title"),
 					Component.translatable("fancybars.protection.clearAll.message", ItemProtection.protectedCount()),
 					ItemProtection::clearAll)));
@@ -861,17 +952,58 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void layout(int x, int y, int w) {
-			clear.setPosition(x + w - clear.getWidth() - 10, y + 8);
+			clear.setPosition(x + w - clear.getWidth() - 4, y + (height - clear.getHeight()) / 2);
 		}
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
-			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
-			Theme.boldInBox(graphics, font, Component.translatable("fancybars.protection.count", ItemProtection.protectedCount()), x + 10, y + 7, 11, Theme.TEXT);
-			Component key = ItemProtection.protectKey != null ? ItemProtection.protectKey.getTranslatedKeyMessage() : Component.literal("V");
-			Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(Component.translatable("fancybars.protection.howTo1", key)), w - 20), x + 12, y + 22, 10, Theme.TEXT_SOFT);
-			Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(Component.translatable("fancybars.protection.howTo2")), w - 20), x + 12, y + 34, 10, Theme.TEXT_SOFT);
-			Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(Component.translatable("fancybars.protection.howTo3")), w - 20), x + 12, y + 46, 10, Theme.TEXT_SOFT);
+			int count = ItemProtection.protectedCount();
+			Theme.boldInBox(graphics, font, Component.translatable(count == 1 ? "fancybars.protection.countOne" : "fancybars.protection.count", count), x + 2, y, height, Theme.TEXT);
+			if (count == 0) {
+				Component key = ItemProtection.protectKey != null ? ItemProtection.protectKey.getTranslatedKeyMessage() : Component.literal("V");
+				Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.protection.empty", key), w - 110), x + 2 + Theme.boldWidth(font, Component.translatable("fancybars.protection.count", 0)) + 8, y, height, Theme.TEXT_MUTED);
+			}
+		}
+	}
+
+	/** One protected item: icon, name and a remove button. */
+	private class ProtectedRowItem extends Item {
+		private final String uuid;
+		private final ModernButton remove;
+
+		ProtectedRowItem(String uuid) {
+			this.uuid = uuid;
+			this.height = 24;
+			FancyBarsConfig.ProtectedItem info = config.protectedItemInfo.get(uuid);
+			this.searchable = true;
+			this.searchText = (info != null ? info.name : "") + " protected";
+			this.tooltip = Component.translatable("fancybars.protection.uuid", uuid);
+			remove = new ModernButton(56, 16, Component.translatable("fancybars.protection.remove"), () -> {
+				ItemProtection.remove(uuid);
+				rebuildNextTick = true;
+			});
+			widgets.add(remove);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			remove.setPosition(x + w - remove.getWidth() - 6, y + (height - remove.getHeight()) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+			graphics.item(ItemProtection.iconFor(uuid), x + 5, y + (height - 16) / 2);
+			FancyBarsConfig.ProtectedItem info = config.protectedItemInfo.get(uuid);
+			Component name = info != null && !info.name.isEmpty()
+					? Component.literal(info.name).withColor(info.color & 0xFFFFFF)
+					: Component.translatable("fancybars.protection.unknownItem").withColor(Theme.TEXT_MUTED & 0xFFFFFF);
+			Theme.boldInBox(graphics, font, clip(name, w - 100), x + 27, y, height, 0xFFFFFFFF);
+			if (ItemProtection.findInInventory(uuid) != null) {
+				Component carried = Component.translatable("fancybars.protection.carried");
+				Theme.textInBox(graphics, font, carried, remove.getX() - Theme.width(font, carried) - 8, y, height, Theme.TEXT_MUTED);
+			}
 		}
 	}
 
@@ -881,11 +1013,11 @@ public class BarsMenuScreen extends Screen {
 		private final ModernButton reset;
 
 		HeldItemActionsItem() {
-			this.height = 22;
+			this.height = 20;
 			this.searchable = true;
 			this.searchText = "held item name tooltip move position reset";
-			move = new ModernButton(10, 22, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
-			reset = new ModernButton(10, 22, Component.translatable("fancybars.heldItem.reset"), HeldItemName::reset);
+			move = new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
+			reset = new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), HeldItemName::reset);
 			widgets.add(move);
 			widgets.add(reset);
 		}
@@ -901,6 +1033,105 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {}
+	}
+
+	/** Open folder / reload / show all for inventory GIFs. */
+	private class GifActionsItem extends Item {
+		private final ModernButton open;
+		private final ModernButton reload;
+		private final ModernButton showAll;
+
+		GifActionsItem() {
+			this.height = 20;
+			open = tipFor(new ModernButton(10, 20, Component.translatable("fancybars.gifs.openFolder"), ModernButton.Style.PRIMARY, dev.fancybars.gifs.GifInventory::openFolder),
+					Component.translatable("fancybars.gifs.openFolder.@Tooltip"));
+			reload = tipFor(new ModernButton(10, 20, Component.translatable("fancybars.gifs.reload"), () -> {
+				dev.fancybars.gifs.GifStore.reload();
+				rebuildNextTick = true;
+			}), Component.translatable("fancybars.gifs.reload.@Tooltip"));
+			showAll = new ModernButton(10, 20, Component.translatable("fancybars.gifs.showAll"), () -> {
+				dev.fancybars.gifs.GifInventory.showAll();
+				rebuildNextTick = true;
+			});
+			widgets.add(open);
+			widgets.add(reload);
+			widgets.add(showAll);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			int bw = (w - 12) / 3;
+			open.setWidth(bw);
+			reload.setWidth(bw);
+			showAll.setWidth(w - 12 - bw * 2);
+			open.setPosition(x, y);
+			reload.setPosition(x + bw + 6, y);
+			showAll.setPosition(x + (bw + 6) * 2, y);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {}
+	}
+
+	/** One GIF: animated preview, name, size and a shown switch. */
+	private class GifItem extends Item {
+		private static final int PREVIEW_W = 52;
+		private static final int PREVIEW_H = 36;
+		private final dev.fancybars.gifs.GifStore.Gif gif;
+		private final ModernToggle shown;
+
+		GifItem(dev.fancybars.gifs.GifStore.Gif gif) {
+			this.gif = gif;
+			this.height = PREVIEW_H + 8;
+			this.searchable = true;
+			this.searchText = gif.name + " gif";
+			shown = tipFor(new ModernToggle(ModernToggle.SWITCH_WIDTH, ModernToggle.SWITCH_HEIGHT, null, !gif.hidden, value -> {
+				gif.hidden = !value;
+				dev.fancybars.gifs.GifStore.save();
+			}), Component.translatable("fancybars.gifs.shown.@Tooltip"));
+			widgets.add(shown);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			shown.setPosition(x + w - ModernToggle.SWITCH_WIDTH - 10, y + (height - ModernToggle.SWITCH_HEIGHT) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+
+			// Preview box (letterboxed to keep the GIF's aspect ratio)
+			int bx = x + 4;
+			int by = y + 4;
+			Theme.roundedRect(graphics, bx, by, PREVIEW_W, PREVIEW_H, 4, 0xFF111320);
+			if (gif.ready) {
+				float s = Math.min(PREVIEW_W / (float) Math.max(1, gif.srcW), PREVIEW_H / (float) Math.max(1, gif.srcH));
+				int pw = Math.max(1, Math.round(gif.srcW * s));
+				int ph = Math.max(1, Math.round(gif.srcH * s));
+				dev.fancybars.gifs.GifStore.draw(graphics, gif, bx + (PREVIEW_W - pw) / 2, by + (PREVIEW_H - ph) / 2, pw, ph, gif.hidden ? 0.35f : 1f);
+			} else {
+				Theme.centeredInBox(graphics, font, Component.translatable(gif.error != null ? "fancybars.gifs.failed" : "fancybars.gifs.loading"), bx + PREVIEW_W / 2f, by, PREVIEW_H, gif.error != null ? 0xFFFF7070 : Theme.TEXT_MUTED);
+			}
+			Theme.roundedOutline(graphics, bx, by, PREVIEW_W, PREVIEW_H, 4, Theme.CARD_BORDER);
+
+			Component name = Component.literal(gif.name.replaceAll("(?i)\\.gif$", ""));
+			Theme.boldInBox(graphics, font, clip(name, w - PREVIEW_W - 60), bx + PREVIEW_W + 10, y + 7, 12, gif.hidden ? Theme.TEXT_DISABLED : Theme.TEXT);
+			Component details = gif.ready
+					? Component.translatable("fancybars.gifs.details", gif.w, gif.h, gif.frameCount(), Math.round(gif.opacity * 100))
+					: Component.translatable(gif.error != null ? "fancybars.gifs.failed" : "fancybars.gifs.loading");
+			Theme.textInBox(graphics, font, clip(details, w - PREVIEW_W - 60), bx + PREVIEW_W + 10, y + 22, 12, Theme.TEXT_MUTED);
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (itemHit(this, mouseX, mouseY)) {
+				shown.toggle();
+				return true;
+			}
+			return false;
+		}
 	}
 
 	private Component clip(Component text, int maxWidth) {
@@ -923,7 +1154,7 @@ public class BarsMenuScreen extends Screen {
 			super(0, 0, SWATCH, SWATCH, label);
 			this.getter = getter;
 			this.setter = setter;
-			setTooltip(Tooltip.create(label));
+			widgetTips.put(this, label);
 		}
 
 		@Override

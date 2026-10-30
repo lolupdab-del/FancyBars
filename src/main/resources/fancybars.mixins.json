@@ -3,9 +3,12 @@
 	"package": "dev.fancybars.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"ContainerScreenAccessor",
 		"ContainerScreenProtectionMixin",
 		"CustomDataAccessor",
 		"FontAccessor",
+		"GifContainerScreenMixin",
+		"GifInventoryScreenMixin",
 		"HudProtectionMixin",
 		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin"

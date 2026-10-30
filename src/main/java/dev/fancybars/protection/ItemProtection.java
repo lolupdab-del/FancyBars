@@ -78,7 +78,69 @@ public class ItemProtection {
 
 	public static void clearAll() {
 		FancyBarsConfig.get().protectedItems.clear();
+		FancyBarsConfig.get().protectedItemInfo.clear();
 		FancyBarsConfig.save();
+	}
+
+	/** Unprotects a single item by UUID (used by the list in the menu). */
+	public static void remove(String uuid) {
+		FancyBarsConfig.get().protectedItems.remove(uuid);
+		FancyBarsConfig.get().protectedItemInfo.remove(uuid);
+		FancyBarsConfig.save();
+	}
+
+	/** Remembers the name, colour and item type of a protected item so the menu can list it. */
+	public static void rememberInfo(ItemStack stack) {
+		String uuid = getUuid(stack);
+		if (uuid.isEmpty()) return;
+		FancyBarsConfig.ProtectedItem info = new FancyBarsConfig.ProtectedItem();
+		info.name = stack.getHoverName().getString();
+		net.minecraft.network.chat.TextColor color = stack.getHoverName().getStyle().getColor();
+		if (color == null && !stack.getHoverName().getSiblings().isEmpty()) color = stack.getHoverName().getSiblings().getFirst().getStyle().getColor();
+		info.color = color != null ? color.getValue() : 0xFFFFFF;
+		info.itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+		FancyBarsConfig.get().protectedItemInfo.put(uuid, info);
+	}
+
+	/** Fills in names for protected items found in the player's inventory (e.g. ones protected before names were saved). */
+	public static void refreshFromInventory() {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player == null) return;
+		FancyBarsConfig config = FancyBarsConfig.get();
+		boolean changed = false;
+		for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+			String uuid = getUuid(stack);
+			if (!uuid.isEmpty() && config.protectedItems.contains(uuid)) {
+				FancyBarsConfig.ProtectedItem old = config.protectedItemInfo.get(uuid);
+				rememberInfo(stack);
+				if (old == null || !old.name.equals(config.protectedItemInfo.get(uuid).name)) changed = true;
+			}
+		}
+		if (changed) FancyBarsConfig.save();
+	}
+
+	/** Finds the live stack for a protected item in the player's inventory, if they're carrying it. */
+	public static @Nullable ItemStack findInInventory(String uuid) {
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player == null) return null;
+		for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
+			if (uuid.equals(getUuid(stack))) return stack;
+		}
+		return null;
+	}
+
+	/** An icon for a protected item: the real stack if carried, otherwise its saved item type. */
+	public static ItemStack iconFor(String uuid) {
+		ItemStack live = findInInventory(uuid);
+		if (live != null) return live;
+		FancyBarsConfig.ProtectedItem info = FancyBarsConfig.get().protectedItemInfo.get(uuid);
+		try {
+			if (info != null) {
+				return new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(Identifier.parse(info.itemId)));
+			}
+		} catch (RuntimeException ignored) {
+		}
+		return new ItemStack(net.minecraft.world.item.Items.PAPER);
 	}
 
 	/**
@@ -102,9 +164,11 @@ public class ItemProtection {
 		boolean nowProtected;
 		if (config.protectedItems.contains(uuid)) {
 			config.protectedItems.remove(uuid);
+			config.protectedItemInfo.remove(uuid);
 			nowProtected = false;
 		} else {
 			config.protectedItems.add(uuid);
+			rememberInfo(stack);
 			nowProtected = true;
 		}
 		FancyBarsConfig.save();

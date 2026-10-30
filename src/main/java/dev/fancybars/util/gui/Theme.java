@@ -164,6 +164,17 @@ public final class Theme {
 		pose.popMatrix();
 	}
 
+	/** A pre-split line of (already styled) text vertically centred in a box. */
+	public static void drawSeqInBox(GuiGraphicsExtractor graphics, Font font, net.minecraft.util.FormattedCharSequence line, float x, float boxY, float boxHeight, int color) {
+		float scale = guiScale();
+		float originY = boxY + (boxHeight - UI_CAP) / 2f + UI_CAP - BASELINE;
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(Math.round(x * scale) / scale, Math.round(originY * scale) / scale);
+		graphics.text(font, line, 0, 0, color, false);
+		pose.popMatrix();
+	}
+
 	/** Regular text vertically centred in a box. */
 	public static void textInBox(GuiGraphicsExtractor graphics, Font font, Component text, float x, float boxY, float boxHeight, int color) {
 		drawAtCapTop(graphics, font, styled(text), x, boxY + (boxHeight - UI_CAP) / 2f, UI_CAP, color);

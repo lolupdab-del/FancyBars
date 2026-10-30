@@ -19,6 +19,8 @@ plus the optional vanilla-style mana bar.
 
 **Item protection** (from Skyblocker): protected items can't be dropped, sold to NPCs, salvaged, traded or auctioned. The star shown on them can be recoloured and put in any corner (menu → Items).
 
+**Inventory GIFs** (from Inventory GIFs by lolupdab): animated GIFs from `config/invgifs` in your inventory, with their own page in the menu (previews, per-GIF switches, folder/reload buttons). Remove the separate invgifs mod if you have it installed.
+
 **Held item name**: the name that pops up when you switch items can be hidden, moved and scaled (menu → Items, or drag it in the editor).
 
 While fancy bars are active the vanilla XP bar is always hidden, even if you turn the fancy XP bar off.
@@ -36,7 +38,7 @@ You need JDK 25.
 ./gradlew build
 ```
 
-The mod jar ends up in `build/libs/fancybars-1.5.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
+The mod jar ends up in `build/libs/fancybars-1.6.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
 
 No JDK? Push this folder to a GitHub repo: the included workflow builds it, and the jar appears under **Actions → latest run → Artifacts**.
 
@@ -52,6 +54,7 @@ No JDK? Push this folder to a GitHub repo: the included workflow builds it, and 
 * Original fancy status bars: [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) (LGPL-3.0).
 * "SkyblockAddons" bar style texture: [SkyblockAddons](https://github.com/Fix3dll/SkyblockAddons) by Fix3dll and contributors (LGPL-3.0).
 * "Segmented" bar style textures: the **Bigmans masterpiece** resource pack.
+* Inventory GIFs: ported from Inventory GIFs by lolupdab (MIT).
 * UI font: [Inter](https://rsms.me/inter/) by Rasmus Andersson, SIL Open Font License 1.1 (`assets/fancybars/font/LICENSE_Inter_OFL.txt`).
 
 ## License

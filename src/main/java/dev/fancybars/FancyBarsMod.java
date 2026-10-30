@@ -23,6 +23,7 @@ import dev.fancybars.bars.BarEditorScreen;
 import dev.fancybars.bars.BarsMenuScreen;
 import dev.fancybars.bars.FancyStatusBars;
 import dev.fancybars.bars.HeldItemName;
+import dev.fancybars.gifs.GifInventory;
 import dev.fancybars.protection.ItemProtection;
 import dev.fancybars.bars.StatusBarTracker;
 import dev.fancybars.bars.VanillaStyleManaBar;
@@ -62,6 +63,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		VanillaStyleManaBar.init();
 		HeldItemName.init();
 		ItemProtection.init();
+		GifInventory.init();
 
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> dispatcher.register(
 				ClientCommands.literal(NAMESPACE)
