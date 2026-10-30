@@ -52,9 +52,56 @@ public final class Theme {
 	public static final int RADIUS = 4;
 	public static final int PANEL_RADIUS = 6;
 
-	public static final FontDescription FONT = new FontDescription.Resource(FancyBarsMod.id("ui"));
-	public static final FontDescription FONT_BOLD = new FontDescription.Resource(FancyBarsMod.id("ui_bold"));
-	public static final FontDescription FONT_TITLE = new FontDescription.Resource(FancyBarsMod.id("title"));
+	/** Inter cap height as a fraction of the TrueType "size" (stb scales so ascent - descent = size). */
+	private static final float CAP_RATIO = 0.6013f;
+	/** Minecraft puts the text baseline 7 GUI px below the y you draw at. */
+	private static final float BASELINE = 7f;
+
+	public static final float UI_SIZE = 10f;
+	public static final float TITLE_SIZE = 16f;
+	public static final float BAR_SIZE = 9.5f;
+	public static final float UI_CAP = UI_SIZE * CAP_RATIO;
+	public static final float TITLE_CAP = TITLE_SIZE * CAP_RATIO;
+	public static final float BAR_CAP = BAR_SIZE * CAP_RATIO;
+
+	private static final FontDescription[] UI_FONTS = fonts("ui");
+	private static final FontDescription[] BOLD_FONTS = fonts("bold");
+	private static final FontDescription[] TITLE_FONTS = fonts("title");
+	private static final FontDescription[] BAR_FONTS = fonts("bar");
+
+	/** Kept for code that wants "the" UI font; resolves to the variant for the current GUI scale. */
+	public static final FontDescription FONT = UI_FONTS[3];
+
+	private static FontDescription[] fonts(String kind) {
+		FontDescription[] out = new FontDescription[7];
+		for (int i = 1; i <= 6; i++) out[i] = new FontDescription.Resource(FancyBarsMod.id(kind + "_s" + i));
+		out[0] = out[1];
+		return out;
+	}
+
+	/**
+	 * Each font is rasterised once per GUI scale (oversample = scale) so glyph pixels map 1:1 to screen pixels.
+	 */
+	public static int guiScale() {
+		int scale = Minecraft.getInstance().getWindow().getGuiScale();
+		return Math.clamp(scale, 1, 6);
+	}
+
+	public static FontDescription uiFont() {
+		return UI_FONTS[guiScale()];
+	}
+
+	public static FontDescription boldFont() {
+		return BOLD_FONTS[guiScale()];
+	}
+
+	public static FontDescription titleFont() {
+		return TITLE_FONTS[guiScale()];
+	}
+
+	public static FontDescription barFont() {
+		return BAR_FONTS[guiScale()];
+	}
 
 	private static final int[] RADII = {2, 3, 4, 5, 6, 8, 10};
 	private static final Identifier[] RECTS = new Identifier[RADII.length];
@@ -75,48 +122,92 @@ public final class Theme {
 	// ------------------------------------------------------------ Text
 
 	public static MutableComponent styled(Component text) {
-		return text.copy().withStyle(style -> style.withFont(FONT));
+		FontDescription font = uiFont();
+		return text.copy().withStyle(style -> style.withFont(font));
 	}
 
 	public static MutableComponent bold(Component text) {
-		return text.copy().withStyle(style -> style.withFont(FONT_BOLD));
+		FontDescription font = boldFont();
+		return text.copy().withStyle(style -> style.withFont(font));
 	}
 
 	public static MutableComponent title(Component text) {
-		return text.copy().withStyle(style -> style.withFont(FONT_TITLE));
+		FontDescription font = titleFont();
+		return text.copy().withStyle(style -> style.withFont(font));
 	}
 
 	public static int width(Font font, Component text) {
 		return font.width(styled(text));
 	}
 
-	public static void text(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color) {
-		graphics.text(font, styled(text), x, y, color, false);
-	}
-
-	public static void boldText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color) {
-		graphics.text(font, bold(text), x, y, color, false);
-	}
-
-	public static void centeredText(GuiGraphicsExtractor graphics, Font font, Component text, int centerX, int y, int color) {
-		Component s = styled(text);
-		graphics.text(font, s, centerX - font.width(s) / 2, y, color, false);
-	}
-
-	public static void centeredBoldText(GuiGraphicsExtractor graphics, Font font, Component text, int centerX, int y, int color) {
-		Component s = bold(text);
-		graphics.text(font, s, centerX - font.width(s) / 2, y, color, false);
-	}
-
-	/**
-	 * Large bold title text (uses the large Inter Bold font, not scaling, so it stays sharp).
-	 */
-	public static void bigText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, float scale, int color) {
-		graphics.text(font, title(text), x, y, color, false);
+	public static int boldWidth(Font font, Component text) {
+		return font.width(bold(text));
 	}
 
 	public static int titleWidth(Font font, Component text) {
 		return font.width(title(text));
+	}
+
+	/**
+	 * Draws already-styled text so its capital letters start exactly at {@code capTop},
+	 * snapped to the physical pixel grid so it stays crisp.
+	 */
+	public static void drawAtCapTop(GuiGraphicsExtractor graphics, Font font, Component styledText, float x, float capTop, float capHeight, int color) {
+		float scale = guiScale();
+		float originY = capTop + capHeight - BASELINE;
+		float sx = Math.round(x * scale) / scale;
+		float sy = Math.round(originY * scale) / scale;
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(sx, sy);
+		graphics.text(font, styledText, 0, 0, color, false);
+		pose.popMatrix();
+	}
+
+	/** Regular text vertically centred in a box. */
+	public static void textInBox(GuiGraphicsExtractor graphics, Font font, Component text, float x, float boxY, float boxHeight, int color) {
+		drawAtCapTop(graphics, font, styled(text), x, boxY + (boxHeight - UI_CAP) / 2f, UI_CAP, color);
+	}
+
+	public static void boldInBox(GuiGraphicsExtractor graphics, Font font, Component text, float x, float boxY, float boxHeight, int color) {
+		drawAtCapTop(graphics, font, bold(text), x, boxY + (boxHeight - UI_CAP) / 2f, UI_CAP, color);
+	}
+
+	public static void titleInBox(GuiGraphicsExtractor graphics, Font font, Component text, float x, float boxY, float boxHeight, int color) {
+		drawAtCapTop(graphics, font, title(text), x, boxY + (boxHeight - TITLE_CAP) / 2f, TITLE_CAP, color);
+	}
+
+	/** Regular text centred horizontally on {@code centerX} and vertically in a box. */
+	public static void centeredInBox(GuiGraphicsExtractor graphics, Font font, Component text, float centerX, float boxY, float boxHeight, int color) {
+		MutableComponent s = styled(text);
+		drawAtCapTop(graphics, font, s, centerX - font.width(s) / 2f, boxY + (boxHeight - UI_CAP) / 2f, UI_CAP, color);
+	}
+
+	/**
+	 * Regular text on an 8px line starting at {@code y} (the same slot Minecraft's own text would use), centred in that line.
+	 */
+	public static void text(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color) {
+		textInBox(graphics, font, text, x, y, 8, color);
+	}
+
+	public static void boldText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color) {
+		boldInBox(graphics, font, text, x, y, 8, color);
+	}
+
+	public static void centeredText(GuiGraphicsExtractor graphics, Font font, Component text, int centerX, int y, int color) {
+		centeredInBox(graphics, font, text, centerX, y, 8, color);
+	}
+
+	public static void centeredBoldText(GuiGraphicsExtractor graphics, Font font, Component text, int centerX, int y, int color) {
+		MutableComponent s = bold(text);
+		drawAtCapTop(graphics, font, s, centerX - font.width(s) / 2f, y + (8 - UI_CAP) / 2f, UI_CAP, color);
+	}
+
+	/**
+	 * Title text whose capitals start at {@code y}.
+	 */
+	public static void bigText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, float unused, int color) {
+		drawAtCapTop(graphics, font, title(text), x, y, TITLE_CAP, color);
 	}
 
 	// ------------------------------------------------------------ Shapes

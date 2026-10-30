@@ -277,18 +277,15 @@ public class BarsMenuScreen extends Screen {
 		Theme.panel(graphics, x0, y0 + TOP_HEIGHT + GAP, SIDEBAR_WIDTH, totalHeight - TOP_HEIGHT - GAP);
 		Theme.panel(graphics, rightX, y0 + TOP_HEIGHT + GAP, rightW, totalHeight - TOP_HEIGHT - GAP);
 
-		// Title: "Fancy" in light blue, "Bars" in white
-		Component fancy = Component.translatable("fancybars.menu.titleAccent");
-		Component barsWord = Component.translatable("fancybars.menu.titleRest");
-		int fw = Theme.titleWidth(font, fancy);
-		int bw = Theme.titleWidth(font, barsWord);
-		int tx = x0 + (SIDEBAR_WIDTH - fw - bw) / 2;
-		int ty = y0 + (TOP_HEIGHT - 11) / 2;
-		Theme.bigText(graphics, font, fancy, tx, ty, 1, Theme.ACCENT);
-		Theme.bigText(graphics, font, barsWord, tx + fw, ty, 1, Theme.TEXT);
+		// Title: "Fancy" in light blue, "Bars" in white, measured as one string and centred exactly in the box
+		Component titleText = Theme.title(Component.empty()
+				.append(Component.translatable("fancybars.menu.titleAccent").withColor(Theme.ACCENT & 0xFFFFFF))
+				.append(Component.translatable("fancybars.menu.titleRest").withColor(Theme.TEXT & 0xFFFFFF)));
+		float titleX = x0 + (SIDEBAR_WIDTH - font.width(titleText)) / 2f;
+		Theme.drawAtCapTop(graphics, font, titleText, titleX, y0 + (TOP_HEIGHT - Theme.TITLE_CAP) / 2f, Theme.TITLE_CAP, 0xFFFFFFFF);
 
 		// Version at the bottom of the sidebar
-		Theme.centeredText(graphics, font, Component.literal("v" + FancyBarsMod.VERSION), x0 + SIDEBAR_WIDTH / 2, y0 + totalHeight - 14, Theme.TEXT_DISABLED);
+		Theme.centeredInBox(graphics, font, Component.literal("v" + FancyBarsMod.VERSION), x0 + SIDEBAR_WIDTH / 2f, y0 + totalHeight - 18, 12, Theme.TEXT_DISABLED);
 
 		// Fixed widgets (search, nav, sidebar)
 		super.extractRenderState(graphics, mouseX, my, a);
@@ -424,7 +421,7 @@ public class BarsMenuScreen extends Screen {
 				Theme.roundedRect(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, Theme.withAlpha(Theme.SURFACE_HOVER, hover));
 			}
 			int textColor = selected ? Theme.TEXT : Theme.lerpColor(Theme.TEXT_SOFT, Theme.TEXT, hover);
-			Theme.text(graphics, font, getMessage(), getX() + 8 + Math.round(hover * 2), getY() + (getHeight() - 8) / 2, textColor);
+			Theme.textInBox(graphics, font, getMessage(), getX() + 9 + hover * 2, getY(), getHeight(), textColor);
 			if (isHovered()) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 
@@ -481,8 +478,8 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
-			Theme.bigText(graphics, font, title, x + 2, y + 2, 1, Theme.TEXT);
-			if (description != null) Theme.text(graphics, font, clip(description, w - 4), x + 2, y + 20, Theme.TEXT_MUTED);
+			Theme.titleInBox(graphics, font, title, x + 2, y, 16, Theme.TEXT);
+			if (description != null) Theme.textInBox(graphics, font, clip(description, w - 4), x + 2, y + 19, 10, Theme.TEXT_MUTED);
 		}
 	}
 
@@ -549,15 +546,13 @@ public class BarsMenuScreen extends Screen {
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
 			int tx = x + 12;
-			if (accentTitle) {
-				Component fancy = Component.translatable("fancybars.menu.titleAccent").append(" ");
-				Theme.bigText(graphics, font, fancy, tx, y + 11, 1, Theme.ACCENT);
-				tx += Theme.titleWidth(font, fancy);
-			}
-			Theme.bigText(graphics, font, title, tx, y + 11, 1, Theme.TEXT);
+			Component heading = accentTitle
+					? Component.empty().append(Component.translatable("fancybars.menu.titleAccent").withColor(Theme.ACCENT & 0xFFFFFF)).append(" ").append(title.copy().withColor(Theme.TEXT & 0xFFFFFF))
+					: title.copy().withColor(Theme.TEXT & 0xFFFFFF);
+			Theme.titleInBox(graphics, font, heading, tx, y + 6, 20, 0xFFFFFFFF);
 			int ly = y + 32;
 			for (Component line : lines) {
-				Theme.text(graphics, font, clip(Component.literal("•  ").append(line), w - 28), x + 14, ly, Theme.TEXT_SOFT);
+				Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(line), w - 28), x + 14, ly, 10, Theme.TEXT_SOFT);
 				ly += 12;
 			}
 		}
@@ -589,8 +584,8 @@ public class BarsMenuScreen extends Screen {
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
-			Theme.boldText(graphics, font, Component.translatable("fancybars.config." + key), x + 10, y + 7, Theme.TEXT);
-			Theme.text(graphics, font, clip(Component.translatable("fancybars.config." + key + ".@Tooltip"), w - 60), x + 10, y + 19, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, Component.translatable("fancybars.config." + key), x + 10, y + 6, 11, Theme.TEXT);
+			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.config." + key + ".@Tooltip"), w - 60), x + 10, y + 18, 10, Theme.TEXT_MUTED);
 			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 
@@ -632,8 +627,8 @@ public class BarsMenuScreen extends Screen {
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
-			Theme.boldText(graphics, font, Component.translatable("fancybars.config.intelligenceDisplay"), x + 10, y + 7, Theme.TEXT);
-			Theme.text(graphics, font, clip(Component.translatable("fancybars.config.intelligenceDisplay.short"), w - 140), x + 10, y + 19, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, Component.translatable("fancybars.config.intelligenceDisplay"), x + 10, y + 6, 11, Theme.TEXT);
+			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.config.intelligenceDisplay.short"), w - 140), x + 10, y + 18, 10, Theme.TEXT_MUTED);
 		}
 	}
 
@@ -690,20 +685,20 @@ public class BarsMenuScreen extends Screen {
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
 
 			// Name + location, preview underneath
-			Theme.boldText(graphics, font, bar.getName(), x + 10, y + 7, bar.enabled ? Theme.TEXT : Theme.TEXT_DISABLED);
+			Theme.boldInBox(graphics, font, bar.getName(), x + 10, y + 5, 11, bar.enabled ? Theme.TEXT : Theme.TEXT_DISABLED);
 			Component where = !bar.enabled ? Component.translatable("fancybars.menu.where.hidden")
 					: bar.anchor != null ? Component.translatable("fancybars.menu.where.hotbar")
 					: Component.translatable("fancybars.menu.where.free", Math.round(bar.scale * 100));
-			Theme.text(graphics, font, where, x + 14 + Theme.width(font, Theme.bold(bar.getName())), y + 7, Theme.TEXT_MUTED);
+			Theme.textInBox(graphics, font, where, x + 14 + Theme.boldWidth(font, bar.getName()), y + 5, 11, Theme.TEXT_MUTED);
 			bar.extractPreview(graphics, x + 10, y + 21, Math.min(110, shown.getX() - x - 24));
 
 			// Column captions above the controls
-			int captionY = y + 7;
-			Theme.centeredText(graphics, font, Component.translatable("fancybars.menu.header.shown"), shown.getX() + ModernToggle.SWITCH_WIDTH / 2, captionY, Theme.TEXT_MUTED);
-			Theme.centeredText(graphics, font, Component.translatable("fancybars.menu.header.icon"), icon.getX() + ModernToggle.SWITCH_WIDTH / 2, captionY, Theme.TEXT_MUTED);
+			int captionY = y + 5;
+			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.menu.header.shown"), shown.getX() + ModernToggle.SWITCH_WIDTH / 2f, captionY, 11, Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.menu.header.icon"), icon.getX() + ModernToggle.SWITCH_WIDTH / 2f, captionY, 11, Theme.TEXT_MUTED);
 			int colorsLeft = swatches.getFirst().getX();
 			int colorsRight = colorsLeft + 3 * SWATCH + 2 * 5;
-			Theme.centeredText(graphics, font, Component.translatable("fancybars.menu.header.colors"), (colorsLeft + colorsRight) / 2, captionY, Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.menu.header.colors"), (colorsLeft + colorsRight) / 2f, captionY, 11, Theme.TEXT_MUTED);
 		}
 	}
 
@@ -737,8 +732,8 @@ public class BarsMenuScreen extends Screen {
 			if (selected) Theme.circle(graphics, rx + 3, ry + 3, 6, Theme.ACCENT);
 
 			int previewWidth = Math.min(110, w / 3);
-			Theme.boldText(graphics, font, Component.translatable(style.translationKey()), x + 30, y + 9, Theme.TEXT);
-			Theme.text(graphics, font, clip(Component.translatable(style.translationKey() + ".description"), w - 30 - previewWidth - 20), x + 30, y + 22, Theme.TEXT_MUTED);
+			Theme.boldInBox(graphics, font, Component.translatable(style.translationKey()), x + 30, y + 7, 12, Theme.TEXT);
+			Theme.textInBox(graphics, font, clip(Component.translatable(style.translationKey() + ".description"), w - 30 - previewWidth - 20), x + 30, y + 21, 12, Theme.TEXT_MUTED);
 
 			// Live preview of health + mana drawn in this style
 			FancyBarsConfig.BarStyle previous = config.barStyle;
@@ -859,7 +854,7 @@ public class BarsMenuScreen extends Screen {
 		@Override
 		public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 			Theme.panel(graphics, px, py, pw, ph);
-			Theme.bigText(graphics, font, getTitle(), px + 14, py + 12, 1, Theme.TEXT);
+			Theme.titleInBox(graphics, font, getTitle(), px + 14, py + 8, 18, Theme.TEXT);
 			graphics.textWithWordWrap(font, Theme.styled(message), px + 14, py + 32, pw - 28, Theme.TEXT_SOFT, false);
 			super.extractRenderState(graphics, mouseX, mouseY, a);
 		}

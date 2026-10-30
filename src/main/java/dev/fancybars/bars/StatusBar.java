@@ -35,6 +35,7 @@ import net.minecraft.world.effect.MobEffects;
 import dev.fancybars.FancyBarsMod;
 import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.util.GuiHelper;
+import dev.fancybars.util.gui.Theme;
 import dev.fancybars.util.SkyblockLocation;
 
 public class StatusBar implements LayoutElement, Renderable, GuiEventListener, NarratableEntry {
@@ -44,8 +45,6 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 	private static final Identifier SEGMENTED_BAR_BACK = FancyBarsMod.id("bars/segmented/bar_back");
 
 	/** SkyblockAddons bar sheet: empty bar at v=1, fill at v=7, shine overlay at v=13, progress tick at v=24 (71x5 each). */
-	private static final FontDescription BAR_FONT = new FontDescription.Resource(FancyBarsMod.id("bar"));
-
 	private static final Identifier SBA_BARS = FancyBarsMod.id("textures/sba/bars_v2.png");
 	private static final int SBA_WIDTH = 71;
 
@@ -61,23 +60,48 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		return FancyBarsConfig.get().barStyle == FancyBarsConfig.BarStyle.SKYBLOCKADDONS;
 	}
 
+	private static final int SBA_CAP = 2;          // rounded end caps (texture x 1-2 and 70-71)
+	private static final int SBA_MIDDLE_U = 1 + SBA_CAP;
+	private static final int SBA_MIDDLE = SBA_WIDTH - SBA_CAP * 2; // 67px repeating middle
+
 	/**
-	 * Draws part of a SkyblockAddons bar layer, stretched so the 71px texture covers {@code barWidth}.
+	 * Draws part of a SkyblockAddons bar layer. Instead of stretching the 71px texture, the end caps are drawn once
+	 * and the middle section repeats, so long bars keep the original pixel pattern.
 	 *
-	 * @param from  start of the drawn part, as a fraction of the bar (0..1)
-	 * @param to    end of the drawn part, as a fraction of the bar (0..1)
+	 * @param from start of the drawn part, as a fraction of the bar (0..1)
+	 * @param to   end of the drawn part, as a fraction of the bar (0..1)
 	 */
 	private void sbaLayer(GuiGraphicsExtractor graphics, int barX, int y, int barWidth, int v, float from, float to, int argb) {
 		if (to <= from || barWidth <= 0) return;
-		int srcStart = Math.round(SBA_WIDTH * from);
-		int srcEnd = Math.round(SBA_WIDTH * to);
-		if (srcEnd <= srcStart) return;
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		pose.translate(barX, y);
-		pose.scale(barWidth / (float) SBA_WIDTH, 1);
-		graphics.blit(RenderPipelines.GUI_TEXTURED, SBA_BARS, srcStart, 0, 1 + srcStart, v, srcEnd - srcStart, 5, 80, 50, argb);
-		pose.popMatrix();
+		int clipStart = barX + Math.round(barWidth * from);
+		int clipEnd = barX + Math.round(barWidth * to);
+		if (clipEnd <= clipStart) return;
+
+		if (barWidth < SBA_CAP * 2 + 1) {
+			sbaPiece(graphics, barX, y, 1, barWidth, v, clipStart, clipEnd, argb);
+			return;
+		}
+		// left cap
+		sbaPiece(graphics, barX, y, 1, SBA_CAP, v, clipStart, clipEnd, argb);
+		// repeating middle
+		int middleStart = barX + SBA_CAP;
+		int middleEnd = barX + barWidth - SBA_CAP;
+		for (int px = middleStart; px < middleEnd; px += SBA_MIDDLE) {
+			int w = Math.min(SBA_MIDDLE, middleEnd - px);
+			sbaPiece(graphics, px, y, SBA_MIDDLE_U, w, v, clipStart, clipEnd, argb);
+		}
+		// right cap
+		sbaPiece(graphics, middleEnd, y, 1 + SBA_WIDTH - SBA_CAP, SBA_CAP, v, clipStart, clipEnd, argb);
+	}
+
+	/**
+	 * Draws one 1:1 piece of the SkyblockAddons sheet, clipped horizontally to [clipStart, clipEnd).
+	 */
+	private void sbaPiece(GuiGraphicsExtractor graphics, int x, int y, int u, int width, int v, int clipStart, int clipEnd, int argb) {
+		int start = Math.max(x, clipStart);
+		int end = Math.min(x + width, clipEnd);
+		if (end <= start) return;
+		graphics.blit(RenderPipelines.GUI_TEXTURED, SBA_BARS, start, y, u + (start - x), v, end - start, 5, 80, 50, argb);
 	}
 
 	private void sbaOverlays(GuiGraphicsExtractor graphics, int barX, int barWidth) {
@@ -320,7 +344,11 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 			text.append(literal);
 		}
 
-		if (FancyBarsConfig.get().smoothBarText) text = text.withStyle(style -> style.withFont(BAR_FONT));
+		boolean smooth = FancyBarsConfig.get().smoothBarText;
+		if (smooth) {
+			FontDescription barFont = Theme.barFont();
+			text = text.withStyle(style -> style.withFont(barFont));
+		}
 		int textWidth = textRenderer.width(text);
 		int x;
 		switch (textPosition) {
@@ -334,7 +362,27 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		int color = transparency(displayColor.getRGB());
 		int outlineColor = transparency(CommonColors.BLACK);
 
-		GuiHelper.outlinedText(graphics, Component.translationArg(text), x, y, color, outlineColor);
+		if (!smooth) {
+			GuiHelper.outlinedText(graphics, Component.translationArg(text), x, y, color, outlineColor);
+			return;
+		}
+
+		// Smooth text: centre the capitals on the same line the pixel font uses (renderY + 0.5),
+		// with sub-pixel horizontal centring, snapped to physical pixels.
+		float exactX = switch (textPosition) {
+			case RIGHT -> barX + barWidth - textWidth;
+			case CENTER -> this.renderX + (renderWidth - textWidth) / 2f;
+			case BAR_CENTER -> barX + (barWidth - textWidth) / 2f;
+			default -> barX;
+		};
+		float capTop = this.renderY + 0.5f - Theme.BAR_CAP / 2f;
+		float originY = capTop + Theme.BAR_CAP - 7f;
+		float pixel = Theme.guiScale();
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(Math.round(exactX * pixel) / pixel, Math.round(originY * pixel) / pixel);
+		GuiHelper.outlinedText(graphics, Component.translationArg(text), 0, 0, color, outlineColor);
+		pose.popMatrix();
 	}
 
 	/**

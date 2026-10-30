@@ -1,0 +1,23 @@
+{
+ "providers": [
+  {
+   "type": "reference",
+   "id": "minecraft:include/space"
+  },
+  {
+   "type": "ttf",
+   "file": "fancybars:inter-bold.ttf",
+   "size": 16.0,
+   "oversample": 6.0,
+   "shift": [
+    0,
+    0
+   ],
+   "skip": ""
+  },
+  {
+   "type": "reference",
+   "id": "minecraft:default"
+  }
+ ]
+}

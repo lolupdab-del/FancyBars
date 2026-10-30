@@ -137,7 +137,7 @@ public class ARGBTextInput extends AbstractWidget {
 				visitor -> {
 					int start = hasAlpha ? 0 : 1;
 					for (int i = 0; i < input.length(); i++) {
-						Style style = (isHoveredOrFocused() ? Style.EMPTY.applyFormat(FORMATTINGS[i / 2 + start]) : Style.EMPTY).withFont(Theme.FONT);
+						Style style = (isHoveredOrFocused() ? Style.EMPTY.applyFormat(FORMATTINGS[i / 2 + start]) : Style.EMPTY).withFont(Theme.uiFont());
 						if (!visitor.accept(i, style, input.charAt(i))) return false;
 					}
 					return true;

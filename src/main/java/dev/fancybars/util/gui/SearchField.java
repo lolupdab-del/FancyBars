@@ -51,19 +51,19 @@ public class SearchField extends AbstractWidget {
 		Theme.card(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, Theme.lerpColor(0xFF1F2131, 0xFF24273A, hover), border);
 
 		int textX = getX() + 8;
-		int textY = getY() + (getHeight() - 8) / 2;
 		if (text.isEmpty() && !focused) {
-			Theme.text(graphics, font, placeholder, textX, textY, Theme.TEXT_MUTED);
+			Theme.textInBox(graphics, font, placeholder, textX, getY(), getHeight(), Theme.TEXT_MUTED);
 		} else {
 			Component shown = Component.literal(text);
-			Theme.text(graphics, font, shown, textX, textY, Theme.TEXT);
+			Theme.textInBox(graphics, font, shown, textX, getY(), getHeight(), Theme.TEXT);
 			if (focused && (Util.getMillis() / 500) % 2 == 0) {
 				int caretX = textX + Theme.width(font, shown) + 1;
-				graphics.fill(caretX, textY - 1, caretX + 1, textY + 9, Theme.ACCENT);
+				int caretTop = Math.round(getY() + (getHeight() - Theme.UI_CAP) / 2f) - 2;
+				graphics.fill(caretX, caretTop, caretX + 1, caretTop + Math.round(Theme.UI_CAP) + 4, Theme.ACCENT);
 			}
 		}
 		if (!text.isEmpty()) {
-			Theme.text(graphics, font, Component.literal("✕"), getRight() - 12, textY, isClearHovered(mouseX, mouseY) ? Theme.TEXT : Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.literal("✕"), getRight() - 9, getY(), getHeight(), isClearHovered(mouseX, mouseY) ? Theme.TEXT : Theme.TEXT_MUTED);
 		}
 		if (isHovered()) graphics.requestCursor(isClearHovered(mouseX, mouseY) ? CursorTypes.POINTING_HAND : CursorTypes.IBEAM);
 	}

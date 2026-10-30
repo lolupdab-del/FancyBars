@@ -101,7 +101,7 @@ public class BarEditorScreen extends Screen {
 		if (dragging == null) {
 			int toolbarWidth = Math.min(width - 20, Math.max(170, Theme.width(font, Component.translatable("fancybars.editor.hint")) + 24));
 			Theme.panel(graphics, width / 2 - toolbarWidth / 2, 4, toolbarWidth, 44);
-			Theme.centeredText(graphics, font, Component.translatable("fancybars.editor.hint"), width / 2, 11, Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.editor.hint"), width / 2f, 6, 16, Theme.TEXT_MUTED);
 		}
 
 		// Hotbar for reference
@@ -146,7 +146,7 @@ public class BarEditorScreen extends Screen {
 			Theme.shadow(graphics, infoX, infoY, infoWidth, 14, 7, 4, 2);
 			Theme.roundedRect(graphics, infoX - 1, infoY - 1, infoWidth + 2, 16, 8, 0x887CC8FF);
 			Theme.roundedGradient(graphics, infoX, infoY, infoWidth, 14, 7, Theme.PANEL_TOP, Theme.PANEL_BOTTOM);
-			Theme.text(graphics, font, info, infoX + 6, infoY + 3, Theme.TEXT);
+			Theme.textInBox(graphics, font, info, infoX + 6, infoY, 14, Theme.TEXT);
 		}
 
 		// Cursor feedback
@@ -159,7 +159,7 @@ public class BarEditorScreen extends Screen {
 		// Options panel background (widgets render on top via super)
 		if (optionsBar != null) {
 			Theme.panel(graphics, optionsX, optionsY, optionsWidth, optionsHeight);
-			Theme.text(graphics, font, optionsBar.getName(), optionsX + 8, optionsY + 7, Theme.ACCENT_LIGHT);
+			Theme.boldInBox(graphics, font, optionsBar.getName(), optionsX + 8, optionsY + 3, 16, Theme.ACCENT_LIGHT);
 			graphics.fill(optionsX + 6, optionsY + 19, optionsX + optionsWidth - 6, optionsY + 20, Theme.DIVIDER);
 		}
 

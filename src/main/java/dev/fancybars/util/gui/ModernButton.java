@@ -75,7 +75,7 @@ public class ModernButton extends AbstractWidget {
 		}
 
 		Font font = Theme.font();
-		Theme.centeredText(graphics, font, getMessage(), x + w / 2, y + (h - 8) / 2, textColor);
+		Theme.centeredInBox(graphics, font, getMessage(), x + w / 2f, y, h, textColor);
 		if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 	}
 

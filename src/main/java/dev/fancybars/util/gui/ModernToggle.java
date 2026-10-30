@@ -59,7 +59,7 @@ public class ModernToggle extends AbstractWidget {
 			Theme.card(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS,
 					Theme.lerpColor(Theme.SURFACE, Theme.SURFACE_HOVER, hover),
 					Theme.lerpColor(Theme.CARD_BORDER, Theme.SELECTED_BORDER, hover));
-			Theme.text(graphics, font, label, getX() + 8, getY() + (getHeight() - 8) / 2, active ? Theme.TEXT_SOFT : Theme.TEXT_DISABLED);
+			Theme.textInBox(graphics, font, label, getX() + 8, getY(), getHeight(), active ? Theme.TEXT_SOFT : Theme.TEXT_DISABLED);
 		}
 
 		// Track
