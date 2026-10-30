@@ -85,6 +85,31 @@ public class FancyBarsConfig {
 
 	public boolean gifsHideRecipeBook = true;
 
+	// ---------------------------------------------------------------- Dungeon secrets display (from SkyblockAddons)
+
+	public boolean secretsEnabled = true;
+
+	public boolean secretsShowChest = true;
+
+	public boolean secretsShowWord = true;
+
+	/** Remove the "X/Y Secrets" text from the action bar while the display is on. */
+	public boolean secretsHideActionBar = true;
+
+	/** Top-left position as a fraction of the screen; negative = default spot. */
+	public float secretsX = -1;
+
+	public float secretsY = -1;
+
+	public float secretsScale = 1;
+
+	// ---------------------------------------------------------------- Backpack preview (from Skyblocker)
+
+	public boolean backpackPreviewEnabled = true;
+
+	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
+	public boolean backpackPreviewNeedsShift = false;
+
 	// ---------------------------------------------------------------- Held item name (the tooltip shown when switching items)
 
 	public boolean heldItemNameEnabled = true;
@@ -110,6 +135,7 @@ public class FancyBarsConfig {
 			if (instance.protectedItems == null) instance.protectedItems = new java.util.LinkedHashSet<>();
 			if (instance.protectedItemInfo == null) instance.protectedItemInfo = new java.util.LinkedHashMap<>();
 			if (instance.heldItemNameScale <= 0) instance.heldItemNameScale = 1;
+			if (instance.secretsScale <= 0) instance.secretsScale = 1;
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;
 				instance.segmentedBars = false;

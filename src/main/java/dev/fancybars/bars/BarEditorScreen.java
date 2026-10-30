@@ -38,8 +38,6 @@ public class BarEditorScreen extends Screen {
 	private static final int MIN_WIDTH = 20;
 	private static final int EDGE_GRAB = 3;
 	private static final int SNAP_DISTANCE = 4;
-	private static final float HELD_MIN_SCALE = 0.5f;
-	private static final float HELD_MAX_SCALE = 3f;
 
 	private final @Nullable Screen parent;
 	private final FancyStatusBars bars = FancyStatusBars.INSTANCE;
@@ -51,10 +49,10 @@ public class BarEditorScreen extends Screen {
 	private int dragStartRight;
 	private boolean pendingDetach = false;
 
-	// Held item name element
-	private boolean draggingHeld = false;
-	private float heldGrabX;
-	private float heldGrabY;
+	// Other movable HUD elements (held item name, dungeon secrets)
+	private @Nullable MovableElement draggingElement = null;
+	private float elementGrabX;
+	private float elementGrabY;
 
 	private @Nullable StatusBar optionsBar;
 	private int optionsX;
@@ -126,8 +124,8 @@ public class BarEditorScreen extends Screen {
 			bar.extractText(graphics);
 		}
 
-		// Held item name (the tooltip that pops up when switching items)
-		extractHeldItemName(graphics, mouseX, mouseY, hovered == null && dragging == null);
+		// Other HUD elements (held item name, dungeon secrets)
+		extractElements(graphics, mouseX, mouseY, hovered == null && dragging == null);
 
 		// Selection outline + resize handles
 		for (StatusBar bar : bars.statusBars.values()) {
@@ -177,55 +175,38 @@ public class BarEditorScreen extends Screen {
 		super.extractRenderState(graphics, mouseX, mouseY, a);
 	}
 
-	private Component heldSampleText() {
-		if (minecraft.player != null && !minecraft.player.getMainHandItem().isEmpty()) return minecraft.player.getMainHandItem().getHoverName();
-		return Component.translatable("fancybars.editor.heldItemSample");
-	}
-
-	/** @return {x, y, w, h} of the held item name on screen */
-	private float[] heldRect() {
-		FancyBarsConfig config = FancyBarsConfig.get();
-		float w = font.width(heldSampleText());
-		float s = config.heldItemNameScale;
-		float cx = width / 2f + config.heldItemNameX;
-		float cy = height - HeldItemName.VANILLA_OFFSET_FROM_BOTTOM + 4.5f + config.heldItemNameY;
-		return new float[]{cx - w * s / 2f, cy - 4.5f * s, w * s, 9 * s};
-	}
-
-	private boolean isOverHeld(double mouseX, double mouseY) {
-		float[] r = heldRect();
+	private static boolean isOver(float[] r, double mouseX, double mouseY) {
 		return mouseX >= r[0] - 3 && mouseX <= r[0] + r[2] + 3 && mouseY >= r[1] - 2 && mouseY <= r[1] + r[3] + 2;
 	}
 
-	private void extractHeldItemName(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean canHover) {
-		FancyBarsConfig config = FancyBarsConfig.get();
-		Component text = heldSampleText();
-		boolean active = draggingHeld || (canHover && isOverHeld(mouseX, mouseY));
-		float[] r = heldRect();
-
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		HeldItemName.applyTransform(graphics, pose);
-		int alpha = config.heldItemNameEnabled ? 0xFF000000 : 0x55000000;
-		graphics.text(font, text, (width - font.width(text)) / 2, height - HeldItemName.VANILLA_OFFSET_FROM_BOTTOM, alpha | 0xFFFFFF, true);
-		pose.popMatrix();
-
-		if (active) {
-			int x = Math.round(r[0]) - 4;
-			int y = Math.round(r[1]) - 3;
-			int w = Math.round(r[2]) + 8;
-			int h = Math.round(r[3]) + 5;
-			Theme.glow(graphics, x, y, w, h, 4, 0.6f);
-			Theme.roundedOutline(graphics, x, y, w, h, 4, Theme.ACCENT);
-			Component label = Component.translatable(config.heldItemNameEnabled ? "fancybars.editor.heldItemLabel" : "fancybars.editor.heldItemLabelHidden",
-					Math.round(config.heldItemNameScale * 100));
-			int lw = Theme.width(font, label) + 12;
-			int lx = Math.clamp(x + w / 2 - lw / 2, 2, width - lw - 2);
-			int ly = y - 18 < 48 ? y + h + 4 : y - 18;
-			Theme.card(graphics, lx, ly, lw, 14, 7, Theme.PANEL, 0x887CC8FF);
-			Theme.textInBox(graphics, font, label, lx + 6, ly, 14, Theme.TEXT);
-			graphics.requestCursor(draggingHeld ? CursorTypes.RESIZE_ALL : CursorTypes.POINTING_HAND);
+	private @Nullable MovableElement elementAt(double mouseX, double mouseY) {
+		for (MovableElement element : MovableElement.ALL) {
+			if (isOver(element.rect(width, height), mouseX, mouseY)) return element;
 		}
+		return null;
+	}
+
+	private void extractElements(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean canHover) {
+		MovableElement hoveredElement = draggingElement != null ? draggingElement : canHover ? elementAt(mouseX, mouseY) : null;
+		for (MovableElement element : MovableElement.ALL) {
+			element.drawPreview(graphics, width, height);
+		}
+		if (hoveredElement == null) return;
+		float[] r = hoveredElement.rect(width, height);
+		int x = Math.round(r[0]) - 4;
+		int y = Math.round(r[1]) - 3;
+		int w = Math.round(r[2]) + 8;
+		int h = Math.round(r[3]) + 6;
+		Theme.glow(graphics, x, y, w, h, 4, 0.6f);
+		Theme.roundedOutline(graphics, x, y, w, h, 4, Theme.ACCENT);
+		Component label = Component.translatable(hoveredElement.enabled() ? "fancybars.editor.elementLabel" : "fancybars.editor.elementLabelHidden",
+				hoveredElement.name(), Math.round(hoveredElement.scale() * 100));
+		int lw = Theme.width(font, label) + 12;
+		int lx = Math.clamp(x + w / 2 - lw / 2, 2, width - lw - 2);
+		int ly = y - 18 < 48 ? y + h + 4 : y - 18;
+		Theme.card(graphics, lx, ly, lw, 14, 7, Theme.PANEL, 0x887CC8FF);
+		Theme.textInBox(graphics, font, label, lx + 6, ly, 14, Theme.TEXT);
+		graphics.requestCursor(draggingElement != null ? CursorTypes.RESIZE_ALL : CursorTypes.POINTING_HAND);
 	}
 
 	private static void outline(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int color) {
@@ -267,22 +248,24 @@ public class BarEditorScreen extends Screen {
 		if (isOverOptions(click.x(), click.y())) return true;
 
 		StatusBar bar = barAt(click.x(), click.y());
-		if (bar == null && isOverHeld(click.x(), click.y())) {
-			FancyBarsConfig config = FancyBarsConfig.get();
+		MovableElement element = bar == null ? elementAt(click.x(), click.y()) : null;
+		if (element != null) {
 			if (click.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
-				config.heldItemNameEnabled = !config.heldItemNameEnabled;
+				element.setEnabled(!element.enabled());
 				FancyBarsConfig.save();
 				return true;
 			}
 			if (click.button() == InputConstants.MOUSE_BUTTON_MIDDLE) {
-				HeldItemName.reset();
+				element.reset();
+				FancyBarsConfig.save();
 				return true;
 			}
 			if (click.button() == InputConstants.MOUSE_BUTTON_LEFT) {
 				closeOptions();
-				draggingHeld = true;
-				heldGrabX = (float) click.x() - (width / 2f + config.heldItemNameX);
-				heldGrabY = (float) click.y() - (height - HeldItemName.VANILLA_OFFSET_FROM_BOTTOM + 4.5f + config.heldItemNameY);
+				float[] r = element.rect(width, height);
+				draggingElement = element;
+				elementGrabX = (float) click.x() - r[0];
+				elementGrabY = (float) click.y() - r[1];
 				return true;
 			}
 		}
@@ -309,14 +292,13 @@ public class BarEditorScreen extends Screen {
 
 	@Override
 	public boolean mouseDragged(MouseButtonEvent click, double dx, double dy) {
-		if (draggingHeld) {
-			FancyBarsConfig config = FancyBarsConfig.get();
-			float cx = (float) click.x() - heldGrabX;
-			float cy = (float) click.y() - heldGrabY;
-			// snap horizontally to the screen centre unless Shift is held
-			if (!minecraft.hasShiftDown() && Math.abs(cx - width / 2f) <= SNAP_DISTANCE) cx = width / 2f;
-			config.heldItemNameX = Math.round(cx - width / 2f);
-			config.heldItemNameY = Math.round(cy - (height - HeldItemName.VANILLA_OFFSET_FROM_BOTTOM + 4.5f));
+		if (draggingElement != null) {
+			float[] r = draggingElement.rect(width, height);
+			float x = (float) click.x() - elementGrabX;
+			float y = (float) click.y() - elementGrabY;
+			// snap the centre to the middle of the screen unless Shift is held
+			if (draggingElement.snapsToCenter() && !minecraft.hasShiftDown() && Math.abs(x + r[2] / 2f - width / 2f) <= SNAP_DISTANCE) x = width / 2f - r[2] / 2f;
+			draggingElement.moveTo(x, y, width, height);
 			return true;
 		}
 		if (dragging == null) return super.mouseDragged(click, dx, dy);
@@ -361,8 +343,8 @@ public class BarEditorScreen extends Screen {
 
 	@Override
 	public boolean mouseReleased(MouseButtonEvent click) {
-		if (draggingHeld) {
-			draggingHeld = false;
+		if (draggingElement != null) {
+			draggingElement = null;
 			FancyBarsConfig.save();
 			return true;
 		}
@@ -382,10 +364,14 @@ public class BarEditorScreen extends Screen {
 		if (isOverOptions(mouseX, mouseY)) return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
 		StatusBar bar = barAt(mouseX, mouseY);
 		float step = 1f / Theme.guiScale(); // keeps every texture pixel a whole number of screen pixels
-		if (bar == null && vertical != 0 && isOverHeld(mouseX, mouseY)) {
-			FancyBarsConfig config = FancyBarsConfig.get();
-			float next = StatusBar.snapScale(config.heldItemNameScale + (vertical > 0 ? step : -step));
-			config.heldItemNameScale = Math.clamp(next, HELD_MIN_SCALE, HELD_MAX_SCALE);
+		MovableElement element = bar == null && vertical != 0 ? elementAt(mouseX, mouseY) : null;
+		if (element != null) {
+			// scale around the element's centre
+			float[] before = element.rect(width, height);
+			float next = StatusBar.snapScale(element.scale() + (vertical > 0 ? step : -step));
+			element.setScale(Math.clamp(next, MovableElement.MIN_SCALE, MovableElement.MAX_SCALE));
+			float[] after = element.rect(width, height);
+			element.moveTo(before[0] + before[2] / 2f - after[2] / 2f, before[1] + before[3] / 2f - after[3] / 2f, width, height);
 			FancyBarsConfig.save();
 			return true;
 		}

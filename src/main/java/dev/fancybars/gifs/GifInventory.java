@@ -2,7 +2,6 @@ package dev.fancybars.gifs;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
@@ -37,8 +36,10 @@ public final class GifInventory {
 	private static double offX;
 	private static double offY;
 	private static boolean drawnThisFrame = false;
-	private static ModernButton toggleButton;
-	private static final List<ModernButton> editButtons = new ArrayList<>();
+	private static ModernButton doneButton;
+	/** Set by {@link #openEditor}: the next inventory opens straight into edit mode. */
+	private static boolean editOnNextOpen = false;
+	private static Screen returnScreen = null;
 
 	private GifInventory() {}
 
@@ -90,17 +91,17 @@ public final class GifInventory {
 			widgets.removeIf(widget -> widget.getX() == bookX && widget.getY() == bookY);
 		}
 
-		int x = panel[0] + panel[2] + 4;
-		int y = panel[1];
-		toggleButton = new ModernButton(64, 18, Component.translatable("fancybars.gifs.button"), () -> setEditing(!editing));
-		toggleButton.setPosition(x, y);
-		editButtons.clear();
-		editButtons.add(button(x, y + 22, "fancybars.gifs.openFolder", GifInventory::openFolder));
-		editButtons.add(button(x, y + 44, "fancybars.gifs.reload", GifStore::reload));
-		editButtons.add(button(x, y + 66, "fancybars.gifs.showAll", GifInventory::showAll));
-		widgets.add(toggleButton);
-		widgets.addAll(editButtons);
-		setEditing(false);
+		// No buttons in the normal inventory: editing is started from the Fancy Bars menu (GIFs page)
+		doneButton = null;
+		if (editOnNextOpen) {
+			editOnNextOpen = false;
+			doneButton = new ModernButton(64, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, () -> finishEditing(screen));
+			doneButton.setPosition(panel[0] + panel[2] + 4, panel[1]);
+			widgets.add(doneButton);
+			setEditing(true);
+		} else {
+			setEditing(false);
+		}
 
 		ScreenEvents.beforeExtract(screen).register((s, graphics, mouseX, mouseY, delta) -> drawnThisFrame = false);
 		ScreenEvents.afterExtract(screen).register((s, graphics, mouseX, mouseY, delta) -> drawEditOverlay(s, graphics, mouseX, mouseY));
@@ -115,17 +116,30 @@ public final class GifInventory {
 		ScreenMouseEvents.allowMouseScroll(screen).register((s, mouseX, mouseY, horizontal, vertical) -> onScroll(s, mouseX, mouseY, vertical));
 		ScreenKeyboardEvents.allowKeyPress(screen).register((s, key) -> {
 			if (editing && key.key() == 256) {
-				setEditing(false);
+				finishEditing(s);
 				return false;
 			}
 			return true;
 		});
 	}
 
-	private static ModernButton button(int x, int y, String key, Runnable action) {
-		ModernButton button = new ModernButton(64, 18, Component.translatable(key), action);
-		button.setPosition(x, y);
-		return button;
+	/**
+	 * Opens the player inventory in GIF edit mode; when done, goes back to {@code returnTo}.
+	 */
+	public static void openEditor(Screen returnTo) {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.player == null || !enabled()) return;
+		editOnNextOpen = true;
+		returnScreen = returnTo;
+		minecraft.gui.setScreen(new InventoryScreen(minecraft.player));
+	}
+
+	private static void finishEditing(Screen screen) {
+		setEditing(false);
+		Screen back = returnScreen;
+		returnScreen = null;
+		if (back != null) Minecraft.getInstance().gui.setScreen(back);
+		else screen.onClose();
 	}
 
 	public static void showAll() {
@@ -147,19 +161,11 @@ public final class GifInventory {
 		if (editing && !value) GifStore.save();
 		editing = value;
 		dragging = null;
-		if (toggleButton != null) toggleButton.setMessage(Component.translatable(value ? "gui.done" : "fancybars.gifs.button"));
-		for (ModernButton button : editButtons) {
-			button.visible = value;
-			button.active = value;
-		}
+
 	}
 
 	private static boolean overOurButtons(double mouseX, double mouseY) {
-		if (toggleButton != null && toggleButton.isMouseOver(mouseX, mouseY)) return true;
-		for (ModernButton button : editButtons) {
-			if (button.visible && button.isMouseOver(mouseX, mouseY)) return true;
-		}
-		return false;
+		return doneButton != null && doneButton.isMouseOver(mouseX, mouseY);
 	}
 
 	private static GifStore.Gif gifAt(Screen screen, double mouseX, double mouseY) {

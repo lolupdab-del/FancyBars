@@ -258,6 +258,9 @@ public class BarsMenuScreen extends Screen {
 				list.add(new StarItem());
 				list.add(new ProtectedItemsItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
+				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
+				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), null));
 				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
 				list.add(new HeldItemActionsItem());
@@ -277,6 +280,17 @@ public class BarsMenuScreen extends Screen {
 				} else {
 					for (dev.fancybars.gifs.GifStore.Gif gif : gifs) list.add(new GifItem(gif));
 				}
+			}
+			case DUNGEONS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.secrets"), null));
+				list.add(new SecretsPreviewItem());
+				list.add(new ToggleItem("secretsEnabled", () -> config.secretsEnabled, value -> config.secretsEnabled = value));
+				list.add(new ToggleItem("secretsShowChest", () -> config.secretsShowChest, value -> config.secretsShowChest = value));
+				list.add(new ToggleItem("secretsShowWord", () -> config.secretsShowWord, value -> config.secretsShowWord = value));
+				list.add(new ToggleItem("secretsHideActionBar", () -> config.secretsHideActionBar, value -> config.secretsHideActionBar = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.SECRETS.reset())));
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
@@ -489,6 +503,7 @@ public class BarsMenuScreen extends Screen {
 		STYLE("fancybars.category.style"),
 		ITEMS("fancybars.category.items"),
 		GIFS("fancybars.category.gifs"),
+		DUNGEONS("fancybars.category.dungeons"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
 
@@ -1037,13 +1052,17 @@ public class BarsMenuScreen extends Screen {
 
 	/** Open folder / reload / show all for inventory GIFs. */
 	private class GifActionsItem extends Item {
+		private final ModernButton edit;
 		private final ModernButton open;
 		private final ModernButton reload;
 		private final ModernButton showAll;
 
 		GifActionsItem() {
 			this.height = 20;
-			open = tipFor(new ModernButton(10, 20, Component.translatable("fancybars.gifs.openFolder"), ModernButton.Style.PRIMARY, dev.fancybars.gifs.GifInventory::openFolder),
+			edit = tipFor(new ModernButton(10, 20, Component.translatable("fancybars.gifs.editLayout"), ModernButton.Style.PRIMARY, () -> dev.fancybars.gifs.GifInventory.openEditor(BarsMenuScreen.this)),
+					Component.translatable("fancybars.gifs.editLayout.@Tooltip"));
+			edit.active = config.gifsEnabled && minecraft.player != null;
+			open = tipFor(new ModernButton(10, 20, Component.translatable("fancybars.gifs.openFolder"), dev.fancybars.gifs.GifInventory::openFolder),
 					Component.translatable("fancybars.gifs.openFolder.@Tooltip"));
 			reload = tipFor(new ModernButton(10, 20, Component.translatable("fancybars.gifs.reload"), () -> {
 				dev.fancybars.gifs.GifStore.reload();
@@ -1053,6 +1072,7 @@ public class BarsMenuScreen extends Screen {
 				dev.fancybars.gifs.GifInventory.showAll();
 				rebuildNextTick = true;
 			});
+			widgets.add(edit);
 			widgets.add(open);
 			widgets.add(reload);
 			widgets.add(showAll);
@@ -1060,13 +1080,12 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void layout(int x, int y, int w) {
-			int bw = (w - 12) / 3;
-			open.setWidth(bw);
-			reload.setWidth(bw);
-			showAll.setWidth(w - 12 - bw * 2);
-			open.setPosition(x, y);
-			reload.setPosition(x + bw + 6, y);
-			showAll.setPosition(x + (bw + 6) * 2, y);
+			int bw = (w - 18) / 4;
+			ModernButton[] buttons = {edit, open, reload, showAll};
+			for (int i = 0; i < buttons.length; i++) {
+				buttons[i].setWidth(i == buttons.length - 1 ? w - 18 - bw * 3 : bw);
+				buttons[i].setPosition(x + i * (bw + 6), y);
+			}
 		}
 
 		@Override
@@ -1132,6 +1151,50 @@ public class BarsMenuScreen extends Screen {
 			}
 			return false;
 		}
+	}
+
+	/** Live preview of the dungeon secrets display. */
+	private class SecretsPreviewItem extends Item {
+		SecretsPreviewItem() {
+			this.height = 40;
+		}
+
+		@Override
+		void layout(int x, int y, int w) {}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			int[] size = dev.fancybars.dungeons.DungeonSecrets.size(5, 10);
+			float px = x + (w - size[0]) / 2f;
+			float py = y + (height - size[1]) / 2f;
+			graphics.nextStratum();
+			dev.fancybars.dungeons.DungeonSecrets.renderAt(graphics, px, py, 1, 5, 10);
+		}
+	}
+
+	/** A row of equally wide buttons. */
+	private class ButtonRowItem extends Item {
+		private final ModernButton[] buttons;
+
+		ButtonRowItem(ModernButton... buttons) {
+			this.buttons = buttons;
+			this.height = 20;
+			for (ModernButton button : buttons) widgets.add(button);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			int gap = 6;
+			int bw = (w - gap * (buttons.length - 1)) / buttons.length;
+			for (int i = 0; i < buttons.length; i++) {
+				buttons[i].setWidth(i == buttons.length - 1 ? w - (bw + gap) * (buttons.length - 1) : bw);
+				buttons[i].setPosition(x + i * (bw + gap), y);
+			}
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {}
 	}
 
 	private Component clip(Component text, int maxWidth) {

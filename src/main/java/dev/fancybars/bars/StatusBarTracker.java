@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import dev.fancybars.config.FancyBarsConfig;
+import dev.fancybars.dungeons.DungeonSecrets;
 import dev.fancybars.util.ItemUtils;
 import dev.fancybars.util.RegexUtils;
 import dev.fancybars.util.SkyBlockIcons;
@@ -128,7 +129,7 @@ public class StatusBarTracker {
 			// Always update values for other parts of the mod to use
 			String returned = update(stringified, FancyBarsConfig.get().hideMana);
 
-			if (FancyStatusBars.INSTANCE.isEnabled() && !stringified.equals(returned)) {
+			if ((FancyStatusBars.INSTANCE.isEnabled() || DungeonSecrets.hideFromActionBar()) && !stringified.equals(returned)) {
 				// TODO This may still strip formatting from partially consumed message
 				return lastReturn = Component.literal(returned);
 			}
@@ -144,15 +145,26 @@ public class StatusBarTracker {
 	protected static String update(String actionBar, boolean filterManaUse) {
 		Matcher statuses = STATUS_PATTERN.matcher(actionBar);
 		var output = new StringBuilder();
+		boolean sawSecrets = false;
+		boolean barsActive = FancyStatusBars.INSTANCE.isEnabled();
 
 		while (statuses.find()) {
 			Matcher status;
+
+			// Dungeon secrets ("X/Y Secrets"), shown by the secrets display
+			Matcher secrets = DungeonSecrets.SECRETS.matcher(DungeonSecrets.stripped(statuses.group("status")));
+			if (secrets.find()) {
+				sawSecrets = true;
+				DungeonSecrets.update(secrets);
+				statuses.appendReplacement(output, DungeonSecrets.hideFromActionBar() ? "" : "$0");
+				continue;
+			}
 
 			if (SkyblockLocation.isInTheRift()) {
 				status = RIFT_TIME_STATUS.matcher(ChatFormatting.stripFormatting(statuses.group("status")));
 
 				// Rift time
-				if (FancyStatusBars.INSTANCE.isExperienceFancyBarEnabled() && status.find())
+				if (barsActive && FancyStatusBars.INSTANCE.isExperienceFancyBarEnabled() && status.find())
 					statuses.appendReplacement(output, "");
 			} else {
 				status = HEALTH_STATUS.matcher(ChatFormatting.stripFormatting(statuses.group("status")));
@@ -161,7 +173,7 @@ public class StatusBarTracker {
 				if (status.find()) {
 					updateHealth(status);
 
-					if (FancyStatusBars.INSTANCE.isHealthFancyBarEnabled()) {
+					if (barsActive && FancyStatusBars.INSTANCE.isHealthFancyBarEnabled()) {
 						if (status.group("healing") == null) {
 							statuses.appendReplacement(output, "");
 						// Parse healing again to add back formatting
@@ -181,14 +193,14 @@ public class StatusBarTracker {
 				} else if (status.usePattern(DEFENSE_STATUS).find()) {
 					defense = RegexUtils.parseIntFromMatcher(status, "defense");
 
-					if (FancyStatusBars.INSTANCE.isHealthFancyBarEnabled())
+					if (barsActive && FancyStatusBars.INSTANCE.isHealthFancyBarEnabled())
 						statuses.appendReplacement(output, "");
 					else
 						statuses.appendReplacement(output, "$0");
 				// Vitality
 				} else if (status.usePattern(VITALITY_STATUS).find()) {
 					updateVitality(status);
-					if (FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.VITALITY))
+					if (barsActive && FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.VITALITY))
 						statuses.appendReplacement(output, "");
 					else
 						statuses.appendReplacement(output, "$0");
@@ -202,13 +214,14 @@ public class StatusBarTracker {
 			} else if (status.usePattern(MANA_STATUS).find()) {
 				updateMana(status);
 
-				if (FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.INTELLIGENCE))
+				if (barsActive && FancyStatusBars.INSTANCE.isBarEnabled(StatusBarType.INTELLIGENCE))
 					statuses.appendReplacement(output, "");
 				else
 					statuses.appendReplacement(output, "$0");
 			}
 		}
 
+		if (!sawSecrets && SkyblockLocation.isInDungeons()) DungeonSecrets.clear();
 		return statuses.appendTail(output).toString().trim();
 	}
 
