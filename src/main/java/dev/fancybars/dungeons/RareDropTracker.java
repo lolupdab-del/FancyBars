@@ -50,31 +50,32 @@ public final class RareDropTracker {
 
 	public record RareItem(String name, String color, Supplier<ItemStack> icon) {}
 
-	/** The drops that count as rare, roughly in floor order. */
+	/** The drops that count as rare, roughly in floor order. Icons are the SkyBlock items (textures from the NEU item repo). */
 	public static final List<RareItem> ITEMS = List.of(
-			new RareItem("Recombobulator 3000", "§6", () -> new ItemStack(Items.COMPARATOR)),
-			new RareItem("Spirit Wing", "§5", () -> new ItemStack(Items.FEATHER)),
-			new RareItem("Spirit Bone", "§5", () -> new ItemStack(Items.BONE)),
-			new RareItem("Spirit Mask", "§5", () -> new ItemStack(Items.SKELETON_SKULL)),
-			new RareItem("Shadow Fury", "§6", () -> new ItemStack(Items.DIAMOND_SWORD)),
-			new RareItem("Last Breath", "§6", () -> new ItemStack(Items.BOW)),
-			new RareItem("Giant's Sword", "§6", () -> new ItemStack(Items.IRON_SWORD)),
-			new RareItem("Precursor Eye", "§5", () -> new ItemStack(Items.ENDER_EYE)),
-			new RareItem("Necromancer Lord Chestplate", "§6", () -> new ItemStack(Items.DIAMOND_CHESTPLATE)),
-			new RareItem("Necron's Handle", "§5", () -> new ItemStack(Items.STICK)),
-			new RareItem("Shiny Necron's Handle", "§5", () -> new ItemStack(Items.BLAZE_ROD)),
-			new RareItem("Implosion", "§6", () -> new ItemStack(Items.PAPER)),
-			new RareItem("Shadow Warp", "§6", () -> new ItemStack(Items.PAPER)),
-			new RareItem("Wither Shield", "§6", () -> new ItemStack(Items.PAPER)),
-			new RareItem("Auto Recombobulator", "§6", () -> new ItemStack(Items.REPEATER)),
-			new RareItem("Dark Claymore", "§6", () -> new ItemStack(Items.STONE_SWORD)),
-			new RareItem("Necron Dye", "§d", () -> new ItemStack(Items.REDSTONE)),
-			new RareItem("Master Skull - Tier 5", "§d", () -> new ItemStack(Items.WITHER_SKELETON_SKULL)),
-			new RareItem("First Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)),
-			new RareItem("Second Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)),
-			new RareItem("Third Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)),
-			new RareItem("Fourth Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)),
-			new RareItem("Fifth Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)));
+			new RareItem("Recombobulator 3000", "§6", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTcwOTY2NDE2NjkxMSwKICAicHJvZmlsZUlkIiA6ICI5ZWEwMjA0NDZhNGM0ZTQ2ODZiOGU1ZDBiZGU4Y2U1NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTYW01MTAyMDgiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTdjY2QzNmRjOGY3MmFkY2IxZjhjOGU2MWVlODJjZDk2ZWFkMTQwY2YyYTE2YTEzNjZiZTliNWE4ZTNjYzNmYyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9")),
+			new RareItem("Hot Potato Book", "§5", () -> SkyblockItems.item(Items.BOOK, true)),
+			new RareItem("Spirit Wing", "§5", () -> SkyblockItems.item(Items.PAPER, false)),
+			new RareItem("Spirit Bone", "§5", () -> SkyblockItems.item(Items.PAPER, false)),
+			new RareItem("Spirit Mask", "§5", () -> SkyblockItems.head("eyJ0aW1lc3RhbXAiOjE1MDUyMjI5OTg3MzQsInByb2ZpbGVJZCI6IjBiZTU2MmUxNzIyODQ3YmQ5MDY3MWYxNzNjNjA5NmNhIiwicHJvZmlsZU5hbWUiOiJ4Y29vbHgzIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsibWV0YWRhdGEiOnsibW9kZWwiOiJzbGltIn0sInVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOWJiZTcyMWQ3YWQ4YWI5NjVmMDhjYmVjMGI4MzRmNzc5YjUxOTdmNzlkYTRhZWEzZDEzZDI1M2VjZTlkZWMyIn19fQ==")),
+			new RareItem("Shadow Fury", "§6", () -> SkyblockItems.item(Items.DIAMOND_SWORD, false)),
+			new RareItem("Last Breath", "§6", () -> SkyblockItems.item(Items.BOW, false)),
+			new RareItem("Giant's Sword", "§6", () -> SkyblockItems.item(Items.IRON_SWORD, false)),
+			new RareItem("Precursor Eye", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTYwMTQ3OTI0MjkyNCwKICAicHJvZmlsZUlkIiA6ICI1NjY3NWIyMjMyZjA0ZWUwODkxNzllOWM5MjA2Y2ZlOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJUaGVJbmRyYSIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS83MmMwNjgzYjIwMTljYTNkMzk0NzI3M2UzOTRiZmNhMWI0ZDcxYjYxYjY3YjM5NDc0YzJkNmQ3M2E5YjY3NTA4IgogICAgfQogIH0KfQ==")),
+			new RareItem("Necromancer Lord Chestplate", "§6", () -> SkyblockItems.item(Items.LEATHER_CHESTPLATE, false)),
+			new RareItem("Necron's Handle", "§5", () -> SkyblockItems.item(Items.STICK, true)),
+			new RareItem("Shiny Necron's Handle", "§5", () -> SkyblockItems.item(Items.STICK, true)),
+			new RareItem("Implosion", "§6", () -> SkyblockItems.item(Items.PAPER, true)),
+			new RareItem("Shadow Warp", "§6", () -> SkyblockItems.item(Items.PAPER, true)),
+			new RareItem("Wither Shield", "§6", () -> SkyblockItems.item(Items.PAPER, true)),
+			new RareItem("Auto Recombobulator", "§6", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTcwODM3NTk0MTA3NywKICAicHJvZmlsZUlkIiA6ICI2NmRmYzFmNTRlNTU0ZTZmODJjNTA5ZjM1NTJiYTkwZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJadWFyaWciLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWRmZjhkYmJhYjE1YmZiYjExZTIzYjFmNTBiMzRlZjU0OGFkOTgzMmMwYmQ3ZjVhMTM3OTFhZGFkMDA1N2UxYiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9")),
+			new RareItem("Dark Claymore", "§6", () -> SkyblockItems.item(Items.STONE_SWORD, false)),
+			new RareItem("Necron Dye", "§d", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTc0MTE2MTI3ODI0OSwKICAicHJvZmlsZUlkIiA6ICJmZDJlZDMzMzI0Mjk0ZThmOWVlZGNiN2RhMWJiNzlkZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJkcmFtYWdnIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzM3NzBmNmNjYWY4ODYxZGEzYzg4MTI4MjVhZmFlYzVhOTVjNWYzMzZmNzI4YTI2ZjEzNWEyNTk0YjQ4NzU0MDIiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfQogIH0KfQ==")),
+			new RareItem("Master Skull - Tier 5", "§d", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTg2MzU5NDY5MCwKICAicHJvZmlsZUlkIiA6ICI1YjY2YzNkZWZhYTI0NWMzYTcwNjM3OTA3NTQ0Yjg3MCIsCiAgInByb2ZpbGVOYW1lIiA6ICJSZWFuX1JhaWNvMDgxNiIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS85MTBmOWYxMDg1ZDQwNzE0MWViNzc2MTdhNGFiZGFhYTA4ZDhhZjMzYjk2MDIwMGZlOGMxMjZjMWQxNDQ1NjgyIgogICAgfQogIH0KfQ==")),
+			new RareItem("First Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjU4MDE1OSwKICAicHJvZmlsZUlkIiA6ICJmZDYwZjM2ZjU4NjE0ZjEyYjNjZDQ3YzJkODU1Mjk5YSIsCiAgInByb2ZpbGVOYW1lIiA6ICJSZWFkIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzYxMzY3MjQ3NDVjOGM5YWJjNzVjZGYyMjA1ZjJjZDFkMzNlNmJmZWZhNDE1Zjk5NWJlNzY5MjI5MTIxNjllYzkiCiAgICB9CiAgfQp9")),
+			new RareItem("Second Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjU5NjQ3OSwKICAicHJvZmlsZUlkIiA6ICI4ZGU4ZWU3MTMyMTY0NGNhYTllZjJlNTVjODRjNGU4ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJIdW5kZXNjaG9uVE0iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWQ5OTEzYTY2MWMzOGY1ZjcwMGI4MDc5OGE4YzQ4NWQzMzJkNzgzNDViNzY3MWQwYTI0OGE4NGIyMDk5YmY0ZSIKICAgIH0KICB9Cn0=")),
+			new RareItem("Third Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjU1MzEyOSwKICAicHJvZmlsZUlkIiA6ICIyNzZlMDQ2YjI0MDM0M2VkOTk2NmU0OTRlN2U2Y2IzNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJBRFJBTlM3MTAiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDcxYjk1NGU4OWFlZDE1NmY5MGZhZmNlNmRjNzc4OGFjNzZiNjQ2NmNlY2NhM2E0ZjRlYzFlNDYzZWI5MTRhMSIKICAgIH0KICB9Cn0=")),
+			new RareItem("Fourth Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjU0MDA2NywKICAicHJvZmlsZUlkIiA6ICIyYWQwZDlmMGUxMTM0ODM0OGVmNDQ0OWRmNTRlYTFkNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJGaXJlQjB5IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2QzN2ExNTk2ODdiZTM2ODc3ZDRlM2IwNWY2MWJiNTk4ZDgzMzFjNzkxMDhhY2MzYzFhZjgwZjIyNTM4OTJiYjIiCiAgICB9CiAgfQp9")),
+			new RareItem("Fifth Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjUyNDkxMywKICAicHJvZmlsZUlkIiA6ICJkZTE0MGFmM2NmMjM0ZmM0OTJiZTE3M2Y2NjA3MzViYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTUlRlYW0iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzFjODA0MjUyN2Y4MWM4ZTI5M2UyODEwMTEzNDg5ZjQzOTRjYzZlZmUxNWQxYWZhYzQzMTU3MWM3M2I2MmRjNCIKICAgIH0KICB9Cn0=")));
 
 	private static final Map<String, ItemStack> ICONS = new LinkedHashMap<>();
 

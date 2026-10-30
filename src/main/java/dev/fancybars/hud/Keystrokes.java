@@ -35,12 +35,18 @@ public final class Keystrokes {
 	private static final int GAP = 2;
 	private static final int SPACE_H = 10;
 	private static final int MOUSE_H = 16;
+	private static final int MOUSE_H_CPS = 22;
 	private static final int MOUSE_LEFT = -1;
 	private static final int MOUSE_RIGHT = -2;
 
 	private record Key(String label, int code, float x, float y, float w, float h) {}
 
 	private static final Map<String, Float> PRESS = new HashMap<>();
+	/** Click timestamps of the last second, for CPS. */
+	private static final java.util.ArrayDeque<Long> LEFT_CLICKS = new java.util.ArrayDeque<>();
+	private static final java.util.ArrayDeque<Long> RIGHT_CLICKS = new java.util.ArrayDeque<>();
+	private static boolean leftWasDown;
+	private static boolean rightWasDown;
 	private static long lastFrame = Util.getMillis();
 
 	private Keystrokes() {}
@@ -48,6 +54,7 @@ public final class Keystrokes {
 	public static void init() {
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("keystrokes"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
+			pollClicks();
 			if (FancyBarsConfig.get().keystrokesEnabled && mc.player != null && mc.gui.screen() == null) render(graphics);
 		});
 	}
@@ -93,8 +100,10 @@ public final class Keystrokes {
 			y += SPACE_H + GAP;
 		}
 		float half = (width - GAP) / 2f;
-		keys.add(new Key("LMB", MOUSE_LEFT, 0, y, half, MOUSE_H));
-		keys.add(new Key("RMB", MOUSE_RIGHT, half + GAP, y, half, MOUSE_H));
+		FancyBarsConfig config = FancyBarsConfig.get();
+		float mouseH = config.keystrokesLeftCps || config.keystrokesRightCps ? MOUSE_H_CPS : MOUSE_H;
+		keys.add(new Key("LMB", MOUSE_LEFT, 0, y, half, mouseH));
+		keys.add(new Key("RMB", MOUSE_RIGHT, half + GAP, y, half, mouseH));
 		return keys;
 	}
 
@@ -116,6 +125,32 @@ public final class Keystrokes {
 			return new float[]{screenW - size[0] * config.keystrokesScale - 6, screenH - size[1] * config.keystrokesScale - 40};
 		}
 		return new float[]{config.keystrokesX * screenW, config.keystrokesY * screenH};
+	}
+
+	/** Counts new presses every frame (frames are far shorter than a click, so none are missed). */
+	private static void pollClicks() {
+		long now = Util.getMillis();
+		boolean left = isDown(MOUSE_LEFT);
+		boolean right = isDown(MOUSE_RIGHT);
+		if (left && !leftWasDown) LEFT_CLICKS.addLast(now);
+		if (right && !rightWasDown) RIGHT_CLICKS.addLast(now);
+		leftWasDown = left;
+		rightWasDown = right;
+		while (!LEFT_CLICKS.isEmpty() && now - LEFT_CLICKS.peekFirst() > 1000) LEFT_CLICKS.removeFirst();
+		while (!RIGHT_CLICKS.isEmpty() && now - RIGHT_CLICKS.peekFirst() > 1000) RIGHT_CLICKS.removeFirst();
+	}
+
+	public static int leftCps() {
+		return LEFT_CLICKS.size();
+	}
+
+	public static int rightCps() {
+		return RIGHT_CLICKS.size();
+	}
+
+	private static boolean showCps(int code) {
+		FancyBarsConfig config = FancyBarsConfig.get();
+		return code == MOUSE_LEFT ? config.keystrokesLeftCps : code == MOUSE_RIGHT && config.keystrokesRightCps;
 	}
 
 	private static boolean isDown(int code) {
@@ -158,11 +193,25 @@ public final class Keystrokes {
 			Component label = Theme.bold(Component.literal(key.label()));
 			float lw = font.width(label);
 			float scaleText = Math.min(1, (kw - 3) / lw);
+			boolean cps = showCps(key.code());
+			float labelCenterY = cps ? ky + kh / 2f - 3.5f : ky + kh / 2f;
 			pose.pushMatrix();
-			pose.translate(kx + kw / 2f, ky + kh / 2f);
+			pose.translate(kx + kw / 2f, labelCenterY);
 			pose.scale(scaleText, scaleText);
 			Theme.drawAtCapTop(graphics, font, label, -lw / 2f, -Theme.UI_CAP / 2f, Theme.UI_CAP, (a << 24) | (textColor & 0xFFFFFF));
 			pose.popMatrix();
+			if (cps) {
+				int value = !live ? 0 : key.code() == MOUSE_LEFT ? leftCps() : rightCps();
+				Component cpsText = Theme.styled(Component.literal(value + " CPS"));
+				float cw = font.width(cpsText);
+				float cpsScale = Math.min(0.75f, (kw - 3) / cw);
+				pose.pushMatrix();
+				pose.translate(kx + kw / 2f, ky + kh / 2f + 5f);
+				pose.scale(cpsScale, cpsScale);
+				int cpsColor = Theme.lerpColor(0xFFBFBFC8, 0xFF3A2A33, p);
+				Theme.drawAtCapTop(graphics, font, cpsText, -cw / 2f, -Theme.UI_CAP / 2f, Theme.UI_CAP, (a << 24) | (cpsColor & 0xFFFFFF));
+				pose.popMatrix();
+			}
 		}
 		pose.popMatrix();
 	}

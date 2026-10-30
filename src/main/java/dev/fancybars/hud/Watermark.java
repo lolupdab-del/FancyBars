@@ -32,12 +32,6 @@ public final class Watermark {
 		pose.popMatrix();
 	}
 
-	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("watermark"), (graphics, tickCounter) -> {
-			if (FancyBarsConfig.get().watermarkEnabled && Minecraft.getInstance().gui.screen() == null) render(graphics, 1);
-		});
-	}
-
 	public static Component text() {
 		return Theme.title(Theme.brand());
 	}

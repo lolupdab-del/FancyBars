@@ -357,6 +357,8 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("keystrokesEnabled", () -> config.keystrokesEnabled, value -> config.keystrokesEnabled = value));
 				list.add(new ValueCycleItem("keystrokesMode", new int[]{0, 1, 2}, () -> config.keystrokesMode,
 						value -> config.keystrokesMode = value, dev.fancybars.hud.Keystrokes::modeName));
+				list.add(new ToggleItem("keystrokesLeftCps", () -> config.keystrokesLeftCps, value -> config.keystrokesLeftCps = value));
+				list.add(new ToggleItem("keystrokesRightCps", () -> config.keystrokesRightCps, value -> config.keystrokesRightCps = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.KEYSTROKES.reset())));
@@ -367,11 +369,6 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.watermark"), null));
-				list.add(new ToggleItem("watermarkEnabled", () -> config.watermarkEnabled, value -> config.watermarkEnabled = value));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.WATERMARK.reset())));
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));

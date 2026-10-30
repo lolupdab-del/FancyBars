@@ -106,6 +106,9 @@ public final class Theme {
 	private static final int[] RADII = {2, 3, 4, 5, 6, 8, 10};
 	private static final Identifier[] RECTS = new Identifier[RADII.length];
 	private static final Identifier[] OUTLINES = new Identifier[RADII.length];
+	/** Same shapes with alpha rising left → right; drawn on top in the end colour to make a horizontal gradient. */
+	private static final Identifier[] RECT_RAMPS = new Identifier[RADII.length];
+	private static final Identifier[] OUTLINE_RAMPS = new Identifier[RADII.length];
 	private static final Identifier CIRCLE = FancyBarsMod.id("ui/circle");
 	private static final Identifier SHADOW = FancyBarsMod.id("ui/shadow");
 	private static final Identifier SHEEN = FancyBarsMod.id("ui/sheen");
@@ -114,6 +117,8 @@ public final class Theme {
 		for (int i = 0; i < RADII.length; i++) {
 			RECTS[i] = FancyBarsMod.id("ui/rect_r" + RADII[i]);
 			OUTLINES[i] = FancyBarsMod.id("ui/outline_r" + RADII[i]);
+			RECT_RAMPS[i] = FancyBarsMod.id("ui/rect_r" + RADII[i] + "_ramp");
+			OUTLINE_RAMPS[i] = FancyBarsMod.id("ui/outline_r" + RADII[i] + "_ramp");
 		}
 	}
 
@@ -243,11 +248,11 @@ public final class Theme {
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
 		if (radius <= 1 || Math.min(width, height) < 4) {
-			paintGradient(graphics, x, y, width, height, color, c -> graphics.fill(x, y, x + width, y + height, c));
+			graphics.fill(x, y, x + width, y + height, colorAt(graphics, color, x + width / 2f));
 			return;
 		}
-		Identifier sprite = RECTS[radiusIndex(radius, width, height)];
-		paintGradient(graphics, x, y, width, height, color, c -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, c));
+		int index = radiusIndex(radius, width, height);
+		paintSprite(graphics, RECTS[index], RECT_RAMPS[index], x, y, width, height, color);
 	}
 
 	/**
@@ -270,8 +275,8 @@ public final class Theme {
 	 */
 	public static void roundedOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		Identifier sprite = OUTLINES[radiusIndex(radius, width, height)];
-		paintGradient(graphics, x, y, width, height, color, c -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, c));
+		int index = radiusIndex(radius, width, height);
+		paintSprite(graphics, OUTLINES[index], OUTLINE_RAMPS[index], x, y, width, height, color);
 	}
 
 	/**
@@ -309,13 +314,8 @@ public final class Theme {
 	 */
 	public static void panel(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
 		shadow(graphics, x, y, width, height, PANEL_RADIUS, 0, 2);
-		smoothNext = true;
-		try {
-			roundedRect(graphics, x, y, width, height, PANEL_RADIUS, PANEL);
-			roundedOutline(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER);
-		} finally {
-			smoothNext = false;
-		}
+		roundedRect(graphics, x, y, width, height, PANEL_RADIUS, PANEL);
+		roundedOutline(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER);
 	}
 
 	public static void backdrop(GuiGraphicsExtractor graphics, int width, int height) {
@@ -328,9 +328,7 @@ public final class Theme {
 	private static final java.util.Map<Integer, Integer> TO_BLUE = new java.util.HashMap<>();
 	public static final int BRAND_PINK = 0xFFFF8FC8;
 	public static final int BRAND_BLUE = 0xFF7CC8FF;
-	private static final int PANEL_SLICES = 12;
-	/** Set while drawing a main panel, the only shapes drawn as a smooth gradient. */
-	private static boolean smoothNext = false;
+	private static final org.joml.Vector2f SCRATCH = new org.joml.Vector2f();
 	private static float rangeStart;
 	private static float rangeEnd;
 	private static long rangeSetAt;
@@ -384,7 +382,7 @@ public final class Theme {
 	}
 
 	private static float fraction(GuiGraphicsExtractor graphics, float localX) {
-		org.joml.Vector2f v = graphics.pose().transformPosition(localX, 0, new org.joml.Vector2f());
+		org.joml.Vector2f v = graphics.pose().transformPosition(localX, 0, SCRATCH);
 		float start = 0;
 		float end = graphics.guiWidth();
 		if (Util.getMillis() - rangeSetAt < 150 && rangeEnd > rangeStart) {
@@ -411,32 +409,24 @@ public final class Theme {
 		return gradientColor(color, fraction(graphics, localX));
 	}
 
-	private interface Painter {
-		void paint(int color);
-	}
-
-	private static void paintGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int color, Painter painter) {
+	/**
+	 * Draws a rounded sprite. In the SBCLIENT look, theme colours become a smooth left → right pink → blue gradient:
+	 * the shape is drawn in its left colour, then the matching "ramp" sprite (alpha rising across the shape) is drawn
+	 * on top in its right colour. Two plain sprite draws, batched like any other, so it costs next to nothing.
+	 */
+	private static void paintSprite(GuiGraphicsExtractor graphics, Identifier sprite, Identifier ramp, int x, int y, int width, int height, int color) {
 		if (!gradient() || !TO_BLUE.containsKey(color & 0xFFFFFF)) {
-			painter.paint(color);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, color);
 			return;
 		}
 		float f0 = fraction(graphics, x);
 		float f1 = fraction(graphics, x + width);
-		// Most shapes get one colour picked from where they sit in the gradient: cheap, and the gradient still
-		// reads across the whole menu. Only the few big panels are drawn as a smooth gradient, using a small,
-		// fixed number of clipped slices (every slice is a separate draw, so this must stay rare).
-		if (!smoothNext || Math.abs(f1 - f0) < 0.02f) {
-			painter.paint(gradientColor(color, (f0 + f1) / 2));
+		if (Math.abs(f1 - f0) < 0.03f) {
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, gradientColor(color, (f0 + f1) / 2));
 			return;
 		}
-		int slices = Math.clamp(width / 12, 2, PANEL_SLICES);
-		for (int i = 0; i < slices; i++) {
-			int sx = x + width * i / slices;
-			int ex = x + width * (i + 1) / slices;
-			graphics.enableScissor(sx, y - 1, ex, y + height + 1);
-			painter.paint(gradientColor(color, fraction(graphics, (sx + ex) / 2f)));
-			graphics.disableScissor();
-		}
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, gradientColor(color, f0));
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ramp, x, y, width, height, gradientColor(color, f1));
 	}
 
 	/** SBCLIENT / ShikiClient name, coloured for the current mode (vanilla font). */

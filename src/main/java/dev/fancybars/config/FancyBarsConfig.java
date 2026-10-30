@@ -110,6 +110,9 @@ public class FancyBarsConfig {
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
 
+	/** Snap things to each other / the screen centre in the editor. */
+	public boolean editorSnapping = true;
+
 	/** SHIKIMODE: the pink ShikiClient look and logo instead of SBCLIENT's pink → blue gradient. */
 	public boolean shikiMode = false;
 
@@ -133,6 +136,10 @@ public class FancyBarsConfig {
 
 	/** 0 = mouse only, 1 = WASD + space + mouse, 2 = full keyboard. */
 	public int keystrokesMode = 1;
+
+	public boolean keystrokesLeftCps = true;
+
+	public boolean keystrokesRightCps = true;
 
 	public float keystrokesX = -1;
 

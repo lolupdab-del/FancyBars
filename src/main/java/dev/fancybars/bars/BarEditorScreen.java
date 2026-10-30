@@ -62,6 +62,8 @@ public class BarEditorScreen extends Screen {
 	private final List<AbstractWidget> optionWidgets = new ArrayList<>();
 
 	private final List<int[]> guides = new ArrayList<>(); // {vertical ? 1 : 0, position}
+	/** Done / Reset Layout / Snapping: hidden while something is being dragged. */
+	private final List<AbstractWidget> toolbar = new ArrayList<>();
 	private boolean rebuildNextTick = false;
 
 	public BarEditorScreen(@Nullable Screen parent) {
@@ -75,6 +77,7 @@ public class BarEditorScreen extends Screen {
 		bars.updatePositions(true);
 
 		int toolbarY = 6;
+		toolbar.clear();
 		ModernButton done = new ModernButton(56, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
 		ModernButton reset = new ModernButton(80, 18, Component.translatable("fancybars.menu.resetLayout"), () -> {
 			bars.resetBarPositions();
@@ -85,10 +88,17 @@ public class BarEditorScreen extends Screen {
 			bars.updatePositions(true);
 			closeOptions();
 		});
-		done.setPosition(width / 2 + 2, toolbarY + 20);
-		reset.setPosition(width / 2 - 2 - reset.getWidth(), toolbarY + 20);
-		addRenderableWidget(done);
-		addRenderableWidget(reset);
+		done.setPosition(width / 2 + 2, toolbarY);
+		reset.setPosition(width / 2 - 2 - reset.getWidth(), toolbarY);
+		// Snapping switch in the top-right corner
+		ModernToggle snapping = new ModernToggle(92, 18, Component.translatable("fancybars.editor.snapping"), FancyBarsConfig.get().editorSnapping, value -> {
+			FancyBarsConfig.get().editorSnapping = value;
+			FancyBarsConfig.save();
+		});
+		snapping.setPosition(width - snapping.getWidth() - 6, toolbarY);
+		toolbar.add(addRenderableWidget(done));
+		toolbar.add(addRenderableWidget(reset));
+		toolbar.add(addRenderableWidget(snapping));
 
 		if (optionsBar != null) buildOptions(optionsBar);
 	}
@@ -103,12 +113,9 @@ public class BarEditorScreen extends Screen {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-		// Toolbar panel (hidden while dragging so it never gets in the way)
-		if (dragging == null) {
-			int toolbarWidth = Math.min(width - 20, Math.max(170, Theme.width(font, Component.translatable("fancybars.editor.hint")) + 24));
-			Theme.panel(graphics, width / 2 - toolbarWidth / 2, 4, toolbarWidth, 44);
-			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.editor.hint"), width / 2f, 6, 16, Theme.TEXT_MUTED);
-		}
+		// Toolbar buttons disappear while dragging so they never get in the way
+		boolean busy = dragging != null || draggingElement != null;
+		for (AbstractWidget widget : toolbar) widget.visible = !busy;
 
 		// Hotbar for reference
 		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_TEXTURE, width / 2 - HOTBAR_WIDTH / 2, height - 22, HOTBAR_WIDTH, 22);
@@ -297,7 +304,7 @@ public class BarEditorScreen extends Screen {
 			float x = (float) click.x() - elementGrabX;
 			float y = (float) click.y() - elementGrabY;
 			// snap the centre to the middle of the screen unless Shift is held
-			if (draggingElement.snapsToCenter() && !minecraft.hasShiftDown() && Math.abs(x + r[2] / 2f - width / 2f) <= SNAP_DISTANCE) x = width / 2f - r[2] / 2f;
+			if (draggingElement.snapsToCenter() && snapping() && Math.abs(x + r[2] / 2f - width / 2f) <= SNAP_DISTANCE) x = width / 2f - r[2] / 2f;
 			draggingElement.moveTo(x, y, width, height);
 			return true;
 		}
@@ -307,7 +314,7 @@ public class BarEditorScreen extends Screen {
 			pendingDetach = false;
 			bars.detach(bar);
 		}
-		boolean snap = !minecraft.hasShiftDown();
+		boolean snap = snapping();
 		guides.clear();
 		int mouseX = (int) click.x();
 		int mouseY = (int) click.y();
@@ -413,6 +420,11 @@ public class BarEditorScreen extends Screen {
 	}
 
 	// ---------------------------------------------------------------- Snapping
+
+	/** Snapping is on when the toolbar switch is on and Shift isn't held. */
+	private boolean snapping() {
+		return FancyBarsConfig.get().editorSnapping && !minecraft.hasShiftDown();
+	}
 
 	private List<int[]> snapTargetsX(StatusBar self) {
 		List<int[]> targets = new ArrayList<>();

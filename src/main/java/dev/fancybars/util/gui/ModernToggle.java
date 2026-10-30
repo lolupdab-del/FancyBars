@@ -68,7 +68,7 @@ public class ModernToggle extends AbstractWidget {
 		} else {
 			if (eased > 0.01f) Theme.glow(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, eased * (0.25f + hover * 0.35f));
 			int off = Theme.lerpColor(0xFF573D48, 0xFF684A57, hover);
-			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, Theme.lerpColor(off, Theme.ACCENT, eased));
+			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, Theme.lerpColor(off, Theme.colorAt(graphics, Theme.ACCENT, switchX + SWITCH_WIDTH / 2f), eased));
 		}
 
 		// Knob
