@@ -12,15 +12,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
 
 /**
- * Rounded button with smooth hover animation. {@link Style#PRIMARY} is a glowing light-blue gradient,
- * {@link Style#SECONDARY} is a grey glass button that lights up blue on hover.
+ * Smooth rounded button. {@link Style#SECONDARY} is a dark card with a thin border that lights up on hover;
+ * {@link Style#PRIMARY} has a light-blue tint, border and glow.
  */
 public class ModernButton extends AbstractWidget {
 	private final Runnable onPress;
 	private final Style style;
 	private float hover = 0;
 	private long lastFrame = Util.getMillis();
-	private long pressedAt = 0;
+	private boolean selected = false;
+	private int radius = Theme.RADIUS;
 
 	public ModernButton(int width, int height, Component label, Style style, Runnable onPress) {
 		super(0, 0, width, height, label);
@@ -32,37 +33,45 @@ public class ModernButton extends AbstractWidget {
 		this(width, height, label, Style.SECONDARY, onPress);
 	}
 
+	public ModernButton selected(boolean selected) {
+		this.selected = selected;
+		return this;
+	}
+
+	public ModernButton radius(int radius) {
+		this.radius = radius;
+		return this;
+	}
+
 	@Override
 	protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		boolean hovered = active && isHoveredOrFocused();
-		hover = Theme.approach(hover, hovered ? 1 : 0, 7, lastFrame);
+		hover = Theme.approach(hover, hovered ? 1 : 0, 8, lastFrame);
 		lastFrame = Util.getMillis();
 
-		// Little "press" dip
-		float press = Math.max(0, 1 - (Util.getMillis() - pressedAt) / 140f);
-		int dip = press > 0.3f ? 1 : 0;
 		int x = getX();
-		int y = getY() + dip;
+		int y = getY();
 		int w = getWidth();
 		int h = getHeight();
-
 		int textColor;
+
 		if (!active) {
-			Theme.roundedRect(graphics, x, y, w, h, Theme.RADIUS, Theme.SURFACE_DISABLED);
+			Theme.card(graphics, x, y, w, h, radius, Theme.SURFACE_DISABLED, Theme.DIVIDER);
 			textColor = Theme.TEXT_DISABLED;
 		} else if (style == Style.PRIMARY) {
-			Theme.glow(graphics, x, y, w, h, Theme.RADIUS, 0.45f + hover * 0.55f);
-			int top = Theme.lerpColor(Theme.ACCENT_LIGHT, 0xFFD2EEFF, hover);
-			int bottom = Theme.lerpColor(Theme.ACCENT_DEEP, Theme.ACCENT, hover);
-			Theme.roundedGradient(graphics, x, y, w, h, Theme.RADIUS, top, bottom);
-			graphics.fill(x + Theme.RADIUS, y + 1, x + w - Theme.RADIUS, y + 2, 0x55FFFFFF);
-			textColor = Theme.TEXT_ON_ACCENT;
+			Theme.glow(graphics, x, y, w, h, radius, 0.25f + hover * 0.45f);
+			Theme.card(graphics, x, y, w, h, radius,
+					Theme.lerpColor(0xF0233A52, 0xF02B4C6C, hover),
+					Theme.lerpColor(Theme.ACCENT_DIM, Theme.ACCENT, hover));
+			textColor = Theme.lerpColor(Theme.ACCENT_LIGHT, 0xFFFFFFFF, hover);
+		} else if (selected) {
+			Theme.card(graphics, x, y, w, h, radius, Theme.SELECTED, Theme.SELECTED_BORDER);
+			textColor = Theme.TEXT;
 		} else {
-			Theme.glow(graphics, x, y, w, h, Theme.RADIUS, hover * 0.6f);
-			Theme.roundedRect(graphics, x, y, w, h, Theme.RADIUS, Theme.lerpColor(0x30FFFFFF, Theme.ACCENT_DIM, hover));
-			Theme.roundedGradient(graphics, x + 1, y + 1, w - 2, h - 2, Theme.RADIUS - 1,
-					Theme.lerpColor(Theme.SURFACE_HOVER, 0xFF3F5568, hover), Theme.lerpColor(Theme.SURFACE, 0xFF2D3E4E, hover));
-			textColor = Theme.lerpColor(Theme.TEXT, Theme.ACCENT_LIGHT, hover);
+			Theme.card(graphics, x, y, w, h, radius,
+					Theme.lerpColor(Theme.SURFACE, Theme.SURFACE_HOVER, hover),
+					Theme.lerpColor(Theme.CARD_BORDER, Theme.SELECTED_BORDER, hover));
+			textColor = Theme.lerpColor(Theme.TEXT_SOFT, Theme.TEXT, hover);
 		}
 
 		Font font = Theme.font();
@@ -72,7 +81,6 @@ public class ModernButton extends AbstractWidget {
 
 	@Override
 	public void onClick(MouseButtonEvent click, boolean doubled) {
-		pressedAt = Util.getMillis();
 		onPress.run();
 	}
 

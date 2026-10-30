@@ -25,6 +25,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.CommonColors;
@@ -42,12 +43,54 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 	private static final Identifier SEGMENTED_BAR_FILL = FancyBarsMod.id("bars/segmented/bar_fill");
 	private static final Identifier SEGMENTED_BAR_BACK = FancyBarsMod.id("bars/segmented/bar_back");
 
+	/** SkyblockAddons bar sheet: empty bar at v=1, fill at v=7, shine overlay at v=13, progress tick at v=24 (71x5 each). */
+	private static final FontDescription BAR_FONT = new FontDescription.Resource(FancyBarsMod.id("bar"));
+
+	private static final Identifier SBA_BARS = FancyBarsMod.id("textures/sba/bars_v2.png");
+	private static final int SBA_WIDTH = 71;
+
 	private static Identifier barFill() {
-		return FancyBarsConfig.get().segmentedBars ? SEGMENTED_BAR_FILL : BAR_FILL;
+		return FancyBarsConfig.get().barStyle == FancyBarsConfig.BarStyle.SEGMENTED ? SEGMENTED_BAR_FILL : BAR_FILL;
 	}
 
 	private static Identifier barBack() {
-		return FancyBarsConfig.get().segmentedBars ? SEGMENTED_BAR_BACK : BAR_BACK;
+		return FancyBarsConfig.get().barStyle == FancyBarsConfig.BarStyle.SEGMENTED ? SEGMENTED_BAR_BACK : BAR_BACK;
+	}
+
+	private static boolean sbaStyle() {
+		return FancyBarsConfig.get().barStyle == FancyBarsConfig.BarStyle.SKYBLOCKADDONS;
+	}
+
+	/**
+	 * Draws part of a SkyblockAddons bar layer, stretched so the 71px texture covers {@code barWidth}.
+	 *
+	 * @param from  start of the drawn part, as a fraction of the bar (0..1)
+	 * @param to    end of the drawn part, as a fraction of the bar (0..1)
+	 */
+	private void sbaLayer(GuiGraphicsExtractor graphics, int barX, int y, int barWidth, int v, float from, float to, int argb) {
+		if (to <= from || barWidth <= 0) return;
+		int srcStart = Math.round(SBA_WIDTH * from);
+		int srcEnd = Math.round(SBA_WIDTH * to);
+		if (srcEnd <= srcStart) return;
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(barX, y);
+		pose.scale(barWidth / (float) SBA_WIDTH, 1);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, SBA_BARS, srcStart, 0, 1 + srcStart, v, srcEnd - srcStart, 5, 80, 50, argb);
+		pose.popMatrix();
+	}
+
+	private void sbaOverlays(GuiGraphicsExtractor graphics, int barX, int barWidth) {
+		int y = renderY + 2;
+		int white = transparency(0xFFFFFFFF);
+		// progress tick at the edge of the main fill (only meaningful for left-to-right fills)
+		if (direction == Direction.LEFT_TO_RIGHT && fill > 0 && fill < 1) {
+			int edge = barX + Math.round(barWidth * fill);
+			int start = Math.max(barX, edge - 2);
+			int end = Math.min(barX + barWidth, edge + 2);
+			if (end > start) graphics.blit(RenderPipelines.GUI_TEXTURED, SBA_BARS, start, y, 1 + (start - (edge - 2)), 24, end - start, 5, 80, 50, white);
+		}
+		sbaLayer(graphics, barX, y, barWidth, 13, 0, 1, white);
 	}
 
 	public static final int ICON_SIZE = 9;
@@ -198,6 +241,14 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 
 		int barWidth = iconPosition.equals(IconPosition.OFF) ? renderWidth : renderWidth - ICON_SIZE - 1;
 		int barX = iconPosition.equals(IconPosition.LEFT) ? renderX + ICON_SIZE + 1 : renderX;
+		if (sbaStyle()) {
+			// SkyblockAddons draws the empty bar in the bar's own colour (the texture itself is darker)
+			int empty = (colors[0].getRGB() & 0x00FFFFFF) | 0xE6000000;
+			sbaLayer(graphics, barX, renderY + 2, barWidth, 1, 0, 1, transparency(empty));
+			extractBarFill(graphics, barX, barWidth);
+			sbaOverlays(graphics, barX, barWidth);
+			return;
+		}
 		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, barBack(), barX, renderY + 1, barWidth, 7, transparency);
 		extractBarFill(graphics, barX, barWidth);
 		//context.drawText(MinecraftClient.getInstance().textRenderer, gridX + " " + gridY + " s:" + size , x, y-9, Colors.WHITE, true);
@@ -212,6 +263,15 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 	}
 
 	protected void renderBarFill(GuiGraphicsExtractor graphics, int barX, int barWidth, float fill, int argb) {
+		if (sbaStyle()) {
+			fill = Math.clamp(fill, 0, 1);
+			switch (direction) {
+				case LEFT_TO_RIGHT -> sbaLayer(graphics, barX, renderY + 2, barWidth, 7, 0, fill, argb);
+				case RIGHT_TO_LEFT -> sbaLayer(graphics, barX, renderY + 2, barWidth, 7, 1 - fill, 1, argb);
+				case FROM_MIDDLE -> sbaLayer(graphics, barX, renderY + 2, barWidth, 7, 0.5f - fill / 2, 0.5f + fill / 2, argb);
+			}
+			return;
+		}
 		int fillWidth = (int) ((barWidth - 2) * fill);
 		int x = switch (direction) {
 			case LEFT_TO_RIGHT -> barX + 1;
@@ -260,6 +320,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 			text.append(literal);
 		}
 
+		if (FancyBarsConfig.get().smoothBarText) text = text.withStyle(style -> style.withFont(BAR_FONT));
 		int textWidth = textRenderer.width(text);
 		int x;
 		switch (textPosition) {

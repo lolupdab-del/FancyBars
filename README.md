@@ -12,9 +12,9 @@ plus the optional vanilla-style mana bar.
 
 | Command | What it does |
 |---|---|
-| `/fancybars` | Open the Fancy Bars menu: switch each bar and its icon on/off, and recolour bars, overflow mana, absorption and text (also via Mod Menu) |
+| `/fancybars` | Open the Fancy Bars menu (also via Mod Menu): Home, Bars (switch each bar and its icon on/off, recolour bars, overflow mana, absorption and text), Style (Classic / Segmented / SkyblockAddons), General and Vanilla Mana pages, with search |
 | `/fancybars edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
-| `/fancybars config` | Open the extra settings (also **More Settings...** in the menu) |
+| `/fancybars config` | Open the menu on the General page |
 
 While fancy bars are active the vanilla XP bar is always hidden, even if you turn the fancy XP bar off.
 
@@ -31,7 +31,7 @@ You need JDK 25.
 ./gradlew build
 ```
 
-The mod jar ends up in `build/libs/fancybars-1.3.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
+The mod jar ends up in `build/libs/fancybars-1.4.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
 
 No JDK? Push this folder to a GitHub repo: the included workflow builds it, and the jar appears under **Actions → latest run → Artifacts**.
 
@@ -44,8 +44,10 @@ No JDK? Push this folder to a GitHub repo: the included workflow builds it, and 
 
 ## Credits
 
-* Segmented bar textures and the Jua bitmap font are from the **Bigmans masterpiece** resource pack.
-* Jua font: Copyright 2018 The Jua Project Authors, SIL Open Font License 1.1 (`assets/fancybars/font/LICENSE_Jua_OFL.txt`).
+* Original fancy status bars: [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) (LGPL-3.0).
+* "SkyblockAddons" bar style texture: [SkyblockAddons](https://github.com/Fix3dll/SkyblockAddons) by Fix3dll and contributors (LGPL-3.0).
+* "Segmented" bar style textures: the **Bigmans masterpiece** resource pack.
+* UI font: [Inter](https://rsms.me/inter/) by Rasmus Andersson, SIL Open Font License 1.1 (`assets/fancybars/font/LICENSE_Inter_OFL.txt`).
 
 ## License
 

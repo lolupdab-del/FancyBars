@@ -5,30 +5,35 @@ import org.joml.Matrix3x2fStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 
 import dev.fancybars.FancyBarsMod;
 
 /**
- * Fancy Bars UI theme: frosted dark-grey panels, light-blue accents, soft shadows and glow,
- * and the rounded Jua font for smooth bold text.
+ * Fancy Bars UI theme. Everything is drawn from high-resolution anti-aliased textures (rounded rectangles,
+ * outlines, circles, shadows) and the Inter TrueType font, so nothing is aligned to the chunky GUI pixel grid.
  */
 public final class Theme {
-	// Surfaces
-	public static final int BACKDROP_TOP = 0xB0081018;
-	public static final int BACKDROP_BOTTOM = 0xC0000306;
-	public static final int PANEL_TOP = 0xF52A3038;
-	public static final int PANEL_BOTTOM = 0xF5191C21;
-	public static final int PANEL_BORDER = 0x40FFFFFF;
-	public static final int SURFACE = 0xFF313842;
-	public static final int SURFACE_HOVER = 0xFF3C4552;
-	public static final int SURFACE_DISABLED = 0xFF23272D;
-	public static final int CARD = 0x26FFFFFF;
-	public static final int CARD_HOVER = 0x407CC8FF;
-	public static final int DIVIDER = 0x22FFFFFF;
+	// Surfaces (dark navy-grey, like modern mod menus)
+	public static final int BACKDROP = 0x66000000;
+	public static final int PANEL = 0xEE181A27;
+	public static final int PANEL_TOP = 0xEE1C1E2D;
+	public static final int PANEL_BOTTOM = 0xEE161824;
+	public static final int PANEL_BORDER = 0xFF2E3149;
+	public static final int CARD = 0xCC202233;
+	public static final int CARD_BORDER = 0xFF33364F;
+	public static final int CARD_HOVER = 0xE0272A3F;
+	public static final int SURFACE = 0xFF252839;
+	public static final int SURFACE_HOVER = 0xFF2E3247;
+	public static final int SURFACE_DISABLED = 0xFF1D1F2B;
+	public static final int SELECTED = 0xFF363A5A;
+	public static final int SELECTED_BORDER = 0xFF7C82C4;
+	public static final int DIVIDER = 0xFF2A2D42;
 
 	// Accent (light blue)
 	public static final int ACCENT = 0xFF7CC8FF;
@@ -36,19 +41,34 @@ public final class Theme {
 	public static final int ACCENT_DEEP = 0xFF3E8FD6;
 	public static final int ACCENT_HOVER = 0xFF9DD6FF;
 	public static final int ACCENT_DIM = 0xFF3D7FAF;
-	public static final int ACCENT_GLOW = 0x557CC8FF;
 
 	// Text
-	public static final int TEXT = 0xFFF1F5F9;
-	public static final int TEXT_MUTED = 0xFF9AA5B1;
-	public static final int TEXT_DISABLED = 0xFF5E6670;
+	public static final int TEXT = 0xFFEDEEF7;
+	public static final int TEXT_SOFT = 0xFFD6D8EE;
+	public static final int TEXT_MUTED = 0xFF9EA2C2;
+	public static final int TEXT_DISABLED = 0xFF5C6079;
 	public static final int TEXT_ON_ACCENT = 0xFF0B1B29;
 
-	public static final int RADIUS = 5;
-	public static final int PANEL_RADIUS = 9;
+	public static final int RADIUS = 4;
+	public static final int PANEL_RADIUS = 6;
 
-	/** Rounded bold font used for all Fancy Bars UI text. */
-	public static final FontDescription FONT = new FontDescription.Resource(FancyBarsMod.id("jua"));
+	public static final FontDescription FONT = new FontDescription.Resource(FancyBarsMod.id("ui"));
+	public static final FontDescription FONT_BOLD = new FontDescription.Resource(FancyBarsMod.id("ui_bold"));
+	public static final FontDescription FONT_TITLE = new FontDescription.Resource(FancyBarsMod.id("title"));
+
+	private static final int[] RADII = {2, 3, 4, 5, 6, 8, 10};
+	private static final Identifier[] RECTS = new Identifier[RADII.length];
+	private static final Identifier[] OUTLINES = new Identifier[RADII.length];
+	private static final Identifier CIRCLE = FancyBarsMod.id("ui/circle");
+	private static final Identifier SHADOW = FancyBarsMod.id("ui/shadow");
+	private static final Identifier SHEEN = FancyBarsMod.id("ui/sheen");
+
+	static {
+		for (int i = 0; i < RADII.length; i++) {
+			RECTS[i] = FancyBarsMod.id("ui/rect_r" + RADII[i]);
+			OUTLINES[i] = FancyBarsMod.id("ui/outline_r" + RADII[i]);
+		}
+	}
 
 	private Theme() {}
 
@@ -56,6 +76,14 @@ public final class Theme {
 
 	public static MutableComponent styled(Component text) {
 		return text.copy().withStyle(style -> style.withFont(FONT));
+	}
+
+	public static MutableComponent bold(Component text) {
+		return text.copy().withStyle(style -> style.withFont(FONT_BOLD));
+	}
+
+	public static MutableComponent title(Component text) {
+		return text.copy().withStyle(style -> style.withFont(FONT_TITLE));
 	}
 
 	public static int width(Font font, Component text) {
@@ -66,9 +94,8 @@ public final class Theme {
 		graphics.text(font, styled(text), x, y, color, false);
 	}
 
-	public static void textShadowed(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color) {
-		graphics.text(font, styled(text), x + 1, y + 1, 0x60000000, false);
-		graphics.text(font, styled(text), x, y, color, false);
+	public static void boldText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color) {
+		graphics.text(font, bold(text), x, y, color, false);
 	}
 
 	public static void centeredText(GuiGraphicsExtractor graphics, Font font, Component text, int centerX, int y, int color) {
@@ -76,132 +103,110 @@ public final class Theme {
 		graphics.text(font, s, centerX - font.width(s) / 2, y, color, false);
 	}
 
+	public static void centeredBoldText(GuiGraphicsExtractor graphics, Font font, Component text, int centerX, int y, int color) {
+		Component s = bold(text);
+		graphics.text(font, s, centerX - font.width(s) / 2, y, color, false);
+	}
+
 	/**
-	 * Draws large text (e.g. screen titles) scaled up around its top left corner.
+	 * Large bold title text (uses the large Inter Bold font, not scaling, so it stays sharp).
 	 */
 	public static void bigText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, float scale, int color) {
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		pose.translate(x, y);
-		pose.scale(scale, scale);
-		graphics.text(font, styled(text), 1, 1, 0x70000000, false);
-		graphics.text(font, styled(text), 0, 0, color, false);
-		pose.popMatrix();
+		graphics.text(font, title(text), x, y, color, false);
+	}
+
+	public static int titleWidth(Font font, Component text) {
+		return font.width(title(text));
 	}
 
 	// ------------------------------------------------------------ Shapes
 
+	private static int radiusIndex(int radius, int width, int height) {
+		int max = Math.min(width, height) / 2;
+		int r = Math.min(radius, max);
+		int best = 0;
+		for (int i = 0; i < RADII.length; i++) {
+			if (RADII[i] <= r) best = i;
+		}
+		return best;
+	}
+
 	/**
-	 * Fills a rectangle with rounded corners. Corners are computed per pixel row so they stay crisp at any GUI scale.
+	 * Smooth anti-aliased rounded rectangle.
 	 */
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		int r = Math.min(radius, Math.min(width, height) / 2);
-		if (r <= 0) {
+		if (radius <= 1 || Math.min(width, height) < 4) {
 			graphics.fill(x, y, x + width, y + height, color);
 			return;
 		}
-		graphics.fill(x, y + r, x + width, y + height - r, color);
-		for (int i = 0; i < r; i++) {
-			int inset = cornerInset(r, i);
-			graphics.fill(x + inset, y + i, x + width - inset, y + i + 1, color);
-			graphics.fill(x + inset, y + height - i - 1, x + width - inset, y + height - i, color);
-		}
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, RECTS[radiusIndex(radius, width, height)], x, y, width, height, color);
 	}
 
 	/**
-	 * Rounded rectangle with a vertical gradient.
+	 * Rounded rectangle with a soft top-to-bottom gradient.
 	 */
 	public static void roundedGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int top, int bottom) {
-		if (width <= 0 || height <= 0) return;
-		int r = Math.min(radius, Math.min(width, height) / 2);
-		for (int i = 0; i < height; i++) {
-			int inset = 0;
-			if (i < r) inset = cornerInset(r, i);
-			else if (i >= height - r) inset = cornerInset(r, height - 1 - i);
-			int color = lerpColor(top, bottom, height <= 1 ? 0 : (float) i / (height - 1));
-			graphics.fill(x + inset, y + i, x + width - inset, y + i + 1, color);
+		roundedRect(graphics, x, y, width, height, radius, bottom);
+		int r = RADII[radiusIndex(radius, width, height)];
+		// sheen overlay (kept inside the straight part so it never pokes out of the corners)
+		int sheenColor = top;
+		if (r * 2 < width) {
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + r, y, width - r * 2, height, sheenColor);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x, y + r, r, height - r, sheenColor);
+			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + width - r, y + r, r, height - r, sheenColor);
 		}
 	}
 
 	/**
-	 * 1px rounded outline.
+	 * Smooth thin rounded outline.
 	 */
 	public static void roundedOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
-		if (width <= 0 || height <= 0) return;
-		int r = Math.min(radius, Math.min(width, height) / 2);
-		int top = r > 0 ? cornerInset(r, 0) : 0;
-		// top and bottom edges
-		graphics.fill(x + top, y, x + width - top, y + 1, color);
-		graphics.fill(x + top, y + height - 1, x + width - top, y + height, color);
-		// left and right edges
-		graphics.fill(x, y + r, x + 1, y + height - r, color);
-		graphics.fill(x + width - 1, y + r, x + width, y + height - r, color);
-		// corner arcs: each row connects to the previous row's inset
-		for (int i = 1; i < r; i++) {
-			int inset = cornerInset(r, i);
-			int prev = cornerInset(r, i - 1);
-			int end = Math.max(inset + 1, prev);
-			graphics.fill(x + inset, y + i, x + end, y + i + 1, color);
-			graphics.fill(x + width - end, y + i, x + width - inset, y + i + 1, color);
-			graphics.fill(x + inset, y + height - i - 1, x + end, y + height - i, color);
-			graphics.fill(x + width - end, y + height - i - 1, x + width - inset, y + height - i, color);
-		}
-		if (r > 0) {
-			// last arc row joins the straight side edges
-			int last = cornerInset(r, r - 1);
-			if (last > 0) {
-				graphics.fill(x, y + r - 1, x + last, y + r, color);
-				graphics.fill(x + width - last, y + r - 1, x + width, y + r, color);
-				graphics.fill(x, y + height - r, x + last, y + height - r + 1, color);
-				graphics.fill(x + width - last, y + height - r, x + width, y + height - r + 1, color);
-			}
-		}
+		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(radius, width, height)], x, y, width, height, color);
 	}
 
 	/**
-	 * Soft drop shadow made of stacked translucent rounded rectangles.
+	 * Card: filled rounded rectangle with a thin border.
+	 */
+	public static void card(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fill, int border) {
+		roundedRect(graphics, x, y, width, height, radius, fill);
+		roundedOutline(graphics, x, y, width, height, radius, border);
+	}
+
+	public static void circle(GuiGraphicsExtractor graphics, int x, int y, int size, int color) {
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, CIRCLE, x, y, size, size, color);
+	}
+
+	/**
+	 * Soft blurred drop shadow.
 	 */
 	public static void shadow(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int size, int offsetY) {
-		for (int i = size; i >= 1; i--) {
-			int alpha = (int) (0x30 * (1 - (float) i / (size + 1)) * 0.6f);
-			roundedRect(graphics, x - i, y - i + offsetY, width + i * 2, height + i * 2, radius + i, alpha << 24);
-		}
+		int pad = 16;
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - pad, y - pad + offsetY, width + pad * 2, height + pad * 2, 0x99000000);
 	}
 
 	/**
-	 * Light-blue glow around a rectangle, strength 0..1.
+	 * Soft light-blue glow around a rectangle, strength 0..1.
 	 */
 	public static void glow(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, float strength) {
 		if (strength <= 0.01f) return;
-		for (int i = 3; i >= 1; i--) {
-			int alpha = (int) (0x38 * strength * (1 - (i - 1) / 3f));
-			roundedRect(graphics, x - i, y - i, width + i * 2, height + i * 2, radius + i, (alpha << 24) | (ACCENT & 0xFFFFFF));
-		}
+		int pad = 14;
+		int alpha = Math.round(0xAA * Math.clamp(strength, 0, 1));
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - pad, y - pad, width + pad * 2, height + pad * 2, (alpha << 24) | (ACCENT & 0xFFFFFF));
 	}
 
 	/**
-	 * The main frosted panel: shadow, gradient body, subtle top highlight and a thin border.
+	 * Main panel: shadow, translucent navy body and thin border.
 	 */
 	public static void panel(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
-		shadow(graphics, x, y, width, height, PANEL_RADIUS, 8, 3);
-		roundedRect(graphics, x - 1, y - 1, width + 2, height + 2, PANEL_RADIUS + 1, PANEL_BORDER);
-		roundedGradient(graphics, x, y, width, height, PANEL_RADIUS, PANEL_TOP, PANEL_BOTTOM);
-		// inner top highlight
-		graphics.fill(x + PANEL_RADIUS, y + 1, x + width - PANEL_RADIUS, y + 2, 0x18FFFFFF);
+		shadow(graphics, x, y, width, height, PANEL_RADIUS, 0, 2);
+		roundedRect(graphics, x, y, width, height, PANEL_RADIUS, PANEL);
+		roundedOutline(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER);
 	}
 
-	/**
-	 * Full-screen dimmed gradient backdrop with a faint light-blue vignette at the top.
-	 */
 	public static void backdrop(GuiGraphicsExtractor graphics, int width, int height) {
-		graphics.fillGradient(0, 0, width, height, BACKDROP_TOP, BACKDROP_BOTTOM);
-		graphics.fillGradient(0, 0, width, height / 3, 0x147CC8FF, 0x007CC8FF);
-	}
-
-	private static int cornerInset(int r, int row) {
-		double dy = r - row - 0.5;
-		return (int) Math.round(r - Math.sqrt(Math.max(0, r * r - dy * dy)));
+		graphics.fill(0, 0, width, height, BACKDROP);
 	}
 
 	// ------------------------------------------------------------ Colour / animation helpers
@@ -237,11 +242,25 @@ public final class Theme {
 	}
 
 	/**
-	 * Slide-in offset for screens opening, in GUI pixels.
+	 * Slide-in offset for screens opening, in GUI pixels (fractional so the motion is smooth).
 	 */
 	public static float openOffset(long openedAt) {
 		float t = (Util.getMillis() - openedAt) / 260f;
-		return (1 - easeOutCubic(t)) * 14;
+		return (1 - easeOutCubic(t)) * 12;
+	}
+
+	public static float openAlpha(long openedAt) {
+		return easeOutCubic((Util.getMillis() - openedAt) / 200f);
+	}
+
+	public static void pushOffset(GuiGraphicsExtractor graphics, float dy) {
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(0, dy);
+	}
+
+	public static void popOffset(GuiGraphicsExtractor graphics) {
+		graphics.pose().popMatrix();
 	}
 
 	public static Font font() {

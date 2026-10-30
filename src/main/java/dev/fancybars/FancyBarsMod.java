@@ -25,7 +25,6 @@ import dev.fancybars.bars.FancyStatusBars;
 import dev.fancybars.bars.StatusBarTracker;
 import dev.fancybars.bars.VanillaStyleManaBar;
 import dev.fancybars.config.FancyBarsConfig;
-import dev.fancybars.config.FancyBarsSettingsScreen;
 import dev.fancybars.util.SkyblockLocation;
 
 /**
@@ -62,9 +61,9 @@ public class FancyBarsMod implements ClientModInitializer {
 
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> dispatcher.register(
 				ClientCommands.literal(NAMESPACE)
-						.executes(_ -> queueOpenScreen(new BarsMenuScreen(null)))
+						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
-						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(new FancyBarsSettingsScreen(null))))));
+						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.GENERAL))))));
 	}
 
 	/**

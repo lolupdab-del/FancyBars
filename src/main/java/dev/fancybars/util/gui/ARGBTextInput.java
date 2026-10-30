@@ -62,7 +62,7 @@ public class ARGBTextInput extends AbstractWidget {
 	 * @see ARGBTextInput#setOnChange(IntConsumer)
 	 */
 	public ARGBTextInput(int x, int y, Font textRenderer, boolean drawBackground, boolean hasAlpha) {
-		super(x, y, textRenderer.width(hasAlpha ? "AAAAAAAA" : "AAAAAA") + (drawBackground ? 6 : 0), 10 + (drawBackground ? 4 : 0), Component.nullToEmpty("ARGBTextInput"));
+		super(x, y, textRenderer.width(Theme.styled(Component.literal(hasAlpha ? "AAAAAAAA" : "AAAAAA"))) + (drawBackground ? 12 : 0), 10 + (drawBackground ? 8 : 0), Component.nullToEmpty("ARGBTextInput"));
 		this.drawBackground = drawBackground;
 		this.textRenderer = textRenderer;
 		this.length = hasAlpha ? 8 : 6;
@@ -120,44 +120,32 @@ public class ARGBTextInput extends AbstractWidget {
 
 	@Override
 	protected void extractWidgetRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-		int selectionStart = textRenderer.width(input.substring(0, index));
-		int selectionEnd = textRenderer.width(input.substring(0, index + 1));
-		int textX = getX() + (drawBackground ? 3 : 0);
+		int selectionStart = textRenderer.width(Theme.styled(net.minecraft.network.chat.Component.literal(input.substring(0, index))));
+		int selectionEnd = textRenderer.width(Theme.styled(net.minecraft.network.chat.Component.literal(input.substring(0, index + 1))));
+		int textX = getX() + (drawBackground ? 6 : 0);
 		int textY = getY() + (getHeight() - textRenderer.lineHeight) / 2;
 		if (drawBackground) {
-			context.fill(getX(), getY(), getRight(), getBottom(), isFocused() ? CommonColors.WHITE : CommonColors.GRAY);
-			context.fill(getX() + 1, getY() + 1, getRight() - 1, getBottom() - 1, CommonColors.BLACK);
+			Theme.card(context, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, 0xFF1F2131, isFocused() ? Theme.ACCENT : Theme.CARD_BORDER);
 		}
 
 		if (isFocused()) {
-			context.fill(
-					textX + selectionStart,
-					textY,
-					textX + selectionEnd,
-					textY + textRenderer.lineHeight,
-					0xFF_00_BB_FF
-			);
-			context.fill(
-					textX + selectionStart,
-					textY + textRenderer.lineHeight - 1,
-					textX + selectionEnd,
-					textY + textRenderer.lineHeight,
-					CommonColors.WHITE
-			);
+			Theme.roundedRect(context, textX + selectionStart - 1, textY - 1, selectionEnd - selectionStart + 2, textRenderer.lineHeight + 1, 2, 0x667CC8FF);
+			context.fill(textX + selectionStart, textY + textRenderer.lineHeight - 1, textX + selectionEnd, textY + textRenderer.lineHeight, Theme.ACCENT);
 		}
 		context.text(
 				textRenderer,
 				visitor -> {
 					int start = hasAlpha ? 0 : 1;
 					for (int i = 0; i < input.length(); i++) {
-						if (!visitor.accept(i, isHoveredOrFocused() ? Style.EMPTY.applyFormat(FORMATTINGS[i / 2 + start]) : Style.EMPTY, input.charAt(i))) return false;
+						Style style = (isHoveredOrFocused() ? Style.EMPTY.applyFormat(FORMATTINGS[i / 2 + start]) : Style.EMPTY).withFont(Theme.FONT);
+						if (!visitor.accept(i, style, input.charAt(i))) return false;
 					}
 					return true;
 				},
 				textX,
 				textY,
 				CommonColors.WHITE,
-				true
+				false
 		);
 
 		if (this.isHovered()) {

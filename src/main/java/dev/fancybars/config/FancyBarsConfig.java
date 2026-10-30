@@ -32,8 +32,19 @@ public class FancyBarsConfig {
 	public boolean showEstimatedTilde = true;
 
 	/**
-	 * Uses the pixel-art segmented bar textures (from Bigmans masterpiece) instead of the smooth ones.
+	 * Which textures the bars are drawn with.
 	 */
+	public BarStyle barStyle = BarStyle.CLASSIC;
+
+	/**
+	 * Draws the numbers on the bars with the smooth Inter font instead of the pixel font.
+	 */
+	public boolean smoothBarText = true;
+
+	/**
+	 * @deprecated replaced by {@link #barStyle}; only read to migrate old configs.
+	 */
+	@Deprecated
 	public boolean segmentedBars = false;
 
 	/**
@@ -52,6 +63,11 @@ public class FancyBarsConfig {
 			FancyBarsConfig loaded = FancyBarsMod.GSON.fromJson(reader, FancyBarsConfig.class);
 			if (loaded != null) instance = loaded;
 			if (instance.intelligenceDisplay == null) instance.intelligenceDisplay = IntelligenceDisplay.ORIGINAL;
+			if (instance.barStyle == null) instance.barStyle = BarStyle.CLASSIC;
+			if (instance.segmentedBars) {
+				instance.barStyle = BarStyle.SEGMENTED;
+				instance.segmentedBars = false;
+			}
 		} catch (NoSuchFileException _) {
 			save();
 		} catch (Exception e) {
@@ -67,6 +83,16 @@ public class FancyBarsConfig {
 			}
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.error("[FancyBars] Failed to save config", e);
+		}
+	}
+
+	public enum BarStyle {
+		CLASSIC,
+		SEGMENTED,
+		SKYBLOCKADDONS;
+
+		public String translationKey() {
+			return "fancybars.style." + name().toLowerCase(java.util.Locale.ROOT);
 		}
 	}
 

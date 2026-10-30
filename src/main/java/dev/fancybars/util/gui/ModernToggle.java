@@ -15,11 +15,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
 
 /**
- * Animated pill switch, optionally inside a labelled card.
+ * Smooth animated pill switch, optionally inside a labelled card.
  */
 public class ModernToggle extends AbstractWidget {
 	public static final int SWITCH_WIDTH = 24;
-	public static final int SWITCH_HEIGHT = 13;
+	public static final int SWITCH_HEIGHT = 12;
 
 	private final @Nullable Component label;
 	private final Consumer<Boolean> onChange;
@@ -47,43 +47,45 @@ public class ModernToggle extends AbstractWidget {
 	protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		boolean hovered = active && isHoveredOrFocused();
 		position = Theme.approach(position, value ? 1 : 0, 8, lastFrame);
-		hover = Theme.approach(hover, hovered ? 1 : 0, 7, lastFrame);
+		hover = Theme.approach(hover, hovered ? 1 : 0, 8, lastFrame);
 		lastFrame = Util.getMillis();
 		float eased = Theme.easeOutCubic(position);
 		Font font = Theme.font();
 
-		int switchX = getRight() - SWITCH_WIDTH - (label != null ? 4 : 0);
+		int switchX = getRight() - SWITCH_WIDTH - (label != null ? 6 : 0);
 		int switchY = getY() + (getHeight() - SWITCH_HEIGHT) / 2;
 
 		if (label != null) {
-			Theme.roundedRect(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, Theme.lerpColor(Theme.CARD, Theme.CARD_HOVER, hover * 0.6f));
-			Theme.text(graphics, font, label, getX() + 6, getY() + (getHeight() - 8) / 2, active ? Theme.lerpColor(Theme.TEXT, Theme.ACCENT_LIGHT, hover) : Theme.TEXT_DISABLED);
+			Theme.card(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS,
+					Theme.lerpColor(Theme.SURFACE, Theme.SURFACE_HOVER, hover),
+					Theme.lerpColor(Theme.CARD_BORDER, Theme.SELECTED_BORDER, hover));
+			Theme.text(graphics, font, label, getX() + 8, getY() + (getHeight() - 8) / 2, active ? Theme.TEXT_SOFT : Theme.TEXT_DISABLED);
 		}
 
 		// Track
 		if (!active) {
 			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, Theme.SURFACE_DISABLED);
 		} else {
-			Theme.glow(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, eased * (0.5f + hover * 0.5f));
-			int offTop = Theme.lerpColor(0xFF4A525D, 0xFF56606C, hover);
-			int offBottom = Theme.lerpColor(0xFF363C45, 0xFF404853, hover);
-			Theme.roundedGradient(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2,
-					Theme.lerpColor(offTop, Theme.ACCENT_LIGHT, eased), Theme.lerpColor(offBottom, Theme.ACCENT_DEEP, eased));
+			if (eased > 0.01f) Theme.glow(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, eased * (0.25f + hover * 0.35f));
+			int off = Theme.lerpColor(0xFF3A3D57, 0xFF464A68, hover);
+			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, Theme.lerpColor(off, Theme.ACCENT, eased));
 		}
 
-		// Knob with a tiny shadow
+		// Knob
 		int knobSize = SWITCH_HEIGHT - 4;
 		int knobX = switchX + 2 + Math.round((SWITCH_WIDTH - 4 - knobSize) * eased);
-		int knobY = switchY + 2;
-		Theme.roundedRect(graphics, knobX, knobY + 1, knobSize, knobSize, knobSize / 2, 0x50000000);
-		int knobColor = active ? Theme.lerpColor(0xFFD5DCE3, 0xFFFFFFFF, eased) : Theme.TEXT_DISABLED;
-		Theme.roundedRect(graphics, knobX, knobY, knobSize, knobSize, knobSize / 2, knobColor);
+		Theme.circle(graphics, knobX, switchY + 2, knobSize, active ? Theme.lerpColor(0xFFC9CCE0, 0xFFFFFFFF, eased) : Theme.TEXT_DISABLED);
 
 		if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 	}
 
 	@Override
 	public void onClick(MouseButtonEvent click, boolean doubled) {
+		toggle();
+	}
+
+	public void toggle() {
+		if (!active) return;
 		value = !value;
 		onChange.accept(value);
 	}
