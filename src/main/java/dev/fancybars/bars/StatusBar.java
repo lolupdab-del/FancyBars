@@ -39,6 +39,16 @@ import dev.fancybars.util.SkyblockLocation;
 public class StatusBar implements LayoutElement, Renderable, GuiEventListener, NarratableEntry {
 	private static final Identifier BAR_FILL = FancyBarsMod.id("bars/bar_fill");
 	private static final Identifier BAR_BACK = FancyBarsMod.id("bars/bar_back");
+	private static final Identifier SEGMENTED_BAR_FILL = FancyBarsMod.id("bars/segmented/bar_fill");
+	private static final Identifier SEGMENTED_BAR_BACK = FancyBarsMod.id("bars/segmented/bar_back");
+
+	private static Identifier barFill() {
+		return FancyBarsConfig.get().segmentedBars ? SEGMENTED_BAR_FILL : BAR_FILL;
+	}
+
+	private static Identifier barBack() {
+		return FancyBarsConfig.get().segmentedBars ? SEGMENTED_BAR_BACK : BAR_BACK;
+	}
 
 	public static final int ICON_SIZE = 9;
 
@@ -188,7 +198,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 
 		int barWidth = iconPosition.equals(IconPosition.OFF) ? renderWidth : renderWidth - ICON_SIZE - 1;
 		int barX = iconPosition.equals(IconPosition.LEFT) ? renderX + ICON_SIZE + 1 : renderX;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BAR_BACK, barX, renderY + 1, barWidth, 7, transparency);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, barBack(), barX, renderY + 1, barWidth, 7, transparency);
 		extractBarFill(graphics, barX, barWidth);
 		//context.drawText(MinecraftClient.getInstance().textRenderer, gridX + " " + gridY + " s:" + size , x, y-9, Colors.WHITE, true);
 	}
@@ -209,7 +219,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 			case FROM_MIDDLE -> barX + (barWidth - fillWidth) / 2;
 		};
 
-		GuiHelper.nineSliceColored(graphics, BAR_FILL, x, renderY + 2, fillWidth, 5, argb);
+		GuiHelper.nineSliceColored(graphics, barFill(), x, renderY + 2, fillWidth, 5, argb);
 	}
 
 	public void updateValues(float fill, float overflowFill, int value, @Nullable Integer max, @Nullable Integer overflow) {

@@ -1,0 +1,22 @@
+{
+ "providers": [
+  {
+   "type": "reference",
+   "id": "minecraft:include/space"
+  },
+  {
+   "type": "bitmap",
+   "file": "fancybars:font/jua.png",
+   "height": 12,
+   "ascent": 9,
+   "chars": [
+    "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_a",
+    "bcdefghijklmnopqrstuvwxyz{|}~“”★☆♡♥ㄱㄲㄳㄴㄵㄶㄷㄸㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅃㅄㅅㅆㅇㅈㅉㅊㅋㅌㅍ"
+   ]
+  },
+  {
+   "type": "reference",
+   "id": "minecraft:default"
+  }
+ ]
+}

@@ -37,6 +37,9 @@ public class FancyBarsMod implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("FancyBars");
 	public static final Path CONFIG_DIR = FabricLoader.getInstance().getConfigDir().resolve(NAMESPACE);
 	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+	public static final String VERSION = FabricLoader.getInstance().getModContainer(NAMESPACE)
+			.map(container -> container.getMetadata().getVersion().getFriendlyString().split("\\+")[0])
+			.orElse("?");
 	public static final ExecutorService VIRTUAL_THREAD_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
 	public static Identifier id(String path) {

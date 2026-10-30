@@ -69,8 +69,8 @@ public class BarEditorScreen extends Screen {
 		bars.updatePositions(true);
 
 		int toolbarY = 6;
-		ModernButton done = new ModernButton(56, 16, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
-		ModernButton reset = new ModernButton(76, 16, Component.translatable("fancybars.menu.resetLayout"), () -> {
+		ModernButton done = new ModernButton(56, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
+		ModernButton reset = new ModernButton(80, 18, Component.translatable("fancybars.menu.resetLayout"), () -> {
 			bars.resetBarPositions();
 			bars.statusBars.values().forEach(bar -> {
 				bar.enabled = true;
@@ -99,9 +99,9 @@ public class BarEditorScreen extends Screen {
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		// Toolbar panel (hidden while dragging so it never gets in the way)
 		if (dragging == null) {
-			int toolbarWidth = Math.min(width - 20, Math.max(170, font.width(Component.translatable("fancybars.editor.hint")) + 20));
-			Theme.panel(graphics, width / 2 - toolbarWidth / 2, 2, toolbarWidth, 44);
-			Theme.centeredText(graphics, font, Component.translatable("fancybars.editor.hint"), width / 2, 10, Theme.TEXT_MUTED);
+			int toolbarWidth = Math.min(width - 20, Math.max(170, Theme.width(font, Component.translatable("fancybars.editor.hint")) + 24));
+			Theme.panel(graphics, width / 2 - toolbarWidth / 2, 4, toolbarWidth, 44);
+			Theme.centeredText(graphics, font, Component.translatable("fancybars.editor.hint"), width / 2, 11, Theme.TEXT_MUTED);
 		}
 
 		// Hotbar for reference
@@ -123,27 +123,30 @@ public class BarEditorScreen extends Screen {
 			if (!bar.enabled) continue;
 			boolean active = bar == hovered || bar == optionsBar;
 			if (!active) continue;
-			outline(graphics, bar.getX() - 2, bar.getY() - 2, bar.getWidth() + 4, bar.getHeight() + 4, Theme.ACCENT);
-			int handleHeight = Math.max(6, bar.getHeight() - 2);
+			Theme.glow(graphics, bar.getX() - 2, bar.getY() - 2, bar.getWidth() + 4, bar.getHeight() + 4, 4, 0.7f);
+			Theme.roundedOutline(graphics, bar.getX() - 3, bar.getY() - 3, bar.getWidth() + 6, bar.getHeight() + 6, 4, Theme.ACCENT);
+			int handleHeight = Math.max(7, bar.getHeight() + 2);
 			int handleY = bar.getY() + (bar.getHeight() - handleHeight) / 2;
-			Theme.roundedRect(graphics, bar.getX() - 4, handleY, 3, handleHeight, 1, Theme.ACCENT);
-			Theme.roundedRect(graphics, bar.getX() + bar.getWidth() + 1, handleY, 3, handleHeight, 1, Theme.ACCENT);
+			Theme.roundedGradient(graphics, bar.getX() - 6, handleY, 4, handleHeight, 2, Theme.ACCENT_LIGHT, Theme.ACCENT_DEEP);
+			Theme.roundedGradient(graphics, bar.getX() + bar.getWidth() + 2, handleY, 4, handleHeight, 2, Theme.ACCENT_LIGHT, Theme.ACCENT_DEEP);
 		}
 
 		// Snap guides
 		for (int[] guide : guides) {
-			if (guide[0] == 1) graphics.fill(guide[1], 0, guide[1] + 1, height, Theme.ACCENT_DIM);
-			else graphics.fill(0, guide[1], width, guide[1] + 1, Theme.ACCENT_DIM);
+			if (guide[0] == 1) graphics.fillGradient(guide[1], 0, guide[1] + 1, height, 0x207CC8FF, 0xC07CC8FF);
+			else graphics.fill(0, guide[1], width, guide[1] + 1, 0xA07CC8FF);
 		}
 
 		// Size / scale readout while editing
 		if (hovered != null && optionsBar == null) {
 			Component info = Component.translatable("fancybars.editor.info", hovered.getName(), hovered.getWidth(), Math.round(hovered.effectiveScale() * 100));
-			int infoWidth = font.width(info) + 10;
+			int infoWidth = Theme.width(font, info) + 12;
 			int infoX = Math.clamp(hovered.getX() + hovered.getWidth() / 2 - infoWidth / 2, 2, width - infoWidth - 2);
 			int infoY = hovered.getY() - 18 < 48 ? hovered.getY() + hovered.getHeight() + 5 : hovered.getY() - 18;
-			Theme.roundedRectBordered(graphics, infoX, infoY, infoWidth, 13, 3, Theme.PANEL, Theme.PANEL_BORDER);
-			Theme.text(graphics, font, info, infoX + 5, infoY + 3, Theme.TEXT);
+			Theme.shadow(graphics, infoX, infoY, infoWidth, 14, 7, 4, 2);
+			Theme.roundedRect(graphics, infoX - 1, infoY - 1, infoWidth + 2, 16, 8, 0x887CC8FF);
+			Theme.roundedGradient(graphics, infoX, infoY, infoWidth, 14, 7, Theme.PANEL_TOP, Theme.PANEL_BOTTOM);
+			Theme.text(graphics, font, info, infoX + 6, infoY + 3, Theme.TEXT);
 		}
 
 		// Cursor feedback
@@ -156,7 +159,7 @@ public class BarEditorScreen extends Screen {
 		// Options panel background (widgets render on top via super)
 		if (optionsBar != null) {
 			Theme.panel(graphics, optionsX, optionsY, optionsWidth, optionsHeight);
-			Theme.text(graphics, font, optionsBar.getName(), optionsX + 8, optionsY + 7, Theme.ACCENT);
+			Theme.text(graphics, font, optionsBar.getName(), optionsX + 8, optionsY + 7, Theme.ACCENT_LIGHT);
 			graphics.fill(optionsX + 6, optionsY + 19, optionsX + optionsWidth - 6, optionsY + 20, Theme.DIVIDER);
 		}
 

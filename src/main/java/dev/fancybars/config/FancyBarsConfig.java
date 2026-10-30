@@ -32,6 +32,11 @@ public class FancyBarsConfig {
 	public boolean showEstimatedTilde = true;
 
 	/**
+	 * Uses the pixel-art segmented bar textures (from Bigmans masterpiece) instead of the smooth ones.
+	 */
+	public boolean segmentedBars = false;
+
+	/**
 	 * Hides the "-X Mana (Ability)" text from the action bar.
 	 */
 	public boolean hideMana = false;

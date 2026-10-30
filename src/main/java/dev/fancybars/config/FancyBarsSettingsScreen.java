@@ -51,7 +51,7 @@ public class FancyBarsSettingsScreen extends Screen {
 		y = toggle(x, y, w, "hideMana", config.hideMana, value -> config.hideMana = value);
 
 		ModernButton[] intelligence = new ModernButton[1];
-		intelligence[0] = new ModernButton(w, 18, intelligenceLabel(config), () -> {
+		intelligence[0] = new ModernButton(w, 19, intelligenceLabel(config), () -> {
 			config.intelligenceDisplay = EnumUtils.cycle(config.intelligenceDisplay);
 			FancyBarsConfig.save();
 			intelligence[0].setMessage(intelligenceLabel(config));
@@ -68,8 +68,8 @@ public class FancyBarsSettingsScreen extends Screen {
 		y = toggle(x, y, w, "useHungerBarSprites", config.useHungerBarSprites, value -> config.useHungerBarSprites = value);
 
 		int footerY = panelY + panelHeight - 26;
-		ModernButton edit = new ModernButton((w - 4) / 2, 18, Component.translatable("fancybars.menu.editGui"), () -> minecraft.gui.setScreen(new BarEditorScreen(this)));
-		ModernButton done = new ModernButton((w - 4) / 2, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
+		ModernButton edit = new ModernButton((w - 4) / 2, 20, Component.translatable("fancybars.menu.editGui"), () -> minecraft.gui.setScreen(new BarEditorScreen(this)));
+		ModernButton done = new ModernButton((w - 4) / 2, 20, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
 		edit.setPosition(x, footerY);
 		done.setPosition(x + (w - 4) / 2 + 4, footerY);
 		addRenderableWidget(edit);
@@ -81,7 +81,7 @@ public class FancyBarsSettingsScreen extends Screen {
 	}
 
 	private int toggle(int x, int y, int w, String key, boolean initial, Consumer<Boolean> setter) {
-		ModernToggle toggle = new ModernToggle(w, 18, Component.translatable("fancybars.config." + key), initial, value -> {
+		ModernToggle toggle = new ModernToggle(w, 19, Component.translatable("fancybars.config." + key), initial, value -> {
 			setter.accept(value);
 			FancyBarsConfig.save();
 		});
@@ -93,7 +93,7 @@ public class FancyBarsSettingsScreen extends Screen {
 
 	@Override
 	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-		graphics.fill(0, 0, width, height, Theme.BACKDROP);
+		Theme.backdrop(graphics, width, height);
 	}
 
 	@Override
@@ -101,8 +101,9 @@ public class FancyBarsSettingsScreen extends Screen {
 		int innerX = panelX + 12;
 		int innerRight = panelX + PANEL_WIDTH - 12;
 		Theme.panel(graphics, panelX, panelY, PANEL_WIDTH, panelHeight);
-		Theme.roundedRect(graphics, innerX, panelY + 10, 3, 12, 1, Theme.ACCENT);
-		Theme.text(graphics, font, getTitle(), innerX + 8, panelY + 12, Theme.TEXT);
+		Theme.glow(graphics, innerX, panelY + 9, 4, 14, 2, 1);
+		Theme.roundedGradient(graphics, innerX, panelY + 9, 4, 14, 2, Theme.ACCENT_LIGHT, Theme.ACCENT_DEEP);
+		Theme.bigText(graphics, font, getTitle(), innerX + 10, panelY + 9, 1.25f, Theme.TEXT);
 		graphics.fill(innerX, panelY + 26, innerRight, panelY + 27, Theme.DIVIDER);
 		Theme.text(graphics, font, Component.translatable("fancybars.config.section.vanillaMana"), innerX, sectionY + 2, Theme.TEXT_MUTED);
 		graphics.fill(innerX, panelY + panelHeight - 32, innerRight, panelY + panelHeight - 31, Theme.DIVIDER);

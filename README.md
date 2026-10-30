@@ -31,7 +31,7 @@ You need JDK 25.
 ./gradlew build
 ```
 
-The mod jar ends up in `build/libs/fancybars-1.2.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
+The mod jar ends up in `build/libs/fancybars-1.3.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
 
 No JDK? Push this folder to a GitHub repo: the included workflow builds it, and the jar appears under **Actions → latest run → Artifacts**.
 
@@ -41,6 +41,11 @@ No JDK? Push this folder to a GitHub repo: the included workflow builds it, and 
 * Settings are a small vanilla-style screen instead of YACL, so there are no extra dependencies.
 * The speed bar's cap ignores your pet (Skyblocker raises it for Black Cat and lowers it for Snail using its pet cache, which isn't ported). Racing Helmet, Young Dragon armour and the Cactus Knife are still handled.
 * The legacy (pre-`status_bars.json`) Skyblocker bar positions aren't migrated.
+
+## Credits
+
+* Segmented bar textures and the Jua bitmap font are from the **Bigmans masterpiece** resource pack.
+* Jua font: Copyright 2018 The Jua Project Authors, SIL Open Font License 1.1 (`assets/fancybars/font/LICENSE_Jua_OFL.txt`).
 
 ## License
 
