@@ -8,14 +8,19 @@
 		"ContainerScreenBackpackMixin",
 		"ContainerScreenProtectionMixin",
 		"CustomDataAccessor",
+		"DataComponentHolderMixin",
+		"DyedItemColorMixin",
+		"EquipmentLayerRendererMixin",
 		"FontAccessor",
 		"GifContainerScreenMixin",
 		"GifInventoryScreenMixin",
 		"HudAccessor",
 		"HudProtectionMixin",
 		"ItemModelResolverMixin",
+		"ItemStackNameMixin",
 		"LocalPlayerProtectionMixin",
-		"MinecraftProtectionMixin"
+		"MinecraftProtectionMixin",
+		"ModelManagerAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

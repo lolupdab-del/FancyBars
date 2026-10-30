@@ -78,6 +78,9 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.gifs.ScreenImages.init();
 		dev.fancybars.hud.TitlesAndHotbar.init();
 		dev.fancybars.chat.ChatFilters.init();
+		dev.fancybars.chat.ChatTabs.init();
+		dev.fancybars.crosshair.Crosshair.init();
+		dev.fancybars.items.Customization.init();
 		dev.fancybars.items.ItemChanger.init();
 		BackpackPreview.init();
 
@@ -89,6 +92,7 @@ public class FancyBarsMod implements ClientModInitializer {
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
 						.then(ClientCommands.literal("items").executes(_ -> queueOpenScreen(new dev.fancybars.items.ItemChangerScreen(null))))
+						.then(ClientCommands.literal("crosshair").executes(_ -> queueOpenScreen(new dev.fancybars.crosshair.CrosshairEditorScreen(null))))
 						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.GENERAL)))));
 			}
 		});

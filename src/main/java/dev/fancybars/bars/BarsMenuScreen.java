@@ -268,9 +268,18 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.items.open"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.items.ItemChangerScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.items.resetAll"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
 								Component.translatable("fancybars.items.resetAll.title"),
-								Component.translatable("fancybars.items.resetAll.message", config.customItemModels.size()),
+								Component.translatable("fancybars.items.resetAll.message"),
 								() -> {
 									config.customItemModels.clear();
+									config.customItemNames.clear();
+									config.customGlint.clear();
+									config.customDyeColors.clear();
+									config.customAnimatedDyes.clear();
+									config.customArmorTrims.clear();
+									config.customArmorModel.clear();
+									config.customHelmetTextures.clear();
+									config.customAnimatedHelmetTextures.clear();
+									dev.fancybars.items.Customization.clearCaches();
 									FancyBarsConfig.save();
 								})))));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
@@ -390,6 +399,10 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.KEYSTROKES.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.crosshair"), null));
+				list.add(new ToggleItem("crosshairEnabled", () -> config.crosshairEnabled, value -> config.crosshairEnabled = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.crosshair.edit"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.crosshair.CrosshairEditorScreen(BarsMenuScreen.this)))));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
 				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
 				list.add(new ButtonRowItem(
@@ -408,6 +421,13 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
 			}
 			case CHAT -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.chatTabs"), null));
+				list.add(new ToggleItem("chatTabsEnabled", () -> config.chatTabsEnabled, value -> {
+					config.chatTabsEnabled = value;
+					dev.fancybars.chat.ChatTabs.applyFilter();
+				}));
+				list.add(new ToggleItem("chatTabsSwitchChannel", () -> config.chatTabsSwitchChannel, value -> config.chatTabsSwitchChannel = value));
+				list.add(new ToggleItem("chatTabsPrefill", () -> config.chatTabsPrefill, value -> config.chatTabsPrefill = value));
 				String group = "";
 				for (dev.fancybars.chat.ChatFilters.Filter filter : dev.fancybars.chat.ChatFilters.ALL) {
 					if (!filter.group().equals(group)) {

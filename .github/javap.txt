@@ -1,13 +1,1 @@
-net.minecraft.client.gui.components.ChatComponent
-net.minecraft.client.GuiMessage
-net.minecraft.client.gui.screens.ChatScreen
-net.minecraft.world.item.ItemStack
-net.minecraft.core.component.DataComponentHolder
-net.minecraft.world.item.component.DyedItemColor
-net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer
-net.minecraft.client.resources.model.ModelManager
-net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements
-net.minecraft.client.gui.components.EditBox
-net.minecraft.world.item.equipment.trim.ArmorTrim
-net.minecraft.client.multiplayer.ClientPacketListener
-net.minecraft.world.item.equipment.EquipmentAssets
+net.minecraft.client.multiplayer.chat.GuiMessage

@@ -153,6 +153,19 @@ public class FancyBarsConfig {
 	/** File name → settings. */
 	public java.util.Map<String, ScreenImage> screenImages = new java.util.HashMap<>();
 
+	// ---------------------------------------------------------------- Crosshair
+
+	public boolean crosshairEnabled = false;
+
+	/** Grid width/height (odd). */
+	public int crosshairSize = 15;
+
+	/** ARGB per grid cell, row by row (0 = empty). */
+	public int[] crosshairPixels = null;
+
+	/** GUI pixels per grid cell. */
+	public float crosshairScale = 1;
+
 	// ---------------------------------------------------------------- Titles / hotbar
 
 	public boolean titlesShown = true;
@@ -171,6 +184,15 @@ public class FancyBarsConfig {
 
 	// ---------------------------------------------------------------- Chat filters (from Skytils' spam hider)
 
+	/** Skytils chat tabs: All / Party / Guild / DMs / Co-op buttons in the chat screen. */
+	public boolean chatTabsEnabled = true;
+
+	/** Switch your Hypixel chat channel (/chat ...) when picking a tab. */
+	public boolean chatTabsSwitchChannel = true;
+
+	/** Pre-fill /pc, /gc, /r or /cc when opening chat on that tab. */
+	public boolean chatTabsPrefill = false;
+
 	/** Ids of the chat filters that are on. */
 	public java.util.Set<String> chatFilters = new java.util.HashSet<>();
 
@@ -182,6 +204,40 @@ public class FancyBarsConfig {
 
 	/** Item UUID → item model id it should look like. */
 	public java.util.Map<String, String> customItemModels = new java.util.HashMap<>();
+
+	/** Item UUID → custom name ("&" colour / format codes, "&#RRGGBB" hex colours). */
+	public java.util.Map<String, String> customItemNames = new java.util.HashMap<>();
+
+	/** Item UUID → enchantment glint forced on (true) or off (false). */
+	public java.util.Map<String, Boolean> customGlint = new java.util.HashMap<>();
+
+	/** Item UUID → leather dye colour (RGB). */
+	public java.util.Map<String, Integer> customDyeColors = new java.util.HashMap<>();
+
+	public static final class AnimatedDye {
+		/** Keyframe colours (RGB), spread evenly over the duration. */
+		public java.util.List<Integer> colors = new java.util.ArrayList<>();
+
+		public float duration = 2;
+
+		public float delay = 0;
+
+		public boolean cycleBack = true;
+	}
+
+	public java.util.Map<String, AnimatedDye> customAnimatedDyes = new java.util.HashMap<>();
+
+	/** Item UUID → {trim material id, trim pattern id}. */
+	public java.util.Map<String, String[]> customArmorTrims = new java.util.HashMap<>();
+
+	/** Item UUID → equipment asset id (what armour it looks like when worn). */
+	public java.util.Map<String, String> customArmorModel = new java.util.HashMap<>();
+
+	/** Item UUID → head skin texture hash. */
+	public java.util.Map<String, String> customHelmetTextures = new java.util.HashMap<>();
+
+	/** Item UUID → animated head id. */
+	public java.util.Map<String, String> customAnimatedHelmetTextures = new java.util.HashMap<>();
 
 	// ---------------------------------------------------------------- Capes
 
@@ -357,8 +413,18 @@ public class FancyBarsConfig {
 			if (instance.screenImages == null) instance.screenImages = new java.util.HashMap<>();
 			if (instance.chatFilters == null) instance.chatFilters = new java.util.HashSet<>();
 			if (instance.customItemModels == null) instance.customItemModels = new java.util.HashMap<>();
+			if (instance.customItemNames == null) instance.customItemNames = new java.util.HashMap<>();
+			if (instance.customGlint == null) instance.customGlint = new java.util.HashMap<>();
+			if (instance.customDyeColors == null) instance.customDyeColors = new java.util.HashMap<>();
+			if (instance.customAnimatedDyes == null) instance.customAnimatedDyes = new java.util.HashMap<>();
+			if (instance.customArmorTrims == null) instance.customArmorTrims = new java.util.HashMap<>();
+			if (instance.customArmorModel == null) instance.customArmorModel = new java.util.HashMap<>();
+			if (instance.customHelmetTextures == null) instance.customHelmetTextures = new java.util.HashMap<>();
+			if (instance.customAnimatedHelmetTextures == null) instance.customAnimatedHelmetTextures = new java.util.HashMap<>();
 			if (instance.titleScale <= 0) instance.titleScale = 1;
 			if (instance.hotbarScale <= 0) instance.hotbarScale = 1;
+			if (instance.crosshairSize < 5 || instance.crosshairSize % 2 == 0) instance.crosshairSize = 15;
+			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
 			if (instance.playerSize <= 0) instance.playerSize = 1;
 			if (instance.playerSize != 1 && instance.playerSizeWidth == 1 && instance.playerSizeHeight == 1 && instance.playerSizeLength == 1) {
 				instance.playerSizeWidth = instance.playerSizeHeight = instance.playerSizeLength = instance.playerSize;

@@ -417,6 +417,24 @@ public class BarEditorScreen extends Screen {
 			closeOptions();
 			return true;
 		}
+		// R: put whatever is under the mouse back where it started
+		if (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_R && dragging == null && draggingElement == null) {
+			double mouseX = minecraft.mouseHandler.getScaledXPos(minecraft.getWindow());
+			double mouseY = minecraft.mouseHandler.getScaledYPos(minecraft.getWindow());
+			MovableElement element = elementAt(mouseX, mouseY);
+			if (element != null) {
+				element.reset();
+				FancyBarsConfig.save();
+				return true;
+			}
+			StatusBar bar = barAt(mouseX, mouseY);
+			if (bar != null) {
+				bars.snapToDefault(bar);
+				bars.saveBarConfig();
+				if (optionsBar == bar) closeOptions();
+				return true;
+			}
+		}
 		return super.keyPressed(event);
 	}
 

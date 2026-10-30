@@ -21,7 +21,7 @@ import net.minecraft.util.Util;
  * Minimal smooth search box: type to filter, Backspace to delete, Ctrl+Backspace / Esc-free clear via the ✕.
  */
 public class SearchField extends AbstractWidget {
-	private static final int MAX_LENGTH = 40;
+	private int maxLength = 40;
 
 	private String text;
 	private final Consumer<String> onChange;
@@ -34,6 +34,11 @@ public class SearchField extends AbstractWidget {
 		this.text = initial;
 		this.placeholder = placeholder;
 		this.onChange = onChange;
+	}
+
+	public SearchField maxLength(int maxLength) {
+		this.maxLength = maxLength;
+		return this;
 	}
 
 	public String getText() {
@@ -77,7 +82,7 @@ public class SearchField extends AbstractWidget {
 		if (isClearHovered(click.x(), click.y())) setText("");
 	}
 
-	private void setText(String newText) {
+	public void setText(String newText) {
 		if (newText.equals(text)) return;
 		text = newText;
 		onChange.accept(text);
@@ -87,7 +92,7 @@ public class SearchField extends AbstractWidget {
 	public boolean charTyped(CharacterEvent event) {
 		if (!isFocused()) return false;
 		String typed = event.codepointAsString();
-		if (text.length() < MAX_LENGTH && !typed.isEmpty() && typed.codePointAt(0) >= 32) {
+		if (text.length() < maxLength && !typed.isEmpty() && typed.codePointAt(0) >= 32) {
 			setText(text + typed);
 			return true;
 		}
@@ -112,7 +117,7 @@ public class SearchField extends AbstractWidget {
 		}
 		if (event.isPaste()) {
 			String clip = Minecraft.getInstance().keyboardHandler.getClipboard().replaceAll("[\\r\\n]", "");
-			setText((text + clip).substring(0, Math.min(MAX_LENGTH, text.length() + clip.length())));
+			setText((text + clip).substring(0, Math.min(maxLength, text.length() + clip.length())));
 			return true;
 		}
 		return false;
