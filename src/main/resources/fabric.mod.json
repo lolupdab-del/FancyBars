@@ -3,7 +3,7 @@
 	"id": "fancybars",
 	"version": "${version}",
 	"name": "SBCLIENT",
-	"description": "Developed by BigMMan and Shikiimorii.\n\nA Hypixel SkyBlock client mod with:\n• Fancy status bars: health, mana, defense, vitality, speed, air and XP, freely movable, resizable and recolourable, in Classic, Segmented or SkyblockAddons style\n• Customisable action bar: move, scale, restyle and hide parts of it\n• Dungeon secrets display and a rare dungeon drop tracker with run counter\n• Item protection with a recolourable star\n• Backpack and ender chest previews\n• Movable held item name\n• Animated inventory GIFs\n• SHIKIMODE: an all-pink ShikiClient theme\n\nOpen the menu with /sbclient.",
+	"description": "Developed by BigMMan and Shikiimorii.\n\nA Hypixel SkyBlock client mod with:\n• Fancy status bars: health, mana, defense, vitality, speed, air and XP, freely movable, resizable and recolourable, in Classic, Segmented or SkyblockAddons style\n• Customisable action bar: move, scale, restyle and hide parts of it\n• Dungeon secrets display and a rare dungeon drop tracker with run counter\n• Item protection with a recolourable star\n• Backpack and ender chest previews\n• Movable held item name\n• Animated inventory GIFs\n• Commission overlay, keystrokes with CPS, inventory HUD\n• Custom player sizes, own nametag in F5, Wall Licker\n• SHIKIMODE: an all-pink ShikiClient theme\n\nOpen the menu with /sbclient.",
 	"authors": [
 		"BigMMan",
 		"Shikiimorii"

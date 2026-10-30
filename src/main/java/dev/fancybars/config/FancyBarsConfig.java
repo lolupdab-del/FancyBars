@@ -121,12 +121,36 @@ public class FancyBarsConfig {
 	/** Draw yourself at {@link #playerSize}. */
 	public boolean playerSizeEnabled = false;
 
+	/** Deprecated single size (migrated to the three axes). */
 	public float playerSize = 1;
+
+	public float playerSizeWidth = 1;
+
+	public float playerSizeHeight = 1;
+
+	public float playerSizeLength = 1;
 
 	/** Show other SBCLIENT users at the sizes in the shared list. */
 	public boolean playerSizeShowOthers = true;
 
 	public boolean ownNametagInF5 = false;
+
+	// ---------------------------------------------------------------- Wall Licker
+
+	public boolean wallLickerEnabled = true;
+
+	public boolean wallLickerSound = true;
+
+	/** Sound volume in percent. */
+	public int wallLickerVolume = 100;
+
+	public int wallLicks = 0;
+
+	public float wallLickerX = -1;
+
+	public float wallLickerY = -1;
+
+	public float wallLickerScale = 1;
 
 	// ---------------------------------------------------------------- Commissions
 
@@ -269,7 +293,15 @@ public class FancyBarsConfig {
 			if (instance.watermarkScale <= 0) instance.watermarkScale = 1;
 			if (instance.invHudScale <= 0) instance.invHudScale = 1;
 			if (instance.commissionsScale <= 0) instance.commissionsScale = 1;
+			if (instance.wallLickerScale <= 0) instance.wallLickerScale = 1;
 			if (instance.playerSize <= 0) instance.playerSize = 1;
+			if (instance.playerSize != 1 && instance.playerSizeWidth == 1 && instance.playerSizeHeight == 1 && instance.playerSizeLength == 1) {
+				instance.playerSizeWidth = instance.playerSizeHeight = instance.playerSizeLength = instance.playerSize;
+				instance.playerSize = 1;
+			}
+			if (instance.playerSizeWidth <= 0) instance.playerSizeWidth = 1;
+			if (instance.playerSizeHeight <= 0) instance.playerSizeHeight = 1;
+			if (instance.playerSizeLength <= 0) instance.playerSizeLength = 1;
 			if (instance.keystrokesScale <= 0) instance.keystrokesScale = 1;
 			instance.keystrokesMode = Math.clamp(instance.keystrokesMode, 0, 2);
 			if (instance.rareDropsUntracked == null) instance.rareDropsUntracked = new java.util.HashSet<>();

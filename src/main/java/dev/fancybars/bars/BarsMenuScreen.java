@@ -380,9 +380,29 @@ public class BarsMenuScreen extends Screen {
 			case PLAYER -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.playerSize"), null));
 				list.add(new ToggleItem("playerSizeEnabled", () -> config.playerSizeEnabled, value -> config.playerSizeEnabled = value));
-				list.add(new ValueCycleItem("playerSize", new int[]{25, 50, 75, 90, 100, 110, 125, 150, 200, 300}, () -> Math.round(config.playerSize * 100),
-						value -> config.playerSize = value / 100f, value -> Component.literal(value + "%")));
+				list.add(new SliderItem("playerSizeWidth", () -> config.playerSizeWidth, value -> config.playerSizeWidth = value));
+				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
+				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.wallLicker"), null));
+				list.add(new ToggleItem("wallLickerEnabled", () -> config.wallLickerEnabled, value -> config.wallLickerEnabled = value));
+				list.add(new ToggleItem("wallLickerSound", () -> config.wallLickerSound, value -> config.wallLickerSound = value));
+				list.add(new ValueCycleItem("wallLickerVolume", new int[]{25, 50, 75, 100}, () -> config.wallLickerVolume,
+						value -> config.wallLickerVolume = value, value -> Component.literal(value + "%")));
+				String sound = dev.fancybars.fun.WallLicker.soundName();
+				list.add(new InfoCardItem(Component.translatable("fancybars.wallLicker.soundTitle"), List.of(
+						sound != null ? Component.translatable("fancybars.wallLicker.soundFound", sound) : Component.translatable("fancybars.wallLicker.noSound"),
+						Component.translatable("fancybars.wallLicker.howTo")), false));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.openFolder"), ModernButton.Style.PRIMARY, dev.fancybars.fun.WallLicker::openFolder),
+						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.test"), dev.fancybars.fun.WallLicker::playSound),
+						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.refresh"), () -> rebuildNextTick = true)));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.resetCount"), () -> {
+							config.wallLicks = 0;
+							FancyBarsConfig.save();
+						})));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.nametag"), null));
 				list.add(new ToggleItem("ownNametagInF5", () -> config.ownNametagInF5, value -> config.ownNametagInF5 = value));
 			}
@@ -434,8 +454,7 @@ public class BarsMenuScreen extends Screen {
 		int rightX = x0 + SIDEBAR_WIDTH + GAP;
 		int rightW = totalWidth - SIDEBAR_WIDTH - GAP;
 
-		// Panels (the SBCLIENT gradient spans the whole menu, pink on the left to blue on the right)
-		Theme.gradientRange(x0, x0 + totalWidth);
+		// Panels
 		Theme.panel(graphics, x0, y0, SIDEBAR_WIDTH, TOP_HEIGHT);
 		Theme.panel(graphics, rightX, y0, rightW, TOP_HEIGHT);
 		Theme.panel(graphics, x0, y0 + TOP_HEIGHT + GAP, SIDEBAR_WIDTH, totalHeight - TOP_HEIGHT - GAP);
@@ -779,8 +798,8 @@ public class BarsMenuScreen extends Screen {
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
 			int tx = x + 12;
 			Component heading = accentTitle
-					? Component.empty().append(Theme.brand()).append(" ").append(title.copy().withColor(Theme.TEXT & 0xFFFFFF))
-					: title.copy().withColor(Theme.TEXT & 0xFFFFFF);
+					? Component.empty().append(Theme.brand()).append(" ").append(title.copy().withColor(Theme.night(Theme.TEXT) & 0xFFFFFF))
+					: title.copy().withColor(Theme.night(Theme.TEXT) & 0xFFFFFF);
 			Theme.titleInBox(graphics, font, heading, tx, y + 6, 20, 0xFFFFFFFF);
 			int ly = y + 32;
 			for (Component line : lines) {
@@ -1126,7 +1145,7 @@ public class BarsMenuScreen extends Screen {
 			FancyBarsConfig.ProtectedItem info = config.protectedItemInfo.get(uuid);
 			Component name = info != null && !info.name.isEmpty()
 					? Component.literal(info.name).withColor(info.color & 0xFFFFFF)
-					: Component.translatable("fancybars.protection.unknownItem").withColor(Theme.TEXT_MUTED & 0xFFFFFF);
+					: Component.translatable("fancybars.protection.unknownItem").withColor(Theme.night(Theme.TEXT_MUTED) & 0xFFFFFF);
 			Theme.boldInBox(graphics, font, clip(name, w - 100), x + 27, y, height, 0xFFFFFFFF);
 			if (ItemProtection.findInInventory(uuid) != null) {
 				Component carried = Component.translatable("fancybars.protection.carried");
@@ -1414,6 +1433,39 @@ public class BarsMenuScreen extends Screen {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
 			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 100), x + 10, y, height, Theme.TEXT);
+		}
+	}
+
+	/** A labelled slider for a player size axis (25% – 300%). */
+	private class SliderItem extends Item {
+		private final String key;
+		private final Supplier<Float> getter;
+		private final dev.fancybars.util.gui.ModernSlider slider;
+
+		SliderItem(String key, Supplier<Float> getter, Consumer<Float> setter) {
+			this.key = key;
+			this.getter = getter;
+			this.height = 24;
+			this.searchable = true;
+			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
+			this.searchText = Component.translatable("fancybars.config." + key).getString() + " size scale";
+			slider = new dev.fancybars.util.gui.ModernSlider(130, 16, dev.fancybars.players.PlayerSizes.MIN, dev.fancybars.players.PlayerSizes.MAX, 0.05f, getter.get(),
+					setter, FancyBarsConfig::save);
+			widgets.add(slider);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			slider.setPosition(x + w - slider.getWidth() - 8, y + (height - slider.getHeight()) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 200), x + 10, y, height, Theme.TEXT);
+			Component value = Component.literal(Math.round(getter.get() * 100) + "%");
+			Theme.textInBox(graphics, font, value, slider.getX() - Theme.width(font, value) - 8, y, height, Theme.TEXT_MUTED);
 		}
 	}
 

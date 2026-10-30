@@ -106,9 +106,6 @@ public final class Theme {
 	private static final int[] RADII = {2, 3, 4, 5, 6, 8, 10};
 	private static final Identifier[] RECTS = new Identifier[RADII.length];
 	private static final Identifier[] OUTLINES = new Identifier[RADII.length];
-	/** Same shapes with alpha rising left → right; drawn on top in the end colour to make a horizontal gradient. */
-	private static final Identifier[] RECT_RAMPS = new Identifier[RADII.length];
-	private static final Identifier[] OUTLINE_RAMPS = new Identifier[RADII.length];
 	private static final Identifier CIRCLE = FancyBarsMod.id("ui/circle");
 	private static final Identifier SHADOW = FancyBarsMod.id("ui/shadow");
 	private static final Identifier SHEEN = FancyBarsMod.id("ui/sheen");
@@ -117,8 +114,6 @@ public final class Theme {
 		for (int i = 0; i < RADII.length; i++) {
 			RECTS[i] = FancyBarsMod.id("ui/rect_r" + RADII[i]);
 			OUTLINES[i] = FancyBarsMod.id("ui/outline_r" + RADII[i]);
-			RECT_RAMPS[i] = FancyBarsMod.id("ui/rect_r" + RADII[i] + "_ramp");
-			OUTLINE_RAMPS[i] = FancyBarsMod.id("ui/outline_r" + RADII[i] + "_ramp");
 		}
 	}
 
@@ -169,7 +164,7 @@ public final class Theme {
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(sx, sy);
-		graphics.text(font, styledText, 0, 0, color, shadow);
+		graphics.text(font, styledText, 0, 0, night(color), shadow);
 		pose.popMatrix();
 	}
 
@@ -248,11 +243,10 @@ public final class Theme {
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
 		if (radius <= 1 || Math.min(width, height) < 4) {
-			graphics.fill(x, y, x + width, y + height, colorAt(graphics, color, x + width / 2f));
+			graphics.fill(x, y, x + width, y + height, night(color));
 			return;
 		}
-		int index = radiusIndex(radius, width, height);
-		paintSprite(graphics, RECTS[index], RECT_RAMPS[index], x, y, width, height, color);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, RECTS[radiusIndex(radius, width, height)], x, y, width, height, night(color));
 	}
 
 	/**
@@ -262,7 +256,7 @@ public final class Theme {
 		roundedRect(graphics, x, y, width, height, radius, bottom);
 		int r = RADII[radiusIndex(radius, width, height)];
 		// sheen overlay (kept inside the straight part so it never pokes out of the corners)
-		int sheenColor = top;
+		int sheenColor = night(top);
 		if (r * 2 < width) {
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + r, y, width - r * 2, height, sheenColor);
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x, y + r, r, height - r, sheenColor);
@@ -275,8 +269,7 @@ public final class Theme {
 	 */
 	public static void roundedOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		int index = radiusIndex(radius, width, height);
-		paintSprite(graphics, OUTLINES[index], OUTLINE_RAMPS[index], x, y, width, height, color);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(radius, width, height)], x, y, width, height, night(color));
 	}
 
 	/**
@@ -322,111 +315,70 @@ public final class Theme {
 		graphics.fill(0, 0, width, height, BACKDROP);
 	}
 
-	// ------------------------------------------------------------ SBCLIENT pink → blue gradient
+	// ------------------------------------------------------------ Night blue (default) / SHIKIMODE (pink)
 
-	/** Pink-theme colour (RGB) → its blue counterpart; colours in here are drawn as a left-to-right gradient. */
-	private static final java.util.Map<Integer, Integer> TO_BLUE = new java.util.HashMap<>();
+	/** Pink-theme colour (RGB) → its night-blue counterpart, used whenever SHIKIMODE is off. */
+	private static final java.util.Map<Integer, Integer> NIGHT = new java.util.HashMap<>();
 	public static final int BRAND_PINK = 0xFFFF8FC8;
 	public static final int BRAND_BLUE = 0xFF7CC8FF;
-	private static final org.joml.Vector2f SCRATCH = new org.joml.Vector2f();
-	private static float rangeStart;
-	private static float rangeEnd;
-	private static long rangeSetAt;
 
 	static {
-		TO_BLUE.put(0xFF8FC8, 0x7CC8FF);
-		TO_BLUE.put(0xFFC4E1, 0xB4E1FF);
-		TO_BLUE.put(0xD6448F, 0x3E8FD6);
-		TO_BLUE.put(0xFFAED6, 0x9DD6FF);
-		TO_BLUE.put(0xAF3D78, 0x3D7FAF);
-		TO_BLUE.put(0xC47CA6, 0x7C82C4);
-		TO_BLUE.put(0x52233A, 0x233A52);
-		TO_BLUE.put(0x6C2B4C, 0x2B4C6C);
-		TO_BLUE.put(0x271A1F, 0x181A27);
-		TO_BLUE.put(0x2D1E24, 0x1C1E2D);
-		TO_BLUE.put(0x24181D, 0x161824);
-		TO_BLUE.put(0x49313B, 0x2E3149);
-		TO_BLUE.put(0x332229, 0x202233);
-		TO_BLUE.put(0x4F3641, 0x33364F);
-		TO_BLUE.put(0x3F2A33, 0x272A3F);
-		TO_BLUE.put(0x39282F, 0x252839);
-		TO_BLUE.put(0x47323A, 0x2E3247);
-		TO_BLUE.put(0x2B1F24, 0x1D1F2B);
-		TO_BLUE.put(0x5A3A48, 0x363A5A);
-		TO_BLUE.put(0x422D36, 0x2A2D42);
-		TO_BLUE.put(0x312128, 0x1F2131);
-		TO_BLUE.put(0x3A272F, 0x24273A);
-		TO_BLUE.put(0x573D48, 0x3A3D57);
-		TO_BLUE.put(0x684A57, 0x464A68);
-		TO_BLUE.put(0x36232B, 0x202336);
-		TO_BLUE.put(0x22161B, 0x141622);
-		TO_BLUE.put(0x201318, 0x111320);
-		TO_BLUE.put(0x6B4E5A, 0x4A4E6B);
-		TO_BLUE.put(0x1C1216, 0x10121C);
-	}
-
-	/** True for the SBCLIENT look (pink → blue gradient), false in SHIKIMODE (all pink). */
-	public static boolean gradient() {
-		return !dev.fancybars.config.FancyBarsConfig.get().shikiMode;
+		NIGHT.put(0x271A1F, 0x0C102F);
+		NIGHT.put(0x2D1E24, 0x0E1335);
+		NIGHT.put(0x24181D, 0x0B0F2C);
+		NIGHT.put(0x49313B, 0x171E53);
+		NIGHT.put(0x332229, 0x10153C);
+		NIGHT.put(0x4F3641, 0x1A2159);
+		NIGHT.put(0x3F2A33, 0x141A48);
+		NIGHT.put(0x39282F, 0x121942);
+		NIGHT.put(0x47323A, 0x171F51);
+		NIGHT.put(0x2B1F24, 0x0E1333);
+		NIGHT.put(0x5A3A48, 0x1B2464);
+		NIGHT.put(0x422D36, 0x151C4B);
+		NIGHT.put(0x312128, 0x101439);
+		NIGHT.put(0x3A272F, 0x121843);
+		NIGHT.put(0x573D48, 0x1D2661);
+		NIGHT.put(0x684A57, 0x232E73);
+		NIGHT.put(0x36232B, 0x10163F);
+		NIGHT.put(0x22161B, 0x0A0E2A);
+		NIGHT.put(0x201318, 0x080C28);
+		NIGHT.put(0x6B4E5A, 0x253076);
+		NIGHT.put(0x1C1216, 0x080B23);
+		NIGHT.put(0xFF8FC8, 0x6FA8FF);
+		NIGHT.put(0xFFC4E1, 0xB8D4FF);
+		NIGHT.put(0xD6448F, 0x2F64D6);
+		NIGHT.put(0xFFAED6, 0x93BCFF);
+		NIGHT.put(0xAF3D78, 0x2F4FAF);
+		NIGHT.put(0xC47CA6, 0x5F7FD0);
+		NIGHT.put(0x52233A, 0x16244A);
+		NIGHT.put(0x6C2B4C, 0x1F3670);
+		NIGHT.put(0xF7EEF2, 0xE8EEFA);
+		NIGHT.put(0xEED8E2, 0xD4DCF0);
+		NIGHT.put(0xC2A2B0, 0x98A6C8);
+		NIGHT.put(0x79606A, 0x56607E);
+		NIGHT.put(0x2A0B1B, 0x081430);
+		NIGHT.put(0xC9CCE0, 0xC9D3EC);
 	}
 
 	public static boolean shikiMode() {
 		return dev.fancybars.config.FancyBarsConfig.get().shikiMode;
 	}
 
-	/** Screens can span the gradient over their own bounds (call every frame); otherwise it spans the whole screen. */
-	public static void gradientRange(float startX, float endX) {
-		rangeStart = startX;
-		rangeEnd = endX;
-		rangeSetAt = Util.getMillis();
+	/** The colour to actually draw: theme colours turn night blue unless SHIKIMODE is on. Alpha is kept. */
+	public static int night(int color) {
+		if (shikiMode()) return color;
+		Integer mapped = NIGHT.get(color & 0xFFFFFF);
+		return mapped == null ? color : (color & 0xFF000000) | mapped;
 	}
 
-	private static float fraction(GuiGraphicsExtractor graphics, float localX) {
-		org.joml.Vector2f v = graphics.pose().transformPosition(localX, 0, SCRATCH);
-		float start = 0;
-		float end = graphics.guiWidth();
-		if (Util.getMillis() - rangeSetAt < 150 && rangeEnd > rangeStart) {
-			start = rangeStart;
-			end = rangeEnd;
-		}
-		return Math.clamp((v.x - start) / (end - start), 0, 1);
+	/** Kept for callers that pass a position; the theme has no gradient any more. */
+	public static int colorAt(GuiGraphicsExtractor graphics, int color, float localX) {
+		return night(color);
 	}
 
-	/** The colour to use at a screen position: pink-theme colours are blended toward blue from left to right. */
-	public static int gradientColor(int color, float fraction) {
-		Integer blue = TO_BLUE.get(color & 0xFFFFFF);
-		if (blue == null) return color;
-		return (color & 0xFF000000) | (lerpColor(color | 0xFF000000, blue | 0xFF000000, fraction) & 0xFFFFFF);
-	}
-
-	/** Pink → blue at {@code fraction}, opaque. */
+	/** Pink → blue at {@code fraction}, opaque (used for the SBCLIENT title letters). */
 	public static int brandGradient(float fraction) {
 		return lerpColor(BRAND_PINK, BRAND_BLUE, fraction);
-	}
-
-	public static int colorAt(GuiGraphicsExtractor graphics, int color, float localX) {
-		if (!gradient()) return color;
-		return gradientColor(color, fraction(graphics, localX));
-	}
-
-	/**
-	 * Draws a rounded sprite. In the SBCLIENT look, theme colours become a smooth left → right pink → blue gradient:
-	 * the shape is drawn in its left colour, then the matching "ramp" sprite (alpha rising across the shape) is drawn
-	 * on top in its right colour. Two plain sprite draws, batched like any other, so it costs next to nothing.
-	 */
-	private static void paintSprite(GuiGraphicsExtractor graphics, Identifier sprite, Identifier ramp, int x, int y, int width, int height, int color) {
-		if (!gradient() || !TO_BLUE.containsKey(color & 0xFFFFFF)) {
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, color);
-			return;
-		}
-		float f0 = fraction(graphics, x);
-		float f1 = fraction(graphics, x + width);
-		if (Math.abs(f1 - f0) < 0.03f) {
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, gradientColor(color, (f0 + f1) / 2));
-			return;
-		}
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height, gradientColor(color, f0));
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ramp, x, y, width, height, gradientColor(color, f1));
 	}
 
 	/** SBCLIENT / ShikiClient name, coloured for the current mode (vanilla font). */

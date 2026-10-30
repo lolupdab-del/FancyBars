@@ -59,7 +59,7 @@ public class SearchField extends AbstractWidget {
 			if (focused && (Util.getMillis() / 500) % 2 == 0) {
 				int caretX = textX + Theme.width(font, shown) + 1;
 				int caretTop = Math.round(getY() + (getHeight() - Theme.UI_CAP) / 2f) - 2;
-				graphics.fill(caretX, caretTop, caretX + 1, caretTop + Math.round(Theme.UI_CAP) + 4, Theme.ACCENT);
+				graphics.fill(caretX, caretTop, caretX + 1, caretTop + Math.round(Theme.UI_CAP) + 4, Theme.night(Theme.ACCENT));
 			}
 		}
 		if (!text.isEmpty()) {

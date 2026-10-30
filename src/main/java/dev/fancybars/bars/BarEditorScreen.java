@@ -149,8 +149,8 @@ public class BarEditorScreen extends Screen {
 
 		// Snap guides
 		for (int[] guide : guides) {
-			if (guide[0] == 1) graphics.fillGradient(guide[1], 0, guide[1] + 1, height, 0x20FF8FC8, 0xC0FF8FC8);
-			else graphics.fill(0, guide[1], width, guide[1] + 1, 0xA0FF8FC8);
+			if (guide[0] == 1) graphics.fillGradient(guide[1], 0, guide[1] + 1, height, Theme.night(0x20FF8FC8), Theme.night(0xC0FF8FC8));
+			else graphics.fill(0, guide[1], width, guide[1] + 1, Theme.night(0xA0FF8FC8));
 		}
 
 		// Size / scale readout while editing
@@ -176,7 +176,7 @@ public class BarEditorScreen extends Screen {
 		if (optionsBar != null) {
 			Theme.panel(graphics, optionsX, optionsY, optionsWidth, optionsHeight);
 			Theme.boldInBox(graphics, font, optionsBar.getName(), optionsX + 8, optionsY + 3, 16, Theme.ACCENT_LIGHT);
-			graphics.fill(optionsX + 6, optionsY + 19, optionsX + optionsWidth - 6, optionsY + 20, Theme.DIVIDER);
+			graphics.fill(optionsX + 6, optionsY + 19, optionsX + optionsWidth - 6, optionsY + 20, Theme.night(Theme.DIVIDER));
 		}
 
 		super.extractRenderState(graphics, mouseX, mouseY, a);

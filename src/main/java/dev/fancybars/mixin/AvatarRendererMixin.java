@@ -22,8 +22,17 @@ public abstract class AvatarRendererMixin {
 	/** Custom player sizes. */
 	@Inject(method = "scale(Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;)V", at = @At("TAIL"))
 	private void fancybars$scale(AvatarRenderState state, PoseStack poseStack, CallbackInfo ci) {
-		float scale = PlayerSizes.scaleFor(state.id);
-		if (scale != 1) poseStack.scale(scale, scale, scale);
+		float[] size = PlayerSizes.scaleFor(state.id);
+		if (size[0] != 1 || size[1] != 1 || size[2] != 1) poseStack.scale(size[0], size[1], size[2]);
+	}
+
+	/** Keep the nametag right above the head of resized players. */
+	@Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
+	private void fancybars$nametagHeight(Avatar entity, AvatarRenderState state, float partialTick, CallbackInfo ci) {
+		float[] size = PlayerSizes.scaleFor(entity);
+		if (size[1] != 1 && state.nameTagAttachment != null) {
+			state.nameTagAttachment = new net.minecraft.world.phys.Vec3(state.nameTagAttachment.x, state.nameTagAttachment.y * size[1], state.nameTagAttachment.z);
+		}
 	}
 
 	/** Show your own nametag in third person (F5). */

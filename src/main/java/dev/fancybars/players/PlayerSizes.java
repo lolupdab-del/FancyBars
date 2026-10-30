@@ -32,7 +32,9 @@ public final class PlayerSizes {
 	public static final float MIN = 0.25f;
 	public static final float MAX = 3f;
 
-	private static final Map<String, Float> SHARED = new ConcurrentHashMap<>();
+	/** {width, height, length}. */
+	private static final Map<String, float[]> SHARED = new ConcurrentHashMap<>();
+	private static final float[] NORMAL = {1, 1, 1};
 	private static long ticks = REFRESH_TICKS - 40;
 	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
 
@@ -54,9 +56,19 @@ public final class PlayerSizes {
 			if (response.statusCode() != 200) return;
 			try {
 				JsonObject players = JsonParser.parseString(response.body()).getAsJsonObject().getAsJsonObject("players");
-				Map<String, Float> fresh = new java.util.HashMap<>();
+				Map<String, float[]> fresh = new java.util.HashMap<>();
 				for (Map.Entry<String, JsonElement> entry : players.entrySet()) {
-					fresh.put(entry.getKey().toLowerCase(Locale.ROOT), Math.clamp(entry.getValue().getAsFloat(), MIN, MAX));
+					// either one number for all axes, or {"width": .., "height": .., "length": ..}
+					JsonElement value = entry.getValue();
+					float[] size;
+					if (value.isJsonObject()) {
+						JsonObject o = value.getAsJsonObject();
+						size = new float[]{axis(o, "width"), axis(o, "height"), axis(o, "length")};
+					} else {
+						float all = Math.clamp(value.getAsFloat(), MIN, MAX);
+						size = new float[]{all, all, all};
+					}
+					fresh.put(entry.getKey().toLowerCase(Locale.ROOT), size);
 				}
 				SHARED.clear();
 				SHARED.putAll(fresh);
@@ -66,18 +78,26 @@ public final class PlayerSizes {
 		}).exceptionally(e -> null);
 	}
 
-	/** The size to draw the player with the given entity id at (1 = normal). */
-	public static float scaleFor(int entityId) {
+	private static float axis(JsonObject o, String name) {
+		return o.has(name) ? Math.clamp(o.get(name).getAsFloat(), MIN, MAX) : 1;
+	}
+
+	/** {width, height, length} to draw the player with the given entity id at (1 = normal). */
+	public static float[] scaleFor(int entityId) {
 		Minecraft mc = Minecraft.getInstance();
-		if (mc.level == null) return 1;
-		Entity entity = mc.level.getEntity(entityId);
-		if (!(entity instanceof Player player)) return 1;
+		if (mc.level == null) return NORMAL;
+		return scaleFor(mc.level.getEntity(entityId));
+	}
+
+	public static float[] scaleFor(Entity entity) {
+		Minecraft mc = Minecraft.getInstance();
+		if (!(entity instanceof Player player)) return NORMAL;
 		FancyBarsConfig config = FancyBarsConfig.get();
-		if (player == mc.player) {
-			if (config.playerSizeEnabled) return Math.clamp(config.playerSize, MIN, MAX);
+		if (player == mc.player && config.playerSizeEnabled) {
+			return new float[]{Math.clamp(config.playerSizeWidth, MIN, MAX), Math.clamp(config.playerSizeHeight, MIN, MAX), Math.clamp(config.playerSizeLength, MIN, MAX)};
 		}
-		if (!config.playerSizeShowOthers && player != mc.player) return 1;
-		Float shared = SHARED.get(player.getGameProfile().name().toLowerCase(Locale.ROOT));
-		return shared != null ? shared : 1;
+		if (!config.playerSizeShowOthers && player != mc.player) return NORMAL;
+		float[] shared = SHARED.get(player.getGameProfile().name().toLowerCase(Locale.ROOT));
+		return shared != null ? shared : NORMAL;
 	}
 }

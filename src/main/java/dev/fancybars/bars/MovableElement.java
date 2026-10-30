@@ -514,5 +514,70 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS};
+	// ---------------------------------------------------------------- Wall Licker
+
+	MovableElement WALL_LICKER = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.fun.WallLicker.position(screenW, screenH);
+			int[] size = dev.fancybars.fun.WallLicker.size();
+			return new float[]{pos[0], pos[1], size[0] * config.wallLickerScale, size[1] * config.wallLickerScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			float[] pos = dev.fancybars.fun.WallLicker.position(screenW, screenH);
+			dev.fancybars.fun.WallLicker.renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.wallLickerX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.wallLickerY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().wallLickerScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().wallLickerScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().wallLickerEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().wallLickerEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.wallLickerX = -1;
+			config.wallLickerY = -1;
+			config.wallLickerScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.wallLicker");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER};
 }

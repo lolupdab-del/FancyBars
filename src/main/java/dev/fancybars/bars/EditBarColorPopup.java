@@ -36,7 +36,7 @@ public class EditBarColorPopup extends AbstractPopupScreen {
 		super.init();
 		layout = LinearLayout.vertical();
 		layout.spacing(8).defaultCellSetting().alignHorizontallyCenter();
-		layout.addChild(new StringWidget(Theme.styled(title).withStyle(style -> style.withColor(Theme.ACCENT_LIGHT & 0xFFFFFF)), Minecraft.getInstance().font));
+		layout.addChild(new StringWidget(Theme.styled(title).withStyle(style -> style.withColor(Theme.night(Theme.ACCENT_LIGHT) & 0xFFFFFF)), Minecraft.getInstance().font));
 
 		LinearLayout colorLayout = layout.addChild(LinearLayout.horizontal().spacing(4));
 		ColorPickerWidget colorPicker = new ColorPickerWidget(0, 0, 200, 100);
