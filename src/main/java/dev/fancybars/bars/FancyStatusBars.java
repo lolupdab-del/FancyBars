@@ -75,35 +75,27 @@ public class FancyStatusBars {
 
 	@SuppressWarnings("deprecation")
 	public void init() {
-		Function<HudElement, HudElement> hideIfFancyStatusBarsEnabled = hudElement -> {
-			if (shouldProcess())
-				return (_, _) -> {};
-			return hudElement;
+		// All checks happen inside the returned elements, so they're evaluated every frame
+		// (on/off SkyBlock, settings changes) no matter how often Fabric applies the replacement.
+		Function<HudElement, HudElement> hideIfFancyStatusBarsEnabled = hudElement -> (context, tickCounter) -> {
+			if (!shouldProcess()) hudElement.extractRenderState(context, tickCounter);
 		};
 
 		// The vanilla XP bar is always hidden while fancy bars are active (even if the fancy XP bar is turned off),
 		// so vanilla hearts (when the fancy health bar is off) move down into its space.
-		HudElementRegistry.replaceElement(VanillaHudElements.HEALTH_BAR, hudElement -> {
-			if (!shouldProcess()) return hudElement;
-			if (isHealthFancyBarEnabled()) {
-				return (_, _) -> {};
-			}
-			return (context, tickCounter) -> {
+		HudElementRegistry.replaceElement(VanillaHudElements.HEALTH_BAR, hudElement -> (context, tickCounter) -> {
+			if (!shouldProcess()) {
+				hudElement.extractRenderState(context, tickCounter);
+			} else if (!isHealthFancyBarEnabled()) {
 				Matrix3x2fStack pose = context.pose();
 				pose.pushMatrix();
 				pose.translate(0, 6);
 				hudElement.extractRenderState(context, tickCounter);
 				pose.popMatrix();
-			};
+			}
 		});
-		HudElementRegistry.replaceElement(VanillaHudElements.EXPERIENCE_LEVEL, hudElement -> {
-			if (!shouldProcess()) return hudElement;
-			return (_, _) -> {};
-		});
-		HudElementRegistry.replaceElement(VanillaHudElements.INFO_BAR, hudElement -> {
-			if (!shouldProcess()) return hudElement;
-			return (_, _) -> {};
-		});
+		HudElementRegistry.replaceElement(VanillaHudElements.EXPERIENCE_LEVEL, hideIfFancyStatusBarsEnabled);
+		HudElementRegistry.replaceElement(VanillaHudElements.INFO_BAR, hideIfFancyStatusBarsEnabled);
 		HudElementRegistry.replaceElement(VanillaHudElements.ARMOR_BAR, hideIfFancyStatusBarsEnabled);
 		HudElementRegistry.replaceElement(VanillaHudElements.MOUNT_HEALTH, hideIfFancyStatusBarsEnabled);
 		HudElementRegistry.replaceElement(VanillaHudElements.FOOD_BAR, hideIfFancyStatusBarsEnabled);

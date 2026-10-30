@@ -15,6 +15,11 @@ plus the optional vanilla-style mana bar.
 | `/fancybars` | Open the Fancy Bars menu (also via Mod Menu): Home, Bars (switch each bar and its icon on/off, recolour bars, overflow mana, absorption and text), Style (Classic / Segmented / SkyblockAddons), General and Vanilla Mana pages, with search |
 | `/fancybars edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
 | `/fancybars config` | Open the menu on the General page |
+| `/fancybars protect` | Protect / unprotect the held item (or press **V**, also works while hovering items in inventories) |
+
+**Item protection** (from Skyblocker): protected items can't be dropped, sold to NPCs, salvaged, traded or auctioned. The star shown on them can be recoloured and put in any corner (menu → Items).
+
+**Held item name**: the name that pops up when you switch items can be hidden, moved and scaled (menu → Items, or drag it in the editor).
 
 While fancy bars are active the vanilla XP bar is always hidden, even if you turn the fancy XP bar off.
 
@@ -31,7 +36,7 @@ You need JDK 25.
 ./gradlew build
 ```
 
-The mod jar ends up in `build/libs/fancybars-1.4.1+26.2.jar`. Put it in your `mods` folder next to Fabric API.
+The mod jar ends up in `build/libs/fancybars-1.5.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
 
 No JDK? Push this folder to a GitHub repo: the included workflow builds it, and the jar appears under **Actions → latest run → Artifacts**.
 

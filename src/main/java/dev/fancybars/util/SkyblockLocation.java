@@ -61,6 +61,14 @@ public class SkyblockLocation {
 		return onSkyblock && mode.equals("rift");
 	}
 
+	public static boolean isOnPrivateIsland() {
+		return onSkyblock && mode.equals("dynamic");
+	}
+
+	public static boolean isInDungeons() {
+		return onSkyblock && mode.equals("dungeon");
+	}
+
 	public static boolean isInGarden() {
 		return onSkyblock && mode.equals("garden");
 	}

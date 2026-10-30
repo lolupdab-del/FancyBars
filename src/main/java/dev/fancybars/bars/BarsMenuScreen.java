@@ -22,6 +22,7 @@ import net.minecraft.util.Util;
 
 import dev.fancybars.FancyBarsMod;
 import dev.fancybars.config.FancyBarsConfig;
+import dev.fancybars.protection.ItemProtection;
 import dev.fancybars.util.EnumUtils;
 import dev.fancybars.util.gui.ModernButton;
 import dev.fancybars.util.gui.ModernToggle;
@@ -224,6 +225,16 @@ public class BarsMenuScreen extends Screen {
 				for (FancyBarsConfig.BarStyle style : FancyBarsConfig.BarStyle.values()) list.add(new StyleItem(style));
 				list.add(new ToggleItem("smoothBarText", () -> config.smoothBarText, value -> config.smoothBarText = value));
 			}
+			case ITEMS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.protection"), Component.translatable("fancybars.protection.description")));
+				list.add(new ToggleItem("itemProtectionEnabled", () -> config.itemProtectionEnabled, value -> config.itemProtectionEnabled = value));
+				list.add(new ToggleItem("protectionChatNotification", () -> config.protectionChatNotification, value -> config.protectionChatNotification = value));
+				list.add(new StarItem());
+				list.add(new ProtectedItemsItem());
+				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), Component.translatable("fancybars.heldItem.description")));
+				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
+				list.add(new HeldItemActionsItem());
+			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
@@ -386,6 +397,7 @@ public class BarsMenuScreen extends Screen {
 		HOME("fancybars.category.home"),
 		BARS("fancybars.category.bars"),
 		STYLE("fancybars.category.style"),
+		ITEMS("fancybars.category.items"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
 
@@ -756,6 +768,139 @@ public class BarsMenuScreen extends Screen {
 			}
 			return false;
 		}
+	}
+
+	/** Star colour + corner picker with live slot previews. */
+	private class StarItem extends Item {
+		private static final int SLOT = 22;
+		private final ColorSwatch swatch;
+		private final net.minecraft.world.item.ItemStack sample = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+		private int slotsX;
+
+		StarItem() {
+			this.height = 52;
+			this.searchable = true;
+			this.searchText = Component.translatable("fancybars.protection.star").getString() + " star colour color corner protection";
+			swatch = new ColorSwatch(Component.translatable("fancybars.protection.starColor"),
+					() -> new Color(config.protectionStarColor, false),
+					color -> {
+						config.protectionStarColor = color.getRGB() | 0xFF000000;
+						FancyBarsConfig.save();
+					});
+			widgets.add(swatch);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			slotsX = x + w - 10 - 4 * SLOT - 3 * 5;
+			swatch.setPosition(slotsX - 24, y + 26);
+		}
+
+		private FancyBarsConfig.StarCorner cornerAt(double mouseX, double mouseY) {
+			for (FancyBarsConfig.StarCorner corner : FancyBarsConfig.StarCorner.values()) {
+				int sx = slotsX + corner.ordinal() * (SLOT + 5);
+				int sy = y + 22;
+				if (mouseX >= sx && mouseX < sx + SLOT && mouseY >= sy && mouseY < sy + SLOT) return corner;
+			}
+			return null;
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, Component.translatable("fancybars.protection.star"), x + 10, y + 6, 11, Theme.TEXT);
+			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.protection.star.description"), slotsX - x - 50), x + 10, y + 18, 10, Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.menu.header.colors"), swatch.getX() + SWATCH / 2f, y + 6, 11, Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.translatable("fancybars.protection.corner"), slotsX + (4 * SLOT + 15) / 2f, y + 6, 11, Theme.TEXT_MUTED);
+
+			FancyBarsConfig.StarCorner hoveredCorner = cornerAt(mouseX, mouseY);
+			for (FancyBarsConfig.StarCorner corner : FancyBarsConfig.StarCorner.values()) {
+				int sx = slotsX + corner.ordinal() * (SLOT + 5);
+				int sy = y + 22;
+				boolean selected = config.protectionStarCorner == corner;
+				boolean hovered = hoveredCorner == corner;
+				if (selected) Theme.glow(graphics, sx, sy, SLOT, SLOT, 4, 0.4f);
+				Theme.card(graphics, sx, sy, SLOT, SLOT, 4, selected ? Theme.SELECTED : hovered ? Theme.SURFACE_HOVER : Theme.SURFACE,
+						selected ? Theme.ACCENT : hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+				ItemProtection.drawStar(graphics, sx + 3, sy + 3, corner, config.protectionStarColor);
+				graphics.item(sample, sx + 3, sy + 3);
+				if (hovered) {
+					graphics.setTooltipForNextFrame(font, Component.translatable(corner.translationKey()), mouseX, mouseY);
+					graphics.requestCursor(CursorTypes.POINTING_HAND);
+				}
+			}
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			FancyBarsConfig.StarCorner corner = cornerAt(mouseX, mouseY);
+			if (corner != null) {
+				config.protectionStarCorner = corner;
+				FancyBarsConfig.save();
+				return true;
+			}
+			return false;
+		}
+	}
+
+	/** How to protect items + count + clear all. */
+	private class ProtectedItemsItem extends Item {
+		private final ModernButton clear;
+
+		ProtectedItemsItem() {
+			this.height = 58;
+			this.searchable = true;
+			this.searchText = "protected items protect keybind clear";
+			clear = new ModernButton(90, 20, Component.translatable("fancybars.protection.clearAll"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
+					Component.translatable("fancybars.protection.clearAll.title"),
+					Component.translatable("fancybars.protection.clearAll.message", ItemProtection.protectedCount()),
+					ItemProtection::clearAll)));
+			clear.active = ItemProtection.protectedCount() > 0;
+			widgets.add(clear);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			clear.setPosition(x + w - clear.getWidth() - 10, y + 8);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, Component.translatable("fancybars.protection.count", ItemProtection.protectedCount()), x + 10, y + 7, 11, Theme.TEXT);
+			Component key = ItemProtection.protectKey != null ? ItemProtection.protectKey.getTranslatedKeyMessage() : Component.literal("V");
+			Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(Component.translatable("fancybars.protection.howTo1", key)), w - 20), x + 12, y + 22, 10, Theme.TEXT_SOFT);
+			Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(Component.translatable("fancybars.protection.howTo2")), w - 20), x + 12, y + 34, 10, Theme.TEXT_SOFT);
+			Theme.textInBox(graphics, font, clip(Component.literal("•  ").append(Component.translatable("fancybars.protection.howTo3")), w - 20), x + 12, y + 46, 10, Theme.TEXT_SOFT);
+		}
+	}
+
+	/** Buttons for the held item name: move it in the editor, or reset it. */
+	private class HeldItemActionsItem extends Item {
+		private final ModernButton move;
+		private final ModernButton reset;
+
+		HeldItemActionsItem() {
+			this.height = 22;
+			this.searchable = true;
+			this.searchText = "held item name tooltip move position reset";
+			move = new ModernButton(10, 22, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
+			reset = new ModernButton(10, 22, Component.translatable("fancybars.heldItem.reset"), HeldItemName::reset);
+			widgets.add(move);
+			widgets.add(reset);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			int bw = (w - 6) / 2;
+			move.setWidth(bw);
+			reset.setWidth(w - 6 - bw);
+			move.setPosition(x, y);
+			reset.setPosition(x + bw + 6, y);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {}
 	}
 
 	private Component clip(Component text, int maxWidth) {

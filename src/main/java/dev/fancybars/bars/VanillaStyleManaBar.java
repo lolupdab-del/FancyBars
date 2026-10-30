@@ -59,10 +59,8 @@ public class VanillaStyleManaBar {
 	}
 
 	public static void init() {
-		Function<HudElement, HudElement> hideIfVanillaStyleManaBarEnabled = hudElement -> {
-			if (isEnabled())
-				return (_, _) -> {};
-			return hudElement;
+		Function<HudElement, HudElement> hideIfVanillaStyleManaBarEnabled = hudElement -> (context, tickCounter) -> {
+			if (!isEnabled()) hudElement.extractRenderState(context, tickCounter);
 		};
 
 		HudElementRegistry.replaceElement(VanillaHudElements.FOOD_BAR, hideIfVanillaStyleManaBarEnabled);

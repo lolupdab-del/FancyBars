@@ -3,7 +3,12 @@
 	"package": "dev.fancybars.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"FontAccessor"
+		"ContainerScreenProtectionMixin",
+		"CustomDataAccessor",
+		"FontAccessor",
+		"HudProtectionMixin",
+		"LocalPlayerProtectionMixin",
+		"MinecraftProtectionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -54,6 +54,31 @@ public class FancyBarsConfig {
 
 	public boolean hasSeenVitalityAtLeastOnce = false;
 
+	// ---------------------------------------------------------------- Item protection (ported from Skyblocker)
+
+	public boolean itemProtectionEnabled = true;
+
+	public boolean protectionChatNotification = true;
+
+	/** ARGB colour the protection star is tinted with. */
+	public int protectionStarColor = 0xFFF0FF00;
+
+	public StarCorner protectionStarCorner = StarCorner.BOTTOM_RIGHT;
+
+	/** SkyBlock item UUIDs of protected items. */
+	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();
+
+	// ---------------------------------------------------------------- Held item name (the tooltip shown when switching items)
+
+	public boolean heldItemNameEnabled = true;
+
+	/** Offset from the vanilla position, in GUI pixels. */
+	public int heldItemNameX = 0;
+
+	public int heldItemNameY = 0;
+
+	public float heldItemNameScale = 1;
+
 	public static FancyBarsConfig get() {
 		return instance;
 	}
@@ -64,6 +89,9 @@ public class FancyBarsConfig {
 			if (loaded != null) instance = loaded;
 			if (instance.intelligenceDisplay == null) instance.intelligenceDisplay = IntelligenceDisplay.ORIGINAL;
 			if (instance.barStyle == null) instance.barStyle = BarStyle.CLASSIC;
+			if (instance.protectionStarCorner == null) instance.protectionStarCorner = StarCorner.BOTTOM_RIGHT;
+			if (instance.protectedItems == null) instance.protectedItems = new java.util.LinkedHashSet<>();
+			if (instance.heldItemNameScale <= 0) instance.heldItemNameScale = 1;
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;
 				instance.segmentedBars = false;
@@ -83,6 +111,25 @@ public class FancyBarsConfig {
 			}
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.error("[FancyBars] Failed to save config", e);
+		}
+	}
+
+	public enum StarCorner {
+		TOP_LEFT(false, false),
+		TOP_RIGHT(true, false),
+		BOTTOM_LEFT(false, true),
+		BOTTOM_RIGHT(true, true);
+
+		public final boolean right;
+		public final boolean bottom;
+
+		StarCorner(boolean right, boolean bottom) {
+			this.right = right;
+			this.bottom = bottom;
+		}
+
+		public String translationKey() {
+			return "fancybars.protection.corner." + name().toLowerCase(java.util.Locale.ROOT);
 		}
 	}
 

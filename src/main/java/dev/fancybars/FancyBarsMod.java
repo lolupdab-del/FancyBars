@@ -22,6 +22,8 @@ import net.minecraft.resources.Identifier;
 import dev.fancybars.bars.BarEditorScreen;
 import dev.fancybars.bars.BarsMenuScreen;
 import dev.fancybars.bars.FancyStatusBars;
+import dev.fancybars.bars.HeldItemName;
+import dev.fancybars.protection.ItemProtection;
 import dev.fancybars.bars.StatusBarTracker;
 import dev.fancybars.bars.VanillaStyleManaBar;
 import dev.fancybars.config.FancyBarsConfig;
@@ -58,11 +60,14 @@ public class FancyBarsMod implements ClientModInitializer {
 		StatusBarTracker.init();
 		FancyStatusBars.initStatic();
 		VanillaStyleManaBar.init();
+		HeldItemName.init();
+		ItemProtection.init();
 
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> dispatcher.register(
 				ClientCommands.literal(NAMESPACE)
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
+						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
 						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.GENERAL))))));
 	}
 

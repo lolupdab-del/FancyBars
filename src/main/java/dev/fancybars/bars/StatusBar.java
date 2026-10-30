@@ -166,8 +166,19 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 	public static final float MIN_SCALE = 0.5f;
 	public static final float MAX_SCALE = 4f;
 
+	/**
+	 * The scale actually used for drawing. It's snapped so every texture pixel covers a whole number of screen pixels
+	 * (scale x GUI scale is an integer); otherwise thin details like segment lines come out uneven.
+	 */
 	public float effectiveScale() {
-		return anchor == null ? scale : 1;
+		if (anchor != null) return 1;
+		return snapScale(scale);
+	}
+
+	public static float snapScale(float scale) {
+		float guiScale = Theme.guiScale();
+		float snapped = Math.round(scale * guiScale) / guiScale;
+		return Math.max(1 / guiScale, snapped);
 	}
 
 	public float fill = 0;
