@@ -179,6 +179,9 @@ public class FancyBarsConfig {
 	/** No first-person swing animation. */
 	public boolean viewmodelNoSwing = false;
 
+	/** Swing without the hand moving around (rotation only). */
+	public boolean viewmodelSwingInPlace = false;
+
 	/** Swing animation speed multiplier (1 = normal). */
 	public float viewmodelSwingSpeed = 1;
 
