@@ -21,7 +21,7 @@ jobs:
       - name: Dump class signatures
         if: always() && hashFiles('.github/javap.txt') != ''
         run: |
-          find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -i minecraft | grep -v sources > /tmp/mcjars.txt || true
+          find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -iE 'minecraft|fabric-rendering|fabric-api' | grep -v sources > /tmp/mcjars.txt || true
           cat /tmp/mcjars.txt > javap-out.txt
           while read -r cls; do
             [ -z "$cls" ] && continue
