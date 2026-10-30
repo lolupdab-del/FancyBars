@@ -386,12 +386,13 @@ public final class Theme {
 		if (shikiMode()) {
 			return Component.empty().append(Component.literal("Shiki").withColor(ACCENT & 0xFFFFFF)).append(Component.literal("Client").withColor(TEXT & 0xFFFFFF));
 		}
+		// night blue: S and B in the two theme blues, CLIENT fading from pale to deep blue
 		MutableComponent text = Component.empty()
-				.append(Component.literal("S").withColor(BRAND_PINK & 0xFFFFFF))
-				.append(Component.literal("B").withColor(BRAND_BLUE & 0xFFFFFF));
+				.append(Component.literal("S").withColor(0xB8D4FF))
+				.append(Component.literal("B").withColor(0x6FA8FF));
 		String rest = "CLIENT";
 		for (int i = 0; i < rest.length(); i++) {
-			text.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(brandGradient(i / (float) (rest.length() - 1)) & 0xFFFFFF));
+			text.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(lerpColor(0xFFD4E4FF, 0xFF4F86F0, i / (float) (rest.length() - 1)) & 0xFFFFFF));
 		}
 		return text;
 	}
