@@ -522,8 +522,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("viewmodelNoSwing", () -> config.viewmodelNoSwing, value -> config.viewmodelNoSwing = value));
 				list.add(new ToggleItem("viewmodelSwingInPlace", () -> config.viewmodelSwingInPlace, value -> config.viewmodelSwingInPlace = value));
 				list.add(new ToggleItem("viewmodelSwingInPlaceItemsOnly", () -> config.viewmodelSwingInPlaceItemsOnly, value -> config.viewmodelSwingInPlaceItemsOnly = value));
-				list.add(new ValueCycleItem("viewmodelReequip", new int[]{0, 1, 2, 3}, () -> config.viewmodelReequip, value -> config.viewmodelReequip = value,
-						value -> Component.translatable("fancybars.viewmodel.reequip." + value)));
+				list.add(new ToggleItem("viewmodelNoReequip", () -> config.viewmodelNoReequip, value -> config.viewmodelNoReequip = value));
 				list.add(new SliderItem("viewmodelSwingSpeed", 0.25f, 3, 0.05f, true, () -> config.viewmodelSwingSpeed, value -> config.viewmodelSwingSpeed = value));
 				list.add(new ToggleItem("viewmodelApplyToHand", () -> config.viewmodelApplyToHand, value -> config.viewmodelApplyToHand = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.viewmodel.item"), null));
@@ -550,7 +549,7 @@ public class BarsMenuScreen extends Screen {
 					config.viewmodelArmRotX = config.viewmodelArmRotY = config.viewmodelArmRotZ = 0;
 					config.viewmodelArmScale = 1;
 					config.viewmodelSwingSpeed = 1;
-					config.viewmodelReequip = 0;
+					config.viewmodelNoReequip = false;
 					FancyBarsConfig.save();
 					rebuildNextTick = true;
 				})));
