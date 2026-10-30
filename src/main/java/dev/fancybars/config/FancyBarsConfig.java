@@ -110,6 +110,28 @@ public class FancyBarsConfig {
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
 
+	// ---------------------------------------------------------------- Rare dungeon drops
+
+	public boolean rareDropsEnabled = true;
+
+	public boolean rareDropsHud = true;
+
+	/** Show the tracker HUD everywhere on SkyBlock instead of only in dungeons and the Dungeon Hub. */
+	public boolean rareDropsHudEverywhere = false;
+
+	public boolean rareDropsBackground = true;
+
+	public boolean rareDropsChat = true;
+
+	/** Rare items the player chose not to track. */
+	public java.util.Set<String> rareDropsUntracked = new java.util.HashSet<>();
+
+	public float rareDropsX = -1;
+
+	public float rareDropsY = -1;
+
+	public float rareDropsScale = 1;
+
 	// ---------------------------------------------------------------- Action bar
 
 	public boolean actionBarShown = true;
@@ -177,6 +199,8 @@ public class FancyBarsConfig {
 			if (instance.heldItemNameScale <= 0) instance.heldItemNameScale = 1;
 			if (instance.secretsScale <= 0) instance.secretsScale = 1;
 			if (instance.actionBarScale <= 0) instance.actionBarScale = 1;
+			if (instance.rareDropsScale <= 0) instance.rareDropsScale = 1;
+			if (instance.rareDropsUntracked == null) instance.rareDropsUntracked = new java.util.HashSet<>();
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;
 				instance.segmentedBars = false;

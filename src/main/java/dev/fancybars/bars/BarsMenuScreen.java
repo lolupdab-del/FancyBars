@@ -294,6 +294,37 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.SECRETS.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.rareDrops"), null));
+				list.add(new RareDropsPreviewItem());
+				list.add(new ToggleItem("rareDropsEnabled", () -> config.rareDropsEnabled, value -> config.rareDropsEnabled = value));
+				list.add(new ToggleItem("rareDropsHud", () -> config.rareDropsHud, value -> config.rareDropsHud = value));
+				list.add(new ToggleItem("rareDropsHudEverywhere", () -> config.rareDropsHudEverywhere, value -> config.rareDropsHudEverywhere = value));
+				list.add(new ToggleItem("rareDropsBackground", () -> config.rareDropsBackground, value -> config.rareDropsBackground = value));
+				list.add(new ToggleItem("rareDropsChat", () -> config.rareDropsChat, value -> config.rareDropsChat = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.RARE_DROPS.reset()),
+						new ModernButton(10, 20, Component.translatable("fancybars.rareDrops.resetCounts"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
+								Component.translatable("fancybars.rareDrops.resetCounts.title"),
+								Component.translatable("fancybars.rareDrops.resetCounts.message"),
+								() -> {
+									dev.fancybars.dungeons.RareDropTracker.reset();
+									rebuildNextTick = true;
+								})))));
+				List<dev.fancybars.dungeons.RareDropTracker.Drop> history = dev.fancybars.dungeons.RareDropTracker.data().history;
+				if (!history.isEmpty()) {
+					List<Component> recent = new ArrayList<>();
+					for (int i = history.size() - 1; i >= Math.max(0, history.size() - 5); i--) {
+						dev.fancybars.dungeons.RareDropTracker.Drop drop = history.get(i);
+						recent.add(Component.translatable("fancybars.rareDrops.recentLine",
+								Component.literal(dev.fancybars.dungeons.RareDropTracker.color(drop.item) + drop.item),
+								drop.floor.isEmpty() ? "?" : drop.floor, drop.runs,
+								new java.text.SimpleDateFormat("MMM d").format(new java.util.Date(drop.time))));
+					}
+					list.add(new InfoCardItem(Component.translatable("fancybars.rareDrops.recent"), recent, false));
+				}
+				list.add(new HeaderItem(Component.translatable("fancybars.rareDrops.tracked"), null));
+				for (dev.fancybars.dungeons.RareDropTracker.RareItem item : dev.fancybars.dungeons.RareDropTracker.ITEMS) list.add(new RareDropRowItem(item));
 			}
 			case ACTION_BAR -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.actionBar"), null));
@@ -1201,6 +1232,72 @@ public class BarsMenuScreen extends Screen {
 			float py = y + (height - size[1]) / 2f;
 			graphics.nextStratum();
 			dev.fancybars.dungeons.DungeonSecrets.renderAt(graphics, px, py, 1, 5, 10);
+		}
+	}
+
+	/** Live preview of the rare drop tracker with your real numbers. */
+	private class RareDropsPreviewItem extends Item {
+		RareDropsPreviewItem() {
+			this.height = Math.min(dev.fancybars.dungeons.RareDropTracker.size(false)[1], 140) + 12;
+		}
+
+		@Override
+		void layout(int x, int y, int w) {}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			int[] size = dev.fancybars.dungeons.RareDropTracker.size(false);
+			graphics.nextStratum();
+			graphics.enableScissor(x + 2, y + 2, x + w - 2, y + height - 2);
+			dev.fancybars.dungeons.RareDropTracker.renderAt(graphics, x + (w - size[0]) / 2f, y + 6, 1, false);
+			graphics.disableScissor();
+		}
+	}
+
+	/** One rare item: icon, name, how many you've had, and whether it's tracked. */
+	private class RareDropRowItem extends Item {
+		private final dev.fancybars.dungeons.RareDropTracker.RareItem item;
+		private final ModernToggle toggle;
+
+		RareDropRowItem(dev.fancybars.dungeons.RareDropTracker.RareItem item) {
+			this.item = item;
+			this.height = 24;
+			this.searchable = true;
+			this.searchText = item.name() + " rare drop dungeon";
+			this.tooltip = Component.translatable("fancybars.rareDrops.track.@Tooltip");
+			toggle = new ModernToggle(ModernToggle.SWITCH_WIDTH, ModernToggle.SWITCH_HEIGHT, null, dev.fancybars.dungeons.RareDropTracker.isTracked(item.name()), value -> {
+				if (value) config.rareDropsUntracked.remove(item.name());
+				else config.rareDropsUntracked.add(item.name());
+				FancyBarsConfig.save();
+			});
+			widgets.add(toggle);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			toggle.setPosition(x + w - ModernToggle.SWITCH_WIDTH - 10, y + (height - ModernToggle.SWITCH_HEIGHT) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+			graphics.item(dev.fancybars.dungeons.RareDropTracker.icon(item.name()), x + 5, y + (height - 16) / 2);
+			Theme.boldInBox(graphics, font, clip(Component.literal(item.color() + item.name()), w - 110), x + 27, y, height, 0xFFFFFFFF);
+			int count = dev.fancybars.dungeons.RareDropTracker.data().counts.getOrDefault(item.name(), 0);
+			Component countText = Component.literal("×" + count);
+			Theme.textInBox(graphics, font, countText, toggle.getX() - Theme.width(font, countText) - 10, y, height, count > 0 ? Theme.TEXT : Theme.TEXT_MUTED);
+			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (itemHit(this, mouseX, mouseY)) {
+				toggle.toggle();
+				return true;
+			}
+			return false;
 		}
 	}
 

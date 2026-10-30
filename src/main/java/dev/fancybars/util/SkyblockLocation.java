@@ -69,6 +69,10 @@ public class SkyblockLocation {
 		return onSkyblock && mode.equals("dungeon");
 	}
 
+	public static boolean isInDungeonHub() {
+		return onSkyblock && mode.equals("dungeon_hub");
+	}
+
 	public static boolean isInGarden() {
 		return onSkyblock && mode.equals("garden");
 	}

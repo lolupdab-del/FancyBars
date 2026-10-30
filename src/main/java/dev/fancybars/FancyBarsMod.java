@@ -67,6 +67,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		ItemProtection.init();
 		GifInventory.init();
 		DungeonSecrets.init();
+		dev.fancybars.dungeons.RareDropTracker.init();
 		dev.fancybars.actionbar.ActionBar.init();
 		BackpackPreview.init();
 

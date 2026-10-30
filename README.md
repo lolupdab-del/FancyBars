@@ -23,6 +23,8 @@ plus the optional vanilla-style mana bar.
 
 **Dungeon secrets display** (from SkyblockAddons): chest icon + "Secrets" + found/total for the current room, colour coded. The chest icon and the word can each be turned off; move/scale it in the editor.
 
+**Rare drop tracker** (Dungeons page): counts rare dungeon chest drops (Necron's Handle, master stars, scrolls, Dark Claymore, Giant's Sword, Recombobulators, …, plus anything Hypixel marks "RARE REWARD!"), your runs and runs since your last rare drop. Movable HUD, a chat message on each drop, recent drop history, and each item can be untracked. Data is in `config/fancybars/rare-drops.json`.
+
 **Backpack preview** (from Skyblocker): hover a backpack or ender chest page in the Storage menu to see its contents.
 
 **Action bar**: its own menu page. Hide it, move/scale it in the editor, hide individual parts (health, defense, mana, mana use, skill XP gains, secrets, vitality, rift time), and with *Custom Look* draw it with a smooth font, shadow, rounded background (adjustable opacity), one custom colour and fade-out.

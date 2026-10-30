@@ -245,5 +245,74 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR};
+	// ---------------------------------------------------------------- Rare drop tracker
+
+	MovableElement RARE_DROPS = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.dungeons.RareDropTracker.position(screenW, screenH, true);
+			int[] size = dev.fancybars.dungeons.RareDropTracker.size(true);
+			return new float[]{pos[0], pos[1], size[0] * config.rareDropsScale, size[1] * config.rareDropsScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			float[] pos = dev.fancybars.dungeons.RareDropTracker.position(screenW, screenH, true);
+			dev.fancybars.dungeons.RareDropTracker.renderAt(graphics, pos[0], pos[1], scale(), true);
+			if (!enabled()) {
+				float[] r = rect(screenW, screenH);
+				graphics.fill(Math.round(r[0]) - 1, Math.round(r[1]) - 1, Math.round(r[0] + r[2]) + 1, Math.round(r[1] + r[3]) + 1, 0xAA000000);
+			}
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.rareDropsX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.rareDropsY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().rareDropsScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().rareDropsScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().rareDropsHud;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().rareDropsHud = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.rareDropsX = -1;
+			config.rareDropsY = -1;
+			config.rareDropsScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.rareDrops");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS};
 }
