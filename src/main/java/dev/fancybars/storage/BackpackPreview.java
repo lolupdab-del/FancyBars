@@ -21,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.core.Holder;
@@ -52,6 +53,7 @@ import dev.fancybars.util.gui.Theme;
  * its contents are remembered (per SkyBlock profile), and hovering that backpack in the Storage menu shows them.
  */
 public final class BackpackPreview {
+	private static final net.minecraft.resources.Identifier TEXTURE = net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/generic_54.png");
 	private static final Pattern ECHEST_PATTERN = Pattern.compile("Ender Chest.*\\((\\d+)/\\d+\\)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern BACKPACK_PATTERN = Pattern.compile("Backpack.*\\(Slot #(\\d+)\\)", Pattern.CASE_INSENSITIVE);
 	private static final Pattern STORAGE_PATTERN = Pattern.compile("Storage", Pattern.CASE_INSENSITIVE);
@@ -262,38 +264,24 @@ public final class BackpackPreview {
 
 		Storage storage = storages[index];
 		if (storage == null) return false;
-		int rows = Math.max(1, (storage.size() - 9) / 9);
+		// Same look as Skyblocker: the vanilla chest texture cut to the backpack's row count
+		int rows = (storage.size() - 9) / 9;
 		Font font = Minecraft.getInstance().font;
-
-		int pad = 8;
-		int w = 9 * 18 + pad * 2;
-		int h = 24 + rows * 18 + pad;
-		int x = mouseX + w + 12 >= screen.width ? mouseX - w - 8 : mouseX + 10;
-		int y = Math.clamp(mouseY - 16, 2, Math.max(2, screen.height - h - 2));
+		int x = mouseX + 184 >= screen.width ? mouseX - 188 : mouseX + 8;
+		int y = Math.max(0, mouseY - 16);
 
 		graphics.nextStratum();
-		Theme.shadow(graphics, x, y, w, h, 6, 0, 2);
-		Theme.card(graphics, x, y, w, h, 6, 0xF51B1D2B, Theme.SELECTED_BORDER);
-		Component title = storage.name().isEmpty() ? Component.translatable("fancybars.backpack.unknown") : Component.literal(storage.name());
-		Theme.boldInBox(graphics, font, title, x + pad, y + 4, 16, Theme.TEXT);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, 0, 176, rows * 18 + 17, 256, 256);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + rows * 18 + 17, 0, 215, 176, 7, 256, 256);
+		graphics.text(font, storage.name(), x + 8, y + 6, 0xFF404040, false);
 
-		int gridX = x + pad;
-		int gridY = y + 22;
-		for (int i = 9; i < storage.size(); i++) {
-			int col = (i - 9) % 9;
-			int row = (i - 9) / 9;
-			int sx = gridX + col * 18;
-			int sy = gridY + row * 18;
-			Theme.roundedRect(graphics, sx, sy, 17, 17, 3, 0xFF262A3C);
-		}
 		for (int i = 9; i < storage.size(); i++) {
 			ItemStack stack = storage.getStack(i);
-			if (stack.isEmpty()) continue;
-			int sx = gridX + (i - 9) % 9 * 18;
-			int sy = gridY + (i - 9) / 9 * 18;
-			if (ItemProtection.isItemProtected(stack)) ItemProtection.drawStar(graphics, sx, sy);
-			graphics.item(stack, sx, sy);
-			graphics.itemDecorations(font, stack, sx, sy);
+			int itemX = x + (i - 9) % 9 * 18 + 8;
+			int itemY = y + (i - 9) / 9 * 18 + 18;
+			graphics.item(stack, itemX, itemY);
+			graphics.itemDecorations(font, stack, itemX, itemY);
+			if (ItemProtection.isItemProtected(stack)) ItemProtection.drawStar(graphics, itemX, itemY);
 		}
 		return true;
 	}
