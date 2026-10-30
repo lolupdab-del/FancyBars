@@ -135,6 +135,13 @@ public class FancyBarsConfig {
 
 	public boolean ownNametagInF5 = false;
 
+	// ---------------------------------------------------------------- Capes
+
+	public boolean capeEnabled = false;
+
+	/** Cape id from {@code Capes.ALL}, "custom" or "none". */
+	public String cape = "migrator";
+
 	// ---------------------------------------------------------------- Wall Licker
 
 	public boolean wallLickerEnabled = true;
@@ -144,7 +151,11 @@ public class FancyBarsConfig {
 	/** Sound volume in percent. */
 	public int wallLickerVolume = 100;
 
+	/** All-time licks. */
 	public int wallLicks = 0;
+
+	/** Licks this dungeon run (reset when a run starts / ends). */
+	public int wallLicksRun = 0;
 
 	public float wallLickerX = -1;
 
@@ -294,6 +305,7 @@ public class FancyBarsConfig {
 			if (instance.invHudScale <= 0) instance.invHudScale = 1;
 			if (instance.commissionsScale <= 0) instance.commissionsScale = 1;
 			if (instance.wallLickerScale <= 0) instance.wallLickerScale = 1;
+			if (instance.cape == null) instance.cape = "migrator";
 			if (instance.playerSize <= 0) instance.playerSize = 1;
 			if (instance.playerSize != 1 && instance.playerSizeWidth == 1 && instance.playerSizeHeight == 1 && instance.playerSizeLength == 1) {
 				instance.playerSizeWidth = instance.playerSizeHeight = instance.playerSizeLength = instance.playerSize;

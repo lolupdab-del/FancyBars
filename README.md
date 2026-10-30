@@ -61,6 +61,8 @@ No JDK? Push this folder to a GitHub repo: the included workflow builds it, and 
 
 ## Credits
 
+- Cape texture list from [Cape Command](https://github.com/eclipseisoffline/capecommand) by eclipseisoffline; textures are downloaded from Mojang / the Minecraft Wiki at runtime.
+
 * Original fancy status bars: [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) (LGPL-3.0).
 * "SkyblockAddons" bar style texture: [SkyblockAddons](https://github.com/Fix3dll/SkyblockAddons) by Fix3dll and contributors (LGPL-3.0).
 * "Segmented" bar style textures: the **Bigmans masterpiece** resource pack.

@@ -384,11 +384,23 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.capes"), null));
+				list.add(new ToggleItem("capeEnabled", () -> config.capeEnabled, value -> config.capeEnabled = value));
+				list.add(new CapeGridItem());
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.capes.openFolder"), dev.fancybars.capes.Capes::openCustomFolder),
+						new ModernButton(10, 20, Component.translatable("fancybars.capes.reloadCustom"), () -> {
+							dev.fancybars.capes.Capes.reloadCustom();
+							rebuildNextTick = true;
+						})));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.wallLicker"), null));
 				list.add(new ToggleItem("wallLickerEnabled", () -> config.wallLickerEnabled, value -> config.wallLickerEnabled = value));
 				list.add(new ToggleItem("wallLickerSound", () -> config.wallLickerSound, value -> config.wallLickerSound = value));
 				list.add(new ValueCycleItem("wallLickerVolume", new int[]{25, 50, 75, 100}, () -> config.wallLickerVolume,
 						value -> config.wallLickerVolume = value, value -> Component.literal(value + "%")));
+				list.add(new InfoCardItem(Component.translatable("fancybars.wallLicker.statsTitle"), List.of(
+						Component.translatable("fancybars.wallLicker.allTime", config.wallLicks),
+						Component.translatable("fancybars.wallLicker.thisRun", config.wallLicksRun)), false));
 				String sound = dev.fancybars.fun.WallLicker.soundName();
 				list.add(new InfoCardItem(Component.translatable("fancybars.wallLicker.soundTitle"), List.of(
 						sound != null ? Component.translatable("fancybars.wallLicker.soundFound", sound) : Component.translatable("fancybars.wallLicker.noSound"),
@@ -399,10 +411,15 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.refresh"), () -> rebuildNextTick = true)));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
-						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.resetCount"), () -> {
-							config.wallLicks = 0;
-							FancyBarsConfig.save();
-						})));
+						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.resetCount"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
+								Component.translatable("fancybars.wallLicker.resetTitle"),
+								Component.translatable("fancybars.wallLicker.resetMessage", config.wallLicks),
+								() -> {
+									config.wallLicks = 0;
+									config.wallLicksRun = 0;
+									FancyBarsConfig.save();
+									rebuildNextTick = true;
+								})))));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.nametag"), null));
 				list.add(new ToggleItem("ownNametagInF5", () -> config.ownNametagInF5, value -> config.ownNametagInF5 = value));
 			}
@@ -1433,6 +1450,100 @@ public class BarsMenuScreen extends Screen {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
 			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 100), x + 10, y, height, Theme.TEXT);
+		}
+	}
+
+	/** Grid of every cape (front side preview) plus None and Custom; click one to wear it. */
+	private class CapeGridItem extends Item {
+		private static final int CELL_W = 30;
+		private static final int CELL_H = 42;
+		private static final int GAP = 4;
+		private final List<String> ids = new ArrayList<>();
+		private int gridX;
+		private int columns = 1;
+
+		CapeGridItem() {
+			this.searchable = true;
+			this.searchText = "cape capes custom migrator minecon vanilla";
+			ids.add(dev.fancybars.capes.Capes.NONE);
+			ids.add(dev.fancybars.capes.Capes.CUSTOM);
+			for (dev.fancybars.capes.Capes.Cape cape : dev.fancybars.capes.Capes.ALL) ids.add(cape.id());
+			this.height = CELL_H + 12;
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			columns = Math.max(1, (w - 12 + GAP) / (CELL_W + GAP));
+			int rows = (ids.size() + columns - 1) / columns;
+			int gridW = columns * (CELL_W + GAP) - GAP;
+			gridX = x + (w - gridW) / 2;
+			this.height = rows * (CELL_H + GAP) - GAP + 12;
+		}
+
+		private int indexAt(double mouseX, double mouseY) {
+			int col = (int) Math.floor((mouseX - gridX) / (CELL_W + GAP));
+			int row = (int) Math.floor((mouseY - y - 6) / (CELL_H + GAP));
+			if (col < 0 || col >= columns || row < 0) return -1;
+			double inX = mouseX - gridX - col * (CELL_W + GAP);
+			double inY = mouseY - y - 6 - row * (CELL_H + GAP);
+			if (inX >= CELL_W || inY >= CELL_H) return -1;
+			int index = row * columns + col;
+			return index < ids.size() ? index : -1;
+		}
+
+		private Component label(String id) {
+			if (id.equals(dev.fancybars.capes.Capes.NONE)) return Component.translatable("fancybars.capes.none");
+			if (id.equals(dev.fancybars.capes.Capes.CUSTOM)) return Component.translatable("fancybars.capes.custom");
+			dev.fancybars.capes.Capes.Cape cape = dev.fancybars.capes.Capes.byId(id);
+			return Component.literal(cape != null ? cape.name() : id);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			int hovered = isHovered(x, w, mouseX, mouseY) ? indexAt(mouseX, mouseY) : -1;
+			for (int i = 0; i < ids.size(); i++) {
+				String id = ids.get(i);
+				int cx = gridX + (i % columns) * (CELL_W + GAP);
+				int cy = y + 6 + (i / columns) * (CELL_H + GAP);
+				// skip cells scrolled out of view (they also wouldn't need downloading yet)
+				if (cy + CELL_H < contentY || cy > contentY + contentH) continue;
+				boolean selected = config.cape.equals(id);
+				Theme.card(graphics, cx, cy, CELL_W, CELL_H, 4, selected ? Theme.SELECTED : i == hovered ? Theme.SURFACE_HOVER : Theme.SURFACE,
+						selected ? Theme.ACCENT : i == hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
+				if (id.equals(dev.fancybars.capes.Capes.NONE)) {
+					Theme.centeredInBox(graphics, font, Component.literal("✕"), cx + CELL_W / 2f, cy, CELL_H, Theme.TEXT_MUTED);
+				} else {
+					dev.fancybars.capes.Capes.Loaded tex = dev.fancybars.capes.Capes.get(id);
+					if (tex != null) {
+						// front of the cape: 10 x 16 at (1, 1) on a 64 x 32 layout, drawn 2x
+						float unit = tex.width() / 64f;
+						org.joml.Matrix3x2fStack pose = graphics.pose();
+						pose.pushMatrix();
+						pose.translate(cx + 5, cy + 5);
+						pose.scale(2 / unit, 2 / unit);
+						graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex.texture(), 0, 0, unit, unit, Math.round(10 * unit), Math.round(16 * unit), tex.width(), tex.height());
+						pose.popMatrix();
+					} else {
+						Theme.centeredInBox(graphics, font, Component.literal(id.equals(dev.fancybars.capes.Capes.CUSTOM) ? "+" : "…"), cx + CELL_W / 2f, cy, CELL_H, Theme.TEXT_MUTED);
+					}
+				}
+				if (i == hovered) {
+					tip(id, label(id));
+					graphics.requestCursor(CursorTypes.POINTING_HAND);
+				}
+			}
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			int index = indexAt(mouseX, mouseY);
+			if (index < 0) return false;
+			config.cape = ids.get(index);
+			config.capeEnabled = !config.cape.equals(dev.fancybars.capes.Capes.NONE);
+			FancyBarsConfig.save();
+			rebuildNextTick = true;
+			return true;
 		}
 	}
 

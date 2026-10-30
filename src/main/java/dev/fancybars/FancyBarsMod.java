@@ -74,6 +74,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.mining.Commissions.init();
 		dev.fancybars.players.PlayerSizes.init();
 		dev.fancybars.fun.WallLicker.init();
+		dev.fancybars.capes.Capes.init();
 		BackpackPreview.init();
 
 		// /sbclient, with /shikiclient and /fancybars kept as aliases

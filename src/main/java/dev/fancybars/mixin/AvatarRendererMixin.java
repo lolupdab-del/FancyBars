@@ -29,6 +29,15 @@ public abstract class AvatarRendererMixin {
 	/** Keep the nametag right above the head of resized players. */
 	@Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
 	private void fancybars$nametagHeight(Avatar entity, AvatarRenderState state, float partialTick, CallbackInfo ci) {
+		// Cape picked in the menu (only on yourself)
+		if (entity == Minecraft.getInstance().player) {
+			net.minecraft.core.ClientAsset.Texture cape = dev.fancybars.capes.Capes.selectedTexture();
+			if (cape != null && state.skin != null) {
+				state.skin = new net.minecraft.world.entity.player.PlayerSkin(state.skin.body(), cape, cape, state.skin.model(), state.skin.secure());
+				state.showCape = !state.isInvisible;
+			}
+		}
+
 		float[] size = PlayerSizes.scaleFor(entity);
 		if (size[1] != 1 && state.nameTagAttachment != null) {
 			state.nameTagAttachment = new net.minecraft.world.phys.Vec3(state.nameTagAttachment.x, state.nameTagAttachment.y * size[1], state.nameTagAttachment.z);

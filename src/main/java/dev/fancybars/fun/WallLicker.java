@@ -37,7 +37,8 @@ import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.util.gui.Theme;
 
 /**
- * Wall Licker: counts every time you walk face-first into a wall, shows "Licks: N" on screen and can play a sound
+ * Wall Licker: counts every time you walk face-first into a wall inside a dungeon. The on-screen "Licks: N" is for
+ * the current run (starts over every run); the all-time total is kept separately. Can play a sound
  * of your choice (any .wav file in {@code config/fancybars/wall-licker}).
  */
 public final class WallLicker {
@@ -56,15 +57,23 @@ public final class WallLicker {
 			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't create {}", SOUND_DIR, e);
 		}
 		ClientTickEvents.END_CLIENT_TICK.register(WallLicker::tick);
+		// every dungeon run is a new server: the run counter starts over when you join one and when you leave it
+		dev.fancybars.util.SkyblockLocation.onLocationChange(() -> {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			if (config.wallLicksRun != 0) {
+				config.wallLicksRun = 0;
+				FancyBarsConfig.save();
+			}
+		});
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("wall_licker"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
-			if (FancyBarsConfig.get().wallLickerEnabled && mc.player != null && mc.gui.screen() == null) render(graphics);
+			if (FancyBarsConfig.get().wallLickerEnabled && mc.player != null && mc.gui.screen() == null && dev.fancybars.util.SkyblockLocation.isInDungeons()) render(graphics);
 		});
 	}
 
 	private static void tick(Minecraft mc) {
 		LocalPlayer player = mc.player;
-		if (player == null || mc.level == null || !FancyBarsConfig.get().wallLickerEnabled) {
+		if (player == null || mc.level == null || !FancyBarsConfig.get().wallLickerEnabled || !dev.fancybars.util.SkyblockLocation.isInDungeons()) {
 			wasLicking = false;
 			return;
 		}
@@ -74,6 +83,7 @@ public final class WallLicker {
 			lastLick = now;
 			FancyBarsConfig config = FancyBarsConfig.get();
 			config.wallLicks++;
+			config.wallLicksRun++;
 			FancyBarsConfig.save();
 			if (config.wallLickerSound) playSound();
 		}
@@ -160,7 +170,7 @@ public final class WallLicker {
 
 	public static Component text() {
 		return Theme.bold(Component.literal("Licks: ").withColor(Theme.night(Theme.ACCENT) & 0xFFFFFF)
-				.append(Component.literal(String.valueOf(FancyBarsConfig.get().wallLicks)).withColor(0xFFFFFF)));
+				.append(Component.literal(String.valueOf(FancyBarsConfig.get().wallLicksRun)).withColor(0xFFFFFF)));
 	}
 
 	public static int[] size() {
