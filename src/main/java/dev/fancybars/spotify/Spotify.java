@@ -86,6 +86,8 @@ public final class Spotify {
 	private static final Map<String, Identifier> ART = new HashMap<>();
 	private static final Map<String, Boolean> ART_LOADING = new HashMap<>();
 	private static int artCounter;
+	/** The login listener that's waiting for Spotify's redirect, if any. */
+	private static volatile @Nullable ServerSocket pendingLogin;
 
 	private Spotify() {}
 
@@ -135,15 +137,34 @@ public final class Spotify {
 		String stateParam = randomString(16);
 		String url = "https://accounts.spotify.com/authorize?client_id=" + enc(clientId) + "&response_type=code&redirect_uri=" + enc(REDIRECT)
 				+ "&code_challenge_method=S256&code_challenge=" + challenge + "&state=" + stateParam + "&scope=" + enc(SCOPES);
+		// pressing Connect again replaces the old login instead of failing with "address in use"
+		ServerSocket old = pendingLogin;
+		if (old != null) {
+			try {
+				old.close();
+			} catch (Exception ignored) {
+			}
+		}
+		ServerSocket server;
+		try {
+			server = new ServerSocket();
+			server.setReuseAddress(true);
+			server.bind(new java.net.InetSocketAddress(InetAddress.getLoopbackAddress(), PORT), 1);
+			server.setSoTimeout(180_000);
+		} catch (Exception e) {
+			status = "Port " + PORT + " is busy. Restart Minecraft and press Connect once.";
+			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't open the Spotify login port", e);
+			return;
+		}
+		pendingLogin = server;
 		status = "Waiting for you to log in in your browser…";
-		FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> waitForCallback(clientId, verifier, stateParam));
+		FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> waitForCallback(server, clientId, verifier, stateParam));
 		Util.getPlatform().openUri(url);
 	}
 
 	/** A tiny one-shot web server on 127.0.0.1 that catches Spotify's redirect with the login code. */
-	private static void waitForCallback(String clientId, String verifier, String expectedState) {
-		try (ServerSocket server = new ServerSocket(PORT, 1, InetAddress.getLoopbackAddress())) {
-			server.setSoTimeout(180_000);
+	private static void waitForCallback(ServerSocket server, String clientId, String verifier, String expectedState) {
+		try (server) {
 			while (true) {
 				try (Socket socket = server.accept()) {
 					BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
@@ -176,10 +197,14 @@ public final class Spotify {
 				}
 			}
 		} catch (java.net.SocketTimeoutException e) {
-			status = "Login timed out";
+			status = "Login timed out, press Connect to try again";
+		} catch (java.net.SocketException e) {
+			// closed because Connect was pressed again: the new login takes over
 		} catch (Exception e) {
 			status = "Login failed: " + e.getMessage();
 			FancyBarsMod.LOGGER.warn("[SBCLIENT] Spotify login failed", e);
+		} finally {
+			if (pendingLogin == server) pendingLogin = null;
 		}
 	}
 
