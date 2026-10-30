@@ -83,8 +83,6 @@ public final class Spotify {
 	private static volatile String status = "";
 	private static volatile boolean busy;
 	private static long nextPoll;
-	private static final Map<String, Identifier> ART = new HashMap<>();
-	private static final Map<String, Boolean> ART_LOADING = new HashMap<>();
 	private static int artCounter;
 	/** The login listener that's waiting for Spotify's redirect, if any. */
 	private static volatile @Nullable ServerSocket pendingLogin;
@@ -98,7 +96,8 @@ public final class Spotify {
 			if (!config.spotifyEnabled || refreshToken == null || busy) return;
 			long now = Util.getMillis();
 			if (now < nextPoll) return;
-			boolean watching = mc.gui.screen() instanceof SpotifyScreen || config.spotifyHud;
+			boolean watching = mc.gui.screen() instanceof SpotifyScreen || config.spotifyHud
+					|| config.spotifyInventory && mc.gui.screen() instanceof net.minecraft.client.gui.screens.inventory.InventoryScreen;
 			nextPoll = now + (watching ? (state.playing ? 1500 : 4000) : 10000);
 			busy = true;
 			CompletableFuture.runAsync(Spotify::poll, FancyBarsMod.VIRTUAL_THREAD_EXECUTOR).whenComplete((v, e) -> busy = false);
@@ -433,39 +432,104 @@ public final class Spotify {
 
 	// ---------------------------------------------------------------- Album art
 
-	/** Texture for an album cover URL; starts downloading it the first time. */
-	public static @Nullable Identifier art(String url) {
-		if (url == null || url.isEmpty()) return null;
-		Identifier id = ART.get(url);
-		if (id != null || ART_LOADING.containsKey(url)) return id;
-		ART_LOADING.put(url, true);
-		FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> {
-			try {
-				HttpResponse<byte[]> response = HTTP.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(15)).GET().build(),
-						HttpResponse.BodyHandlers.ofByteArray());
-				java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(response.body()));
-				if (image == null) return;
-				int w = image.getWidth();
-				int h = image.getHeight();
-				int[] pixels = image.getRGB(0, 0, w, h, null, 0, w);
-				Minecraft.getInstance().execute(() -> {
-					NativeImage tex = new NativeImage(w, h, false);
-					for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) tex.setPixel(x, y, pixels[y * w + x] | 0xFF000000);
-					Identifier texId = FancyBarsMod.id("spotify/art_" + artCounter++);
-					DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT album art", tex);
-					Minecraft.getInstance().getTextureManager().register(texId, texture);
-					texture.upload();
-					ART.put(url, texId);
-					if (ART.size() > 20) {
-						String oldest = ART.keySet().iterator().next();
-						if (!oldest.equals(url)) Minecraft.getInstance().getTextureManager().release(ART.remove(oldest));
+	private static final Map<String, java.awt.image.BufferedImage> ORIGINALS = new java.util.concurrent.ConcurrentHashMap<>();
+	private static final Map<String, Identifier> ART_TEXTURES = new java.util.concurrent.ConcurrentHashMap<>();
+	private static final java.util.Set<String> ART_PENDING = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Album cover as a texture of exactly {@code pixels} x {@code pixels} real screen pixels, resized in high quality
+	 * and with anti-aliased rounded corners baked in, so it's drawn 1:1 and never looks pixelated.
+	 */
+	public static @Nullable Identifier art(String url, int pixels, float cornerFraction) {
+		if (url == null || url.isEmpty() || pixels <= 0) return null;
+		String key = url + "@" + pixels + "@" + Math.round(cornerFraction * 100);
+		Identifier id = ART_TEXTURES.get(key);
+		if (id != null) return id;
+		java.awt.image.BufferedImage original = ORIGINALS.get(url);
+		if (original == null) {
+			if (ART_PENDING.add(url)) {
+				FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> {
+					try {
+						HttpResponse<byte[]> response = HTTP.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(15)).GET().build(),
+								HttpResponse.BodyHandlers.ofByteArray());
+						java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(response.body()));
+						if (image != null) ORIGINALS.put(url, image);
+					} catch (Exception e) {
+						FancyBarsMod.LOGGER.debug("[SBCLIENT] Album art download failed", e);
+					} finally {
+						ART_PENDING.remove(url);
 					}
 				});
-			} catch (Exception e) {
-				FancyBarsMod.LOGGER.debug("[SBCLIENT] Album art download failed", e);
 			}
-		});
+			return null;
+		}
+		if (ART_PENDING.add(key)) {
+			FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> {
+				try {
+					int[] argb = resizeRounded(original, pixels, cornerFraction);
+					Minecraft.getInstance().execute(() -> {
+						NativeImage tex = new NativeImage(pixels, pixels, false);
+						for (int y = 0; y < pixels; y++) for (int x = 0; x < pixels; x++) tex.setPixel(x, y, argb[y * pixels + x]);
+						Identifier texId = FancyBarsMod.id("spotify/art_" + artCounter++);
+						DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT album art", tex);
+						Minecraft.getInstance().getTextureManager().register(texId, texture);
+						texture.upload();
+						ART_TEXTURES.put(key, texId);
+						ART_PENDING.remove(key);
+						if (ART_TEXTURES.size() > 24) {
+							for (String old : new java.util.ArrayList<>(ART_TEXTURES.keySet())) {
+								if (!old.startsWith(url) && ART_TEXTURES.size() > 12) Minecraft.getInstance().getTextureManager().release(ART_TEXTURES.remove(old));
+							}
+						}
+						if (ORIGINALS.size() > 6) ORIGINALS.keySet().removeIf(u -> !u.equals(url));
+					});
+				} catch (Exception e) {
+					ART_PENDING.remove(key);
+				}
+			});
+		}
 		return null;
+	}
+
+	/** Smooth multi-step downscale + anti-aliased rounded-corner mask. */
+	private static int[] resizeRounded(java.awt.image.BufferedImage source, int size, float cornerFraction) {
+		java.awt.image.BufferedImage current = source;
+		int w = source.getWidth();
+		int h = source.getHeight();
+		// halve with bilinear until close, then one bicubic step: avoids the shimmer of a single big downscale
+		while (w / 2 >= size && h / 2 >= size) {
+			w /= 2;
+			h /= 2;
+			current = scaled(current, w, h, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		}
+		current = scaled(current, size, size, java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+		// rounded mask drawn 4x bigger and shrunk = clean edges
+		int ss = size * 4;
+		java.awt.image.BufferedImage mask = new java.awt.image.BufferedImage(ss, ss, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = mask.createGraphics();
+		g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setColor(java.awt.Color.WHITE);
+		float r = ss * cornerFraction * 2;
+		g.fill(new java.awt.geom.RoundRectangle2D.Float(0, 0, ss, ss, r, r));
+		g.dispose();
+		java.awt.image.BufferedImage small = scaled(mask, size, size, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		int[] out = current.getRGB(0, 0, size, size, null, 0, size);
+		int[] m = small.getRGB(0, 0, size, size, null, 0, size);
+		for (int i = 0; i < out.length; i++) {
+			int alpha = (m[i] >>> 24);
+			out[i] = (alpha << 24) | (out[i] & 0xFFFFFF);
+		}
+		return out;
+	}
+
+	private static java.awt.image.BufferedImage scaled(java.awt.image.BufferedImage src, int w, int h, Object interpolation) {
+		java.awt.image.BufferedImage dst = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = dst.createGraphics();
+		g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, interpolation);
+		g.setRenderingHint(java.awt.RenderingHints.KEY_RENDERING, java.awt.RenderingHints.VALUE_RENDER_QUALITY);
+		g.drawImage(src, 0, 0, w, h, null);
+		g.dispose();
+		return dst;
 	}
 
 	// ---------------------------------------------------------------- Helpers

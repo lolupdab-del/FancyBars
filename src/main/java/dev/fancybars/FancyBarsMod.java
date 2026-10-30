@@ -82,6 +82,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.crosshair.Crosshair.init();
 		dev.fancybars.spotify.Spotify.init();
 		dev.fancybars.spotify.SpotifyHud.init();
+		dev.fancybars.spotify.SpotifyInventoryPanel.init();
 		dev.fancybars.items.Customization.init();
 		dev.fancybars.items.ItemChanger.init();
 		BackpackPreview.init();

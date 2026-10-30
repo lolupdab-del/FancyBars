@@ -162,6 +162,9 @@ public class FancyBarsConfig {
 
 	public boolean spotifyHud = true;
 
+	/** Mini player next to your inventory. */
+	public boolean spotifyInventory = true;
+
 	/** Your own Spotify app's Client ID (developer.spotify.com). */
 	public String spotifyClientId = "";
 

@@ -18,14 +18,33 @@ public final class SpotifyUi {
 
 	private SpotifyUi() {}
 
-	public static void art(GuiGraphicsExtractor graphics, String url, int x, int y, int size) {
-		Identifier tex = Spotify.art(url);
-		Theme.roundedRect(graphics, x, y, size, size, 4, 0xFF1A2236);
+	/** Album art drawn pixel-for-pixel on screen (smooth, rounded corners). */
+	public static void art(GuiGraphicsExtractor graphics, String url, float x, float y, float size) {
+		float gs = Theme.guiScale();
+		Matrix3x2fStack pose = graphics.pose();
+		float worldScale = pose.m00();
+		int pixels = Math.max(8, Math.round(size * gs * Math.max(0.25f, worldScale)));
+		Identifier tex = Spotify.art(url, pixels, 0.12f);
 		if (tex == null) {
-			Theme.centeredInBox(graphics, Minecraft.getInstance().font, Component.literal("♪"), x + size / 2f, y, size, Theme.TEXT_MUTED);
+			Theme.roundedRect(graphics, Math.round(x), Math.round(y), Math.round(size), Math.round(size), Math.max(2, Math.round(size * 0.12f)), 0xFF1A2236);
+			icon(graphics, "note", x + size * 0.3f, y + size * 0.3f, size * 0.4f, 0x66FFFFFF);
 			return;
 		}
-		graphics.blit(RenderPipelines.GUI_TEXTURED, tex, x, y, 0, 0, size, size, size, size);
+		pose.pushMatrix();
+		pose.translate(x, y);
+		pose.scale(size / pixels, size / pixels);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, tex, 0, 0, 0, 0, pixels, pixels, pixels, pixels);
+		pose.popMatrix();
+	}
+
+	/** One of the smooth Spotify icons (play, pause, next, previous, speaker, note, dot). */
+	public static void icon(GuiGraphicsExtractor graphics, String name, float x, float y, float size, int color) {
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(x, y);
+		pose.scale(size / 64f, size / 64f);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, dev.fancybars.FancyBarsMod.id("spotify/" + name), 0, 0, 64, 64, color);
+		pose.popMatrix();
 	}
 
 	/** Text clipped to a width, scrolling back and forth if it's too long. */
@@ -51,52 +70,21 @@ public final class SpotifyUi {
 		if (fill > 0) Theme.roundedRect(graphics, x, y, Math.max(2, fill), 3, 1, color);
 	}
 
-	// ---------------------------------------------------------------- Icons (drawn, so no font glyphs are needed)
+	// ---------------------------------------------------------------- Icons
 
 	public static void play(GuiGraphicsExtractor graphics, float cx, float cy, float size, int color) {
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		pose.translate(cx - size * 0.35f, cy - size / 2);
-		pose.scale(size / 16f, size / 16f);
-		for (int row = 0; row < 16; row++) {
-			int len = (int) Math.round((8 - Math.abs(row + 0.5 - 8)) * 1.6);
-			graphics.fill(0, row, Math.max(1, len), row + 1, color);
-		}
-		pose.popMatrix();
+		icon(graphics, "play", cx - size / 2, cy - size / 2, size, color);
 	}
 
 	public static void pause(GuiGraphicsExtractor graphics, float cx, float cy, float size, int color) {
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		pose.translate(cx - size / 2, cy - size / 2);
-		pose.scale(size / 16f, size / 16f);
-		graphics.fill(3, 1, 7, 15, color);
-		graphics.fill(9, 1, 13, 15, color);
-		pose.popMatrix();
+		icon(graphics, "pause", cx - size / 2, cy - size / 2, size, color);
 	}
 
-	/** Skip icon: triangle + bar, pointing right (next) or left (previous). */
 	public static void skip(GuiGraphicsExtractor graphics, float cx, float cy, float size, int color, boolean next) {
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		pose.translate(cx, cy);
-		if (!next) pose.scale(-1, 1);
-		pose.translate(-size / 2, -size / 2);
-		pose.scale(size / 16f, size / 16f);
-		for (int row = 2; row < 14; row++) {
-			int len = (int) Math.round((6 - Math.abs(row + 0.5 - 8)) * 1.6);
-			graphics.fill(2, row, 2 + Math.max(1, len), row + 1, color);
-		}
-		graphics.fill(12, 2, 14, 14, color);
-		pose.popMatrix();
+		icon(graphics, next ? "next" : "previous", cx - size / 2, cy - size / 2, size, color);
 	}
 
 	public static void speaker(GuiGraphicsExtractor graphics, float x, float y, int color) {
-		Matrix3x2fStack pose = graphics.pose();
-		pose.pushMatrix();
-		pose.translate(x, y);
-		graphics.fill(0, 3, 3, 7, color);
-		for (int i = 0; i < 4; i++) graphics.fill(3 + i, 3 - i, 4 + i, 7 + i, color);
-		pose.popMatrix();
+		icon(graphics, "speaker", x - 1, y - 1, 11, color);
 	}
 }

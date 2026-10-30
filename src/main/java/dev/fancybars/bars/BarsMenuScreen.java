@@ -428,6 +428,7 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)))));
 				list.add(new ToggleItem("spotifyEnabled", () -> config.spotifyEnabled, value -> config.spotifyEnabled = value));
 				list.add(new ToggleItem("spotifyHud", () -> config.spotifyHud, value -> config.spotifyHud = value));
+				list.add(new ToggleItem("spotifyInventory", () -> config.spotifyInventory, value -> config.spotifyInventory = value));
 				list.add(new InfoCardItem(Component.translatable("fancybars.spotify.aboutTitle"), List.of(
 						Component.translatable(dev.fancybars.spotify.Spotify.connected() ? "fancybars.spotify.connected" : "fancybars.spotify.notConnected"),
 						Component.translatable("fancybars.spotify.premium"),
