@@ -140,8 +140,8 @@ public final class DungeonSecrets {
 			graphics.text(font, word, textX + (blockW - wordW) / 2, 0, 0xFFFFFFFF, true);
 			graphics.text(font, count, textX + (blockW - font.width(count)) / 2, 11, 0xFFFFFFFF, true);
 		} else {
-			int y = config.secretsShowChest ? 4 : 0;
-			graphics.text(font, count, textX, y, 0xFFFFFFFF, true);
+			int countY = config.secretsShowChest ? 4 : 0;
+			graphics.text(font, count, textX, countY, 0xFFFFFFFF, true);
 		}
 		if (config.secretsShowChest) graphics.item(CHEST, 0, Math.max(0, (size[1] - 16) / 2));
 		pose.popMatrix();
