@@ -133,8 +133,8 @@ public final class ActionBar {
 		boolean custom = config.actionBarCustomize;
 		if (custom && config.actionBarBackground) {
 			int bgAlpha = Math.round(a * Math.clamp(config.actionBarBackgroundOpacity / 100f, 0, 1));
-			Theme.roundedRect(graphics, -w / 2 - 7, -8, w + 14, 17, 5, (bgAlpha << 24) | 0x10121C);
-			Theme.roundedOutline(graphics, -w / 2 - 7, -8, w + 14, 17, 5, ((bgAlpha / 2) << 24) | 0x7C82C4);
+			Theme.roundedRect(graphics, -w / 2 - 7, -8, w + 14, 17, 5, (bgAlpha << 24) | 0x1C1216);
+			Theme.roundedOutline(graphics, -w / 2 - 7, -8, w + 14, 17, 5, ((bgAlpha / 2) << 24) | 0xC47CA6);
 		}
 		int color = (a << 24) | 0xFFFFFF;
 		boolean shadow = !custom || config.actionBarShadow;

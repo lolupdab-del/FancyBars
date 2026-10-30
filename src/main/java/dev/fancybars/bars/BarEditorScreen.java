@@ -142,8 +142,8 @@ public class BarEditorScreen extends Screen {
 
 		// Snap guides
 		for (int[] guide : guides) {
-			if (guide[0] == 1) graphics.fillGradient(guide[1], 0, guide[1] + 1, height, 0x207CC8FF, 0xC07CC8FF);
-			else graphics.fill(0, guide[1], width, guide[1] + 1, 0xA07CC8FF);
+			if (guide[0] == 1) graphics.fillGradient(guide[1], 0, guide[1] + 1, height, 0x20FF8FC8, 0xC0FF8FC8);
+			else graphics.fill(0, guide[1], width, guide[1] + 1, 0xA0FF8FC8);
 		}
 
 		// Size / scale readout while editing
@@ -153,7 +153,7 @@ public class BarEditorScreen extends Screen {
 			int infoX = Math.clamp(hovered.getX() + hovered.getWidth() / 2 - infoWidth / 2, 2, width - infoWidth - 2);
 			int infoY = hovered.getY() - 18 < 48 ? hovered.getY() + hovered.getHeight() + 5 : hovered.getY() - 18;
 			Theme.shadow(graphics, infoX, infoY, infoWidth, 14, 7, 4, 2);
-			Theme.roundedRect(graphics, infoX - 1, infoY - 1, infoWidth + 2, 16, 8, 0x887CC8FF);
+			Theme.roundedRect(graphics, infoX - 1, infoY - 1, infoWidth + 2, 16, 8, 0x88FF8FC8);
 			Theme.roundedGradient(graphics, infoX, infoY, infoWidth, 14, 7, Theme.PANEL_TOP, Theme.PANEL_BOTTOM);
 			Theme.textInBox(graphics, font, info, infoX + 6, infoY, 14, Theme.TEXT);
 		}
@@ -204,7 +204,7 @@ public class BarEditorScreen extends Screen {
 		int lw = Theme.width(font, label) + 12;
 		int lx = Math.clamp(x + w / 2 - lw / 2, 2, width - lw - 2);
 		int ly = y - 18 < 48 ? y + h + 4 : y - 18;
-		Theme.card(graphics, lx, ly, lw, 14, 7, Theme.PANEL, 0x887CC8FF);
+		Theme.card(graphics, lx, ly, lw, 14, 7, Theme.PANEL, 0x88FF8FC8);
 		Theme.textInBox(graphics, font, label, lx + 6, ly, 14, Theme.TEXT);
 		graphics.requestCursor(draggingElement != null ? CursorTypes.RESIZE_ALL : CursorTypes.POINTING_HAND);
 	}

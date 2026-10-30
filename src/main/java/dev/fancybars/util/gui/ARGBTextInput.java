@@ -125,11 +125,11 @@ public class ARGBTextInput extends AbstractWidget {
 		int textX = getX() + (drawBackground ? 6 : 0);
 		int textY = getY() + (getHeight() - textRenderer.lineHeight) / 2;
 		if (drawBackground) {
-			Theme.card(context, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, 0xFF1F2131, isFocused() ? Theme.ACCENT : Theme.CARD_BORDER);
+			Theme.card(context, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, 0xFF312128, isFocused() ? Theme.ACCENT : Theme.CARD_BORDER);
 		}
 
 		if (isFocused()) {
-			Theme.roundedRect(context, textX + selectionStart - 1, textY - 1, selectionEnd - selectionStart + 2, textRenderer.lineHeight + 1, 2, 0x667CC8FF);
+			Theme.roundedRect(context, textX + selectionStart - 1, textY - 1, selectionEnd - selectionStart + 2, textRenderer.lineHeight + 1, 2, 0x66FF8FC8);
 			context.fill(textX + selectionStart, textY + textRenderer.lineHeight - 1, textX + selectionEnd, textY + textRenderer.lineHeight, Theme.ACCENT);
 		}
 		context.text(

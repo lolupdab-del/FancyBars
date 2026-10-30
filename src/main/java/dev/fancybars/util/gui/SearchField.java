@@ -48,7 +48,7 @@ public class SearchField extends AbstractWidget {
 		Font font = Theme.font();
 
 		int border = focused ? Theme.ACCENT : Theme.lerpColor(Theme.CARD_BORDER, Theme.SELECTED_BORDER, hover);
-		Theme.card(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, Theme.lerpColor(0xFF1F2131, 0xFF24273A, hover), border);
+		Theme.card(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, Theme.lerpColor(0xFF312128, 0xFF3A272F, hover), border);
 
 		int textX = getX() + 8;
 		if (text.isEmpty() && !focused) {

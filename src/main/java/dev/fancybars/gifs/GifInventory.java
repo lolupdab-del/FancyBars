@@ -268,7 +268,7 @@ public final class GifInventory {
 				if (active) {
 					Component label = Component.literal(gif.name + "  " + gif.w + "×" + gif.h + "  " + Math.round(gif.opacity * 100) + "%");
 					int lw = Theme.width(font, label) + 12;
-					Theme.card(graphics, x, y - 17, lw, 14, 7, Theme.PANEL, 0x887CC8FF);
+					Theme.card(graphics, x, y - 17, lw, 14, 7, Theme.PANEL, 0x88FF8FC8);
 					Theme.textInBox(graphics, font, label, x + 6, y - 17, 14, Theme.TEXT);
 				}
 			}

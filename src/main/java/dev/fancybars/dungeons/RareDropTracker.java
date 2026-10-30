@@ -256,7 +256,7 @@ public final class RareDropTracker {
 
 	private static List<Line> lines(boolean sample) {
 		List<Line> lines = new ArrayList<>();
-		lines.add(new Line(null, styled(Component.translatable("fancybars.rareDrops.hudTitle").withColor(0xFF7DD3FC))));
+		lines.add(new Line(null, styled(Component.translatable("fancybars.rareDrops.hudTitle").withColor(0xFFFF8FC8))));
 		int runs = sample ? 142 : data.runs;
 		int since = sample ? 17 : data.runsSinceLast;
 		lines.add(new Line(null, styled(Component.translatable("fancybars.rareDrops.hudRuns", runs, since).withColor(0xAAAAAA))));
@@ -308,7 +308,7 @@ public final class RareDropTracker {
 		int[] size = size(sample);
 		if (config.rareDropsBackground) {
 			Theme.roundedRect(graphics, 0, 0, size[0], size[1], 4, 0x88101218);
-			Theme.roundedOutline(graphics, 0, 0, size[0], size[1], 4, 0x447C82C4);
+			Theme.roundedOutline(graphics, 0, 0, size[0], size[1], 4, 0x44C47CA6);
 		}
 		int ly = PAD;
 		for (Line line : lines(sample)) {

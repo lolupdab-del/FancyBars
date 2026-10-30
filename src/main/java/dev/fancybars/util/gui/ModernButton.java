@@ -61,7 +61,7 @@ public class ModernButton extends AbstractWidget {
 		} else if (style == Style.PRIMARY) {
 			Theme.glow(graphics, x, y, w, h, radius, 0.25f + hover * 0.45f);
 			Theme.card(graphics, x, y, w, h, radius,
-					Theme.lerpColor(0xF0233A52, 0xF02B4C6C, hover),
+					Theme.lerpColor(0xF052233A, 0xF06C2B4C, hover),
 					Theme.lerpColor(Theme.ACCENT_DIM, Theme.ACCENT, hover));
 			textColor = Theme.lerpColor(Theme.ACCENT_LIGHT, 0xFFFFFFFF, hover);
 		} else if (selected) {

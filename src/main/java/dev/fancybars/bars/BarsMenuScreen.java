@@ -354,6 +354,7 @@ public class BarsMenuScreen extends Screen {
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
+				list.add(new ToggleItem("watermarkEnabled", () -> config.watermarkEnabled, value -> config.watermarkEnabled = value));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
 				list.add(new ToggleItem("riftHealthHP", () -> config.riftHealthHP, value -> config.riftHealthHP = value));
@@ -405,7 +406,7 @@ public class BarsMenuScreen extends Screen {
 		Theme.panel(graphics, x0, y0 + TOP_HEIGHT + GAP, SIDEBAR_WIDTH, totalHeight - TOP_HEIGHT - GAP);
 		Theme.panel(graphics, rightX, y0 + TOP_HEIGHT + GAP, rightW, totalHeight - TOP_HEIGHT - GAP);
 
-		// Title: "Fancy" in light blue, "Bars" in white, measured as one string and centred exactly in the box
+		// Title: "Shiki" in pink, "Client" in white, measured as one string and centred exactly in the box
 		Component titleText = Theme.title(Component.empty()
 				.append(Component.translatable("fancybars.menu.titleAccent").withColor(Theme.ACCENT & 0xFFFFFF))
 				.append(Component.translatable("fancybars.menu.titleRest").withColor(Theme.TEXT & 0xFFFFFF)));
@@ -454,7 +455,7 @@ public class BarsMenuScreen extends Screen {
 			int thumbH = Math.max(16, Math.round(contentH * visibleFrac));
 			int thumbY = contentY + Math.round((contentH - thumbH) * (scroll / maxScroll()));
 			Theme.roundedRect(graphics, trackX, contentY, 3, contentH, 1, 0x30FFFFFF);
-			Theme.roundedRect(graphics, trackX, thumbY, 3, thumbH, 1, 0xB0B4E1FF);
+			Theme.roundedRect(graphics, trackX, thumbY, 3, thumbH, 1, 0xB0FFC4E1);
 		}
 
 		Theme.popOffset(graphics);
@@ -483,7 +484,7 @@ public class BarsMenuScreen extends Screen {
 		y = Math.max(4, y);
 		float fade = Math.min(1, (Util.getMillis() - tipSince - 350) / 120f);
 		Theme.shadow(graphics, x, y, w, h, 6, 0, 2);
-		Theme.card(graphics, x, y, w, h, 6, Theme.withAlpha(0xF5202336, fade), Theme.withAlpha(Theme.SELECTED_BORDER, fade));
+		Theme.card(graphics, x, y, w, h, 6, Theme.withAlpha(0xF536232B, fade), Theme.withAlpha(Theme.SELECTED_BORDER, fade));
 		int ly = y + 5;
 		for (net.minecraft.util.FormattedCharSequence line : lines) {
 			Theme.drawSeqInBox(graphics, font, line, x + 8, ly, lineH, Theme.withAlpha(Theme.TEXT_SOFT, fade));
@@ -907,8 +908,8 @@ public class BarsMenuScreen extends Screen {
 			// Radio button
 			int rx = x + 10;
 			int ry = y + (height - 12) / 2;
-			Theme.circle(graphics, rx, ry, 12, selected ? Theme.ACCENT : 0xFF4A4E6B);
-			Theme.circle(graphics, rx + 2, ry + 2, 8, selected ? Theme.SELECTED : 0xFF202233);
+			Theme.circle(graphics, rx, ry, 12, selected ? Theme.ACCENT : 0xFF6B4E5A);
+			Theme.circle(graphics, rx + 2, ry + 2, 8, selected ? Theme.SELECTED : 0xFF332229);
 			if (selected) Theme.circle(graphics, rx + 3, ry + 3, 6, Theme.ACCENT);
 
 			Theme.boldInBox(graphics, font, Component.translatable(style.translationKey()), x + 30, y, height, Theme.TEXT);
@@ -1185,7 +1186,7 @@ public class BarsMenuScreen extends Screen {
 			// Preview box (letterboxed to keep the GIF's aspect ratio)
 			int bx = x + 4;
 			int by = y + 4;
-			Theme.roundedRect(graphics, bx, by, PREVIEW_W, PREVIEW_H, 4, 0xFF111320);
+			Theme.roundedRect(graphics, bx, by, PREVIEW_W, PREVIEW_H, 4, 0xFF201318);
 			if (gif.ready) {
 				float s = Math.min(PREVIEW_W / (float) Math.max(1, gif.srcW), PREVIEW_H / (float) Math.max(1, gif.srcH));
 				int pw = Math.max(1, Math.round(gif.srcW * s));
@@ -1225,7 +1226,7 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
-			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC22161B, Theme.CARD_BORDER);
 			int[] size = dev.fancybars.dungeons.DungeonSecrets.size(5, 10);
 			float px = x + (w - size[0]) / 2f;
 			float py = y + (height - size[1]) / 2f;
@@ -1245,7 +1246,7 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
-			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC22161B, Theme.CARD_BORDER);
 			int[] size = dev.fancybars.dungeons.RareDropTracker.size(false);
 			graphics.nextStratum();
 			graphics.enableScissor(x + 2, y + 2, x + w - 2, y + height - 2);
@@ -1311,7 +1312,7 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
-			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC141622, Theme.CARD_BORDER);
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, 0xCC22161B, Theme.CARD_BORDER);
 			Component text = dev.fancybars.actionbar.ActionBar.current();
 			if (text == null || text.getString().isBlank()) text = dev.fancybars.actionbar.ActionBar.sample();
 			int[] size = dev.fancybars.actionbar.ActionBar.size(text);

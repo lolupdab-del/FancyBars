@@ -110,6 +110,16 @@ public class FancyBarsConfig {
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
 
+	// ---------------------------------------------------------------- Watermark
+
+	public boolean watermarkEnabled = true;
+
+	public int watermarkX = 4;
+
+	public int watermarkY = 4;
+
+	public float watermarkScale = 1;
+
 	// ---------------------------------------------------------------- Rare dungeon drops
 
 	public boolean rareDropsEnabled = true;
@@ -197,6 +207,7 @@ public class FancyBarsConfig {
 			if (instance.secretsScale <= 0) instance.secretsScale = 1;
 			if (instance.actionBarScale <= 0) instance.actionBarScale = 1;
 			if (instance.rareDropsScale <= 0) instance.rareDropsScale = 1;
+			if (instance.watermarkScale <= 0) instance.watermarkScale = 1;
 			if (instance.rareDropsUntracked == null) instance.rareDropsUntracked = new java.util.HashSet<>();
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;

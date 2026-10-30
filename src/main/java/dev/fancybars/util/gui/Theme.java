@@ -21,33 +21,33 @@ import dev.fancybars.FancyBarsMod;
 public final class Theme {
 	// Surfaces (dark navy-grey, like modern mod menus)
 	public static final int BACKDROP = 0x66000000;
-	public static final int PANEL = 0xEE181A27;
-	public static final int PANEL_TOP = 0xEE1C1E2D;
-	public static final int PANEL_BOTTOM = 0xEE161824;
-	public static final int PANEL_BORDER = 0xFF2E3149;
-	public static final int CARD = 0xCC202233;
-	public static final int CARD_BORDER = 0xFF33364F;
-	public static final int CARD_HOVER = 0xE0272A3F;
-	public static final int SURFACE = 0xFF252839;
-	public static final int SURFACE_HOVER = 0xFF2E3247;
-	public static final int SURFACE_DISABLED = 0xFF1D1F2B;
-	public static final int SELECTED = 0xFF363A5A;
-	public static final int SELECTED_BORDER = 0xFF7C82C4;
-	public static final int DIVIDER = 0xFF2A2D42;
+	public static final int PANEL = 0xEE271A1F;
+	public static final int PANEL_TOP = 0xEE2D1E24;
+	public static final int PANEL_BOTTOM = 0xEE24181D;
+	public static final int PANEL_BORDER = 0xFF49313B;
+	public static final int CARD = 0xCC332229;
+	public static final int CARD_BORDER = 0xFF4F3641;
+	public static final int CARD_HOVER = 0xE03F2A33;
+	public static final int SURFACE = 0xFF39282F;
+	public static final int SURFACE_HOVER = 0xFF47323A;
+	public static final int SURFACE_DISABLED = 0xFF2B1F24;
+	public static final int SELECTED = 0xFF5A3A48;
+	public static final int SELECTED_BORDER = 0xFFC47CA6;
+	public static final int DIVIDER = 0xFF422D36;
 
 	// Accent (light blue)
-	public static final int ACCENT = 0xFF7CC8FF;
-	public static final int ACCENT_LIGHT = 0xFFB4E1FF;
-	public static final int ACCENT_DEEP = 0xFF3E8FD6;
-	public static final int ACCENT_HOVER = 0xFF9DD6FF;
-	public static final int ACCENT_DIM = 0xFF3D7FAF;
+	public static final int ACCENT = 0xFFFF8FC8;
+	public static final int ACCENT_LIGHT = 0xFFFFC4E1;
+	public static final int ACCENT_DEEP = 0xFFD6448F;
+	public static final int ACCENT_HOVER = 0xFFFFAED6;
+	public static final int ACCENT_DIM = 0xFFAF3D78;
 
 	// Text
-	public static final int TEXT = 0xFFEDEEF7;
-	public static final int TEXT_SOFT = 0xFFD6D8EE;
-	public static final int TEXT_MUTED = 0xFF9EA2C2;
-	public static final int TEXT_DISABLED = 0xFF5C6079;
-	public static final int TEXT_ON_ACCENT = 0xFF0B1B29;
+	public static final int TEXT = 0xFFF7EEF2;
+	public static final int TEXT_SOFT = 0xFFEED8E2;
+	public static final int TEXT_MUTED = 0xFFC2A2B0;
+	public static final int TEXT_DISABLED = 0xFF79606A;
+	public static final int TEXT_ON_ACCENT = 0xFF2A0B1B;
 
 	public static final int RADIUS = 4;
 	public static final int PANEL_RADIUS = 6;
