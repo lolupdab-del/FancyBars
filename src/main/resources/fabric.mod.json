@@ -3,9 +3,10 @@
 	"id": "fancybars",
 	"version": "${version}",
 	"name": "ShikiClient",
-	"description": "Hypixel SkyBlock client mod: customizable status bars, action bar, dungeon secrets display, rare drop tracker, item protection, backpack previews and inventory GIFs. Run /shikiclient to open the menu.",
+	"description": "Developed by BigMMan and Shikiimorii.\n\nA Hypixel SkyBlock client mod with:\n• Fancy status bars: health, mana, defense, vitality, speed, air and XP, freely movable, resizable and recolourable, in Classic, Segmented or SkyblockAddons style\n• Customisable action bar: move, scale, restyle and hide parts of it\n• Dungeon secrets display and a rare dungeon drop tracker with run counter\n• Item protection with a recolourable star\n• Backpack and ender chest previews\n• Movable held item name\n• Animated inventory GIFs\n\nOpen the menu with /shikiclient.",
 	"authors": [
-		"Skyblocker team (original code)"
+		"BigMMan",
+		"Shikiimorii"
 	],
 	"contact": {
 		"sources": "https://github.com/SkyblockerMod/Skyblocker"
@@ -30,5 +31,9 @@
 		"fabric-api": ">=0.157.0+26.2",
 		"minecraft": "~26.2",
 		"java": ">=25"
-	}
+	},
+	"contributors": [
+		"Skyblocker team (original Fancy Bars, item protection and backpack preview code)",
+		"SkyblockAddons team (secrets display and bar style)"
+	]
 }
