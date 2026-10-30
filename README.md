@@ -12,8 +12,9 @@ plus the optional vanilla-style mana bar.
 
 | Command | What it does |
 |---|---|
-| `/fancybars` or `/fancybars edit` | Open the bar layout editor (drag bars, right-click to edit, drag between bars to resize) |
-| `/fancybars config` | Open the general settings (also reachable via the ⚙ button in the editor, or Mod Menu) |
+| `/fancybars` | Open the Fancy Bars menu: turn each bar and its icon on/off, resize bars, recolour bars, overflow mana, absorption and text (also via Mod Menu) |
+| `/fancybars edit` | Open the drag-and-drop layout editor directly (also the **Edit GUI** button in the menu) |
+| `/fancybars config` | Open the extra settings (also **More Settings...** in the menu) |
 
 Config files live in `.minecraft/config/fancybars/` (`config.json` and `status_bars.json`).
 Your Skyblocker layout can be reused: copy `config/skyblocker/status_bars.json` to `config/fancybars/status_bars.json`, as the format is identical.

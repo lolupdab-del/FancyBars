@@ -175,6 +175,85 @@ public class FancyStatusBars {
 		}
 	}
 
+	/**
+	 * Turns a bar on or off. Turning a bar off removes it from its anchor (like the editor's "Hide" option);
+	 * turning it back on puts it at the end of its default row.
+	 */
+	public void setBarEnabled(StatusBar bar, boolean enabled) {
+		if (bar.enabled == enabled) return;
+		if (!enabled) {
+			if (bar.anchor != null) barPositioner.removeBar(bar.anchor, bar.gridY, bar);
+			bar.enabled = false;
+		} else {
+			bar.enabled = true;
+			if (bar.anchor == null && bar.width <= 0) {
+				// Never placed anywhere: snap to the default anchor
+				placeAtDefault(bar);
+			} else if (bar.anchor == null && bar.x == 0 && bar.y == 0) {
+				placeAtDefault(bar);
+			}
+		}
+		placeBarsInPositioner();
+		updatePositions(false);
+	}
+
+	private void placeAtDefault(StatusBar bar) {
+		StatusBarType type = bar.getType();
+		bar.anchor = type.getDefaultAnchor();
+		bar.gridY = type.getDefaultGridY();
+		bar.gridX = Integer.MAX_VALUE; // end of the row; normalised by placeBarsInPositioner
+		bar.size = type.getDefaultAnchor().getSizeRule().minSize();
+	}
+
+	/**
+	 * @return whether the bar can currently be made bigger (delta > 0) or smaller (delta < 0)
+	 */
+	public boolean canResize(StatusBar bar, int delta) {
+		if (!bar.enabled) return false;
+		if (bar.anchor == null) {
+			int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+			int newWidth = bar.getWidth() + delta * 10;
+			return delta > 0 ? bar.x + (float) newWidth / screenWidth <= 1.0001f : newWidth >= 30;
+		}
+		BarPositioner.SizeRule rule = bar.anchor.getSizeRule();
+		int newSize = bar.size + delta;
+		if (newSize < rule.minSize() || newSize > rule.maxSize()) return false;
+		if (rule.isTargetSize()) {
+			StatusBar neighbour = getResizeNeighbour(bar);
+			if (neighbour == null) return false; // a bar alone in a fixed-width row always fills it
+			int neighbourSize = neighbour.size - delta;
+			return neighbourSize >= rule.minSize() && neighbourSize <= rule.maxSize();
+		}
+		return true;
+	}
+
+	/**
+	 * Grows or shrinks a bar by one step. Bars in the row above the hotbar share a fixed width,
+	 * so the neighbouring bar shrinks/grows to compensate.
+	 */
+	public void resizeBar(StatusBar bar, int delta) {
+		if (!canResize(bar, delta)) return;
+		if (bar.anchor == null) {
+			int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+			bar.width = (float) (bar.getWidth() + delta * 10) / screenWidth;
+		} else {
+			if (bar.anchor.getSizeRule().isTargetSize()) {
+				StatusBar neighbour = getResizeNeighbour(bar);
+				if (neighbour != null) neighbour.size -= delta;
+			}
+			bar.size += delta;
+		}
+		updatePositions(false);
+	}
+
+	private @Nullable StatusBar getResizeNeighbour(StatusBar bar) {
+		if (bar.anchor == null || bar.gridY >= barPositioner.getRowCount(bar.anchor)) return null;
+		LinkedList<StatusBar> row = barPositioner.getRow(bar.anchor, bar.gridY);
+		int index = row.indexOf(bar);
+		if (index < 0 || row.size() < 2) return null;
+		return index + 1 < row.size() ? row.get(index + 1) : row.get(index - 1);
+	}
+
 	public void resetBarPositions() {
 		statusBars.forEach((type, bar) -> {
 			bar.anchor = type.getDefaultAnchor();

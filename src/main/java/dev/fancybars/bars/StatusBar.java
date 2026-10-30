@@ -213,6 +213,38 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		GuiHelper.outlinedText(graphics, Component.translationArg(text), x, y, color, outlineColor);
 	}
 
+	/**
+	 * Draws this bar (without text) at the given position and width, using a sample fill. Used by the bars menu preview.
+	 */
+	public void extractPreview(GuiGraphicsExtractor graphics, int x, int y, int previewWidth) {
+		int tempX = renderX;
+		int tempY = renderY;
+		int tempWidth = renderWidth;
+		boolean tempInMouse = inMouse;
+		float tempFill = fill;
+		float tempOverflow = overflowFill;
+
+		renderX = x;
+		renderY = y;
+		renderWidth = previewWidth;
+		inMouse = !enabled; // draws semi-transparent when the bar is turned off
+		fill = 0.7f;
+		overflowFill = hasOverflow() ? 0.3f : 0;
+
+		extractBar(graphics);
+
+		renderX = tempX;
+		renderY = tempY;
+		renderWidth = tempWidth;
+		inMouse = tempInMouse;
+		fill = tempFill;
+		overflowFill = tempOverflow;
+	}
+
+	public StatusBarType getType() {
+		return type;
+	}
+
 	public void extractCursor(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		int temp_x = renderX;
 		int temp_y = renderY;

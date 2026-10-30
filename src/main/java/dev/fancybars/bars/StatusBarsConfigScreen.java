@@ -30,7 +30,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 import dev.fancybars.bars.BarPositioner.BarLocation;
-import dev.fancybars.config.FancyBarsSettingsScreen;
 
 public class StatusBarsConfigScreen extends Screen {
 	private static final Identifier HOTBAR_TEXTURE = Identifier.withDefaultNamespace("hud/hotbar");
@@ -55,9 +54,21 @@ public class StatusBarsConfigScreen extends Screen {
 	private boolean resizing = false;
 	private EditBarWidget editBarWidget;
 
+	private final @Nullable Screen parent;
+
 	public StatusBarsConfigScreen(FancyStatusBars bars) {
+		this(bars, null);
+	}
+
+	public StatusBarsConfigScreen(FancyStatusBars bars, @Nullable Screen parent) {
 		super(Component.nullToEmpty("Status Bars Config"));
 		this.bars = bars;
+		this.parent = parent;
+	}
+
+	@Override
+	public void onClose() {
+		minecraft.gui.setScreen(parent);
 	}
 
 
@@ -297,10 +308,10 @@ public class StatusBarsConfigScreen extends Screen {
 								.build()))
 				.bounds(width - 20, height / 2 + 2, 15, 15)
 				.build());
-		this.addRenderableWidget(Button.builder(Component.literal("⚙"),
-						_ -> minecraft.gui.setScreen(new FancyBarsSettingsScreen(this)))
+		this.addRenderableWidget(Button.builder(Component.literal("☰"),
+						_ -> minecraft.gui.setScreen(new BarsMenuScreen(parent instanceof BarsMenuScreen menu ? menu.getParent() : parent)))
 				.bounds(width - 20, height / 2 + 21, 15, 15)
-				.tooltip(Tooltip.create(Component.translatable("fancybars.config.title")))
+				.tooltip(Tooltip.create(Component.translatable("fancybars.menu.title")))
 				.build());
 	}
 

@@ -53,7 +53,7 @@ public class FancyBarsSettingsScreen extends Screen {
 		adder.addChild(wideToggle("enableVanillaStyleManaBar", config.enableVanillaStyleManaBar, value -> config.enableVanillaStyleManaBar = value), 2);
 		adder.addChild(toggle("enableVanillaStyleManaBarBlinking", config.enableVanillaStyleManaBarBlinking, value -> config.enableVanillaStyleManaBarBlinking = value));
 		adder.addChild(toggle("useHungerBarSprites", config.useHungerBarSprites, value -> config.useHungerBarSprites = value));
-		adder.addChild(Button.builder(Component.translatable("fancybars.config.openEditor"), _ -> minecraft.gui.setScreen(new StatusBarsConfigScreen(FancyStatusBars.INSTANCE)))
+		adder.addChild(Button.builder(Component.translatable("fancybars.config.openEditor"), _ -> minecraft.gui.setScreen(new StatusBarsConfigScreen(FancyStatusBars.INSTANCE, this)))
 				.width(WIDE)
 				.build(), 2);
 

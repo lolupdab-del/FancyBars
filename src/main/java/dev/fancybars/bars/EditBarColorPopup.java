@@ -24,7 +24,7 @@ public class EditBarColorPopup extends AbstractPopupScreen {
 
 	private LinearLayout layout = LinearLayout.vertical();
 
-	protected EditBarColorPopup(Component title, Screen backgroundScreen, Consumer<Color> setColor, int initialColor) {
+	public EditBarColorPopup(Component title, Screen backgroundScreen, Consumer<Color> setColor, int initialColor) {
 		super(title, backgroundScreen);
 		this.setColor = setColor;
 		this.currentColor = initialColor;
