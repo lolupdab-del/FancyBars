@@ -156,6 +156,34 @@ public class FancyBarsConfig {
 	/** File name → settings. */
 	public java.util.Map<String, ScreenImage> screenImages = new java.util.HashMap<>();
 
+	// ---------------------------------------------------------------- Commands
+
+	public boolean calculatorEnabled = true;
+
+	/** Comma separated words that run the calculator, e.g. "ca, c" → /ca 5m/5b. */
+	public String calculatorTriggers = "ca, c";
+
+	public static final class CommandAlias {
+		public String from = "";
+
+		public String to = "";
+
+		public CommandAlias() {}
+
+		public CommandAlias(String from, String to) {
+			this.from = from;
+			this.to = to;
+		}
+	}
+
+	/** Shortcuts: typing /from runs /to (anything typed after it is kept). */
+	public java.util.List<CommandAlias> commandAliases = new java.util.ArrayList<>();
+
+	public java.util.List<String> shitterList = new java.util.ArrayList<>();
+
+	/** Kick people on the shitter list when they join a party you're in. */
+	public boolean shitterAutoKick = true;
+
 	// ---------------------------------------------------------------- Spotify
 
 	public boolean spotifyEnabled = true;
@@ -500,6 +528,9 @@ public class FancyBarsConfig {
 			if (instance.crosshairSize < 5 || instance.crosshairSize % 2 == 0) instance.crosshairSize = 15;
 			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
 			if (instance.spotifyScale <= 0) instance.spotifyScale = 1;
+			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
+			if (instance.commandAliases == null) instance.commandAliases = new java.util.ArrayList<>();
+			if (instance.shitterList == null) instance.shitterList = new java.util.ArrayList<>();
 			if (instance.spotifyClientId == null) instance.spotifyClientId = "";
 			if (instance.viewmodelItemScale <= 0) instance.viewmodelItemScale = 1;
 			if (instance.viewmodelArmScale <= 0) instance.viewmodelArmScale = 1;

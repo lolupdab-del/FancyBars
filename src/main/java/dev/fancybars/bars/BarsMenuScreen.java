@@ -421,6 +421,30 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
 			}
+			case COMMANDS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.commands.calculator"), null));
+				list.add(new ToggleItem("calculatorEnabled", () -> config.calculatorEnabled, value -> config.calculatorEnabled = value));
+				list.add(new TextFieldItem("calculatorTriggers", () -> config.calculatorTriggers, value -> config.calculatorTriggers = value));
+				list.add(new InfoCardItem(Component.translatable("fancybars.commands.calcExamples"), List.of(
+						Component.translatable("fancybars.commands.calc1"),
+						Component.translatable("fancybars.commands.calc2"),
+						Component.translatable("fancybars.commands.calc3")), false));
+				list.add(new HeaderItem(Component.translatable("fancybars.commands.shortcuts"), Component.translatable("fancybars.commands.shortcutsHint")));
+				for (FancyBarsConfig.CommandAlias alias : config.commandAliases) list.add(new AliasRowItem(alias));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.commands.addShortcut"), ModernButton.Style.PRIMARY, () -> {
+					config.commandAliases.add(new FancyBarsConfig.CommandAlias());
+					FancyBarsConfig.save();
+					rebuildNextTick = true;
+				})));
+				list.add(new HeaderItem(Component.translatable("fancybars.commands.nuke"), Component.translatable("fancybars.commands.nukeHint")));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.commands.armNuke"), () -> {
+					dev.fancybars.commands.Commands.armNuke();
+				})));
+				list.add(new HeaderItem(Component.translatable("fancybars.commands.shitters"), Component.translatable("fancybars.commands.shittersHint")));
+				list.add(new ToggleItem("shitterAutoKick", () -> config.shitterAutoKick, value -> config.shitterAutoKick = value));
+				list.add(new ShitterAddItem());
+				for (String ign : new ArrayList<>(config.shitterList)) list.add(new ShitterRowItem(ign));
+			}
 			case SPOTIFY -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.spotify"), null));
 				list.add(new ButtonRowItem(
@@ -775,6 +799,7 @@ public class BarsMenuScreen extends Screen {
 		MINING("fancybars.category.mining"),
 		CHAT("fancybars.category.chat"),
 		SPOTIFY("fancybars.category.spotify"),
+		COMMANDS("fancybars.category.commands"),
 		PLAYER("fancybars.category.player"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
@@ -1573,6 +1598,150 @@ public class BarsMenuScreen extends Screen {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
 			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 100), x + 10, y, height, Theme.TEXT);
+		}
+	}
+
+	/** A label with a text box on the right. */
+	private class TextFieldItem extends Item {
+		private final String key;
+		private final dev.fancybars.util.gui.SearchField field;
+
+		TextFieldItem(String key, Supplier<String> getter, Consumer<String> setter) {
+			this.key = key;
+			this.height = 24;
+			this.searchable = true;
+			this.tooltip = Component.translatable("fancybars.config." + key + ".@Tooltip");
+			this.searchText = Component.translatable("fancybars.config." + key).getString();
+			field = new dev.fancybars.util.gui.SearchField(120, 16, getter.get(), Component.translatable("fancybars.config." + key), value -> {
+				setter.accept(value);
+				FancyBarsConfig.save();
+			}).maxLength(60);
+			widgets.add(field);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			field.setPosition(x + w - field.getWidth() - 8, y + (height - field.getHeight()) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 140), x + 10, y, height, Theme.TEXT);
+		}
+	}
+
+	/** One shortcut: [ /short ]  →  [ /full command ]  ✕ */
+	private class AliasRowItem extends Item {
+		private final dev.fancybars.util.gui.SearchField from;
+		private final dev.fancybars.util.gui.SearchField to;
+		private final ModernButton remove;
+
+		AliasRowItem(FancyBarsConfig.CommandAlias alias) {
+			this.height = 26;
+			this.searchable = true;
+			this.searchText = "shortcut alias command " + alias.from + " " + alias.to;
+			from = new dev.fancybars.util.gui.SearchField(70, 16, alias.from, Component.translatable("fancybars.commands.shortPlaceholder"), value -> {
+				alias.from = value;
+				FancyBarsConfig.save();
+			}).maxLength(32);
+			to = new dev.fancybars.util.gui.SearchField(120, 16, alias.to, Component.translatable("fancybars.commands.fullPlaceholder"), value -> {
+				alias.to = value;
+				FancyBarsConfig.save();
+			}).maxLength(120);
+			remove = new ModernButton(20, 16, Component.literal("✕"), () -> {
+				config.commandAliases.remove(alias);
+				FancyBarsConfig.save();
+				rebuildNextTick = true;
+			});
+			tipFor(remove, Component.translatable("fancybars.commands.removeShortcut"));
+			widgets.add(from);
+			widgets.add(to);
+			widgets.add(remove);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			int fy = y + (height - 16) / 2;
+			int fromW = Math.max(60, (w - 70) / 3);
+			from.setWidth(fromW);
+			from.setPosition(x + 18, fy);
+			remove.setPosition(x + w - 26, fy);
+			int toX = x + 18 + fromW + 24;
+			to.setWidth(remove.getX() - 6 - toX - 10);
+			to.setPosition(toX + 10, fy);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, Component.literal("/"), x + 8, y, height, Theme.TEXT_MUTED);
+			Theme.centeredInBox(graphics, font, Component.literal("→"), from.getRight() + 12, y, height, Theme.ACCENT);
+			Theme.boldInBox(graphics, font, Component.literal("/"), to.getX() - 9, y, height, Theme.TEXT_MUTED);
+		}
+	}
+
+	/** Add a name to the shitter list. */
+	private class ShitterAddItem extends Item {
+		private final dev.fancybars.util.gui.SearchField name;
+		private final ModernButton add;
+
+		ShitterAddItem() {
+			this.height = 26;
+			this.searchable = true;
+			this.searchText = "shitter list add player ign";
+			name = new dev.fancybars.util.gui.SearchField(140, 16, "", Component.translatable("fancybars.commands.ignPlaceholder"), value -> {}).maxLength(16);
+			add = new ModernButton(60, 16, Component.translatable("fancybars.commands.add"), ModernButton.Style.PRIMARY, () -> {
+				String ign = name.getText().trim();
+				if (ign.matches("\\w{1,16}")) {
+					dev.fancybars.commands.Commands.addShitter(ign);
+					rebuildNextTick = true;
+				}
+			});
+			widgets.add(name);
+			widgets.add(add);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			int fy = y + (height - 16) / 2;
+			add.setPosition(x + w - add.getWidth() - 6, fy);
+			name.setWidth(add.getX() - 6 - (x + 6));
+			name.setPosition(x + 6, fy);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+		}
+	}
+
+	/** One name on the shitter list with a remove button. */
+	private class ShitterRowItem extends Item {
+		private final String ign;
+		private final ModernButton remove;
+
+		ShitterRowItem(String ign) {
+			this.ign = ign;
+			this.height = 22;
+			this.searchable = true;
+			this.searchText = ign + " shitter list";
+			remove = new ModernButton(56, 16, Component.translatable("fancybars.protection.remove"), () -> {
+				dev.fancybars.commands.Commands.removeShitter(ign);
+				rebuildNextTick = true;
+			});
+			widgets.add(remove);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			remove.setPosition(x + w - remove.getWidth() - 6, y + (height - remove.getHeight()) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, Component.literal(ign).withColor(0xFF6B6B), x + 10, y, height, 0xFFFFFFFF);
 		}
 	}
 

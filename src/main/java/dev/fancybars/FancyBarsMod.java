@@ -81,6 +81,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.chat.ChatTabs.init();
 		dev.fancybars.crosshair.Crosshair.init();
 		dev.fancybars.spotify.Spotify.init();
+		dev.fancybars.commands.Commands.init();
 		dev.fancybars.spotify.SpotifyHud.init();
 		dev.fancybars.spotify.SpotifyInventoryPanel.init();
 		dev.fancybars.items.Customization.init();
@@ -89,6 +90,7 @@ public class FancyBarsMod implements ClientModInitializer {
 
 		// /sbclient, with /shikiclient and /fancybars kept as aliases
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> {
+			dev.fancybars.commands.Commands.register(dispatcher);
 			for (String name : new String[]{"sbclient", "shikiclient", NAMESPACE}) {
 				dispatcher.register(ClientCommands.literal(name)
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
