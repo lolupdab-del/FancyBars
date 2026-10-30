@@ -5,7 +5,6 @@ import java.util.function.Consumer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
@@ -16,6 +15,8 @@ import net.minecraft.network.chat.Style;
 import dev.fancybars.util.gui.ARGBTextInput;
 import dev.fancybars.util.gui.AbstractPopupScreen;
 import dev.fancybars.util.gui.ColorPickerWidget;
+import dev.fancybars.util.gui.ModernButton;
+import dev.fancybars.util.gui.Theme;
 
 public class EditBarColorPopup extends AbstractPopupScreen {
 
@@ -35,7 +36,7 @@ public class EditBarColorPopup extends AbstractPopupScreen {
 		super.init();
 		layout = LinearLayout.vertical();
 		layout.spacing(8).defaultCellSetting().alignHorizontallyCenter();
-		layout.addChild(new StringWidget(title.copy().withStyle(Style.EMPTY.withBold(true)), Minecraft.getInstance().font));
+		layout.addChild(new StringWidget(title.copy().withStyle(Style.EMPTY.withColor(Theme.ACCENT & 0xFFFFFF)), Minecraft.getInstance().font));
 
 		LinearLayout colorLayout = layout.addChild(LinearLayout.horizontal().spacing(4));
 		ColorPickerWidget colorPicker = new ColorPickerWidget(0, 0, 200, 100);
@@ -56,12 +57,12 @@ public class EditBarColorPopup extends AbstractPopupScreen {
 		colorLayout.addChild(argb);
 
 		LinearLayout horizontal = LinearLayout.horizontal();
-		Button buttonWidget = Button.builder(Component.literal("Cancel"), _ -> onClose()).width(80).build();
-		horizontal.addChild(buttonWidget);
-		horizontal.addChild(Button.builder(Component.literal("Done"), _ -> {
+		horizontal.spacing(4);
+		horizontal.addChild(new ModernButton(80, 18, Component.translatable("gui.cancel"), this::onClose));
+		horizontal.addChild(new ModernButton(80, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, () -> {
 			setColor.accept(new Color(currentColor));
 			onClose();
-		}).width(80).build());
+		}));
 
 		layout.addChild(horizontal);
 		layout.visitWidgets(this::addRenderableWidget);
@@ -72,6 +73,6 @@ public class EditBarColorPopup extends AbstractPopupScreen {
 	@Override
 	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		super.extractBackground(graphics, mouseX, mouseY, a);
-		extractPopupBackground(graphics, layout.getX(), layout.getY(), layout.getWidth(), layout.getHeight());
+		Theme.panel(graphics, layout.getX() - 12, layout.getY() - 10, layout.getWidth() + 24, layout.getHeight() + 20);
 	}
 }

@@ -19,10 +19,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
 
+import dev.fancybars.bars.BarEditorScreen;
 import dev.fancybars.bars.BarsMenuScreen;
 import dev.fancybars.bars.FancyStatusBars;
 import dev.fancybars.bars.StatusBarTracker;
-import dev.fancybars.bars.StatusBarsConfigScreen;
 import dev.fancybars.bars.VanillaStyleManaBar;
 import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.config.FancyBarsSettingsScreen;
@@ -60,7 +60,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> dispatcher.register(
 				ClientCommands.literal(NAMESPACE)
 						.executes(_ -> queueOpenScreen(new BarsMenuScreen(null)))
-						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new StatusBarsConfigScreen(FancyStatusBars.INSTANCE))))
+						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(new FancyBarsSettingsScreen(null))))));
 	}
 

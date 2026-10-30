@@ -81,27 +81,27 @@ public class FancyStatusBars {
 			return hudElement;
 		};
 
+		// The vanilla XP bar is always hidden while fancy bars are active (even if the fancy XP bar is turned off),
+		// so vanilla hearts (when the fancy health bar is off) move down into its space.
 		HudElementRegistry.replaceElement(VanillaHudElements.HEALTH_BAR, hudElement -> {
 			if (!shouldProcess()) return hudElement;
 			if (isHealthFancyBarEnabled()) {
 				return (_, _) -> {};
-			} else if (isExperienceFancyBarEnabled()) {
-				return (context, tickCounter) -> {
-					Matrix3x2fStack pose = context.pose();
-					pose.pushMatrix();
-					pose.translate(0, 6);
-					hudElement.extractRenderState(context, tickCounter);
-					pose.popMatrix();
-				};
 			}
-			return hudElement;
+			return (context, tickCounter) -> {
+				Matrix3x2fStack pose = context.pose();
+				pose.pushMatrix();
+				pose.translate(0, 6);
+				hudElement.extractRenderState(context, tickCounter);
+				pose.popMatrix();
+			};
 		});
 		HudElementRegistry.replaceElement(VanillaHudElements.EXPERIENCE_LEVEL, hudElement -> {
-			if (!shouldProcess() || !isExperienceFancyBarEnabled()) return hudElement;
+			if (!shouldProcess()) return hudElement;
 			return (_, _) -> {};
 		});
 		HudElementRegistry.replaceElement(VanillaHudElements.INFO_BAR, hudElement -> {
-			if (!shouldProcess() || !isExperienceFancyBarEnabled()) return hudElement;
+			if (!shouldProcess()) return hudElement;
 			return (_, _) -> {};
 		});
 		HudElementRegistry.replaceElement(VanillaHudElements.ARMOR_BAR, hideIfFancyStatusBarsEnabled);
@@ -195,6 +195,48 @@ public class FancyStatusBars {
 		}
 		placeBarsInPositioner();
 		updatePositions(false);
+	}
+
+	/**
+	 * Unsnaps a bar from its anchor so it can be freely moved, keeping it exactly where it currently is on screen.
+	 */
+	public void detach(StatusBar bar) {
+		if (bar.anchor == null) return;
+		int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+		int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+		int x = bar.getX();
+		int y = bar.getY();
+		int w = bar.getWidth();
+		barPositioner.removeBar(bar.anchor, bar.gridY, bar); // also clears the anchor
+		bar.scale = 1;
+		bar.x = (float) x / screenWidth;
+		bar.y = (float) y / screenHeight;
+		bar.width = (float) w / screenWidth;
+		updatePositions(true);
+	}
+
+	/**
+	 * Puts a bar back into its default spot next to the hotbar.
+	 */
+	public void snapToDefault(StatusBar bar) {
+		if (bar.anchor != null) barPositioner.removeBar(bar.anchor, bar.gridY, bar);
+		bar.enabled = true;
+		bar.scale = 1;
+		placeAtDefault(bar);
+		placeBarsInPositioner();
+		updatePositions(true);
+	}
+
+	/**
+	 * Sets the on-screen position and size of a free (unanchored) bar, in GUI pixels.
+	 */
+	public void setFreeBounds(StatusBar bar, int x, int y, int width) {
+		int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+		int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+		bar.x = (float) x / screenWidth;
+		bar.y = (float) y / screenHeight;
+		bar.width = (float) width / screenWidth;
+		updatePositions(true);
 	}
 
 	private void placeAtDefault(StatusBar bar) {

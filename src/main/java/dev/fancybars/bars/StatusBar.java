@@ -9,6 +9,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jspecify.annotations.Nullable;
 
+import org.joml.Matrix3x2fStack;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -79,6 +81,18 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 
 	public int size = 1;
 
+	/**
+	 * Scale of free-floating bars (changed with the scroll wheel in the editor). Bars snapped to an anchor always use 1.
+	 */
+	public float scale = 1;
+
+	public static final float MIN_SCALE = 0.5f;
+	public static final float MAX_SCALE = 4f;
+
+	public float effectiveScale() {
+		return anchor == null ? scale : 1;
+	}
+
 	public float fill = 0;
 	public float overflowFill = 0;
 	public boolean inMouse = false;
@@ -133,6 +147,38 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 
 	@SuppressWarnings("incomplete-switch")
 	public void extractBar(GuiGraphicsExtractor graphics) {
+		float s = effectiveScale();
+		if (s != 1) {
+			withScale(graphics, s, () -> extractBarUnscaled(graphics));
+		} else extractBarUnscaled(graphics);
+	}
+
+	/**
+	 * Runs the drawing code with the pose scaled around this bar's top left corner,
+	 * so the unscaled drawing code can be reused for bigger/smaller bars.
+	 */
+	private void withScale(GuiGraphicsExtractor graphics, float s, Runnable draw) {
+		int tempX = renderX;
+		int tempY = renderY;
+		int tempWidth = renderWidth;
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(renderX, renderY);
+		pose.scale(s, s);
+		renderX = 0;
+		renderY = 0;
+		renderWidth = Math.max(1, Math.round(tempWidth / s));
+		try {
+			draw.run();
+		} finally {
+			pose.popMatrix();
+			renderX = tempX;
+			renderY = tempY;
+			renderWidth = tempWidth;
+		}
+	}
+
+	private void extractBarUnscaled(GuiGraphicsExtractor graphics) {
 		if (renderWidth <= 0) return;
 		int transparency = transparency(-1);
 		switch (iconPosition) {
@@ -180,6 +226,13 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 
 	public void extractText(GuiGraphicsExtractor graphics) {
 		if (!showText()) return;
+		float s = effectiveScale();
+		if (s != 1) {
+			withScale(graphics, s, () -> extractTextUnscaled(graphics));
+		} else extractTextUnscaled(graphics);
+	}
+
+	private void extractTextUnscaled(GuiGraphicsExtractor graphics) {
 		Font textRenderer = Minecraft.getInstance().font;
 		int barWidth = iconPosition.equals(IconPosition.OFF) ? renderWidth : renderWidth - ICON_SIZE - 1;
 		int barX = iconPosition.equals(IconPosition.LEFT) ? renderX + ICON_SIZE + 2 : renderX;
@@ -223,7 +276,9 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		boolean tempInMouse = inMouse;
 		float tempFill = fill;
 		float tempOverflow = overflowFill;
+		float tempScale = scale;
 
+		scale = 1;
 		renderX = x;
 		renderY = y;
 		renderWidth = previewWidth;
@@ -239,6 +294,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		inMouse = tempInMouse;
 		fill = tempFill;
 		overflowFill = tempOverflow;
+		scale = tempScale;
 	}
 
 	public StatusBarType getType() {
@@ -294,7 +350,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 
 	@Override
 	public int getHeight() {
-		return 9;
+		return Math.max(1, Math.round(9 * effectiveScale()));
 	}
 
 	@Override
@@ -470,6 +526,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		if (object.has("text_position")) this.textPosition = TextPosition.valueOf(object.get("text_position").getAsString().trim());
 		if (object.has("show_max")) this.showMax = object.get("show_max").getAsBoolean();
 		if (object.has("show_overflow")) this.showOverflow = object.get("show_overflow").getAsBoolean();
+		this.scale = object.has("scale") ? Math.clamp(object.get("scale").getAsFloat(), MIN_SCALE, MAX_SCALE) : 1;
 		if (object.has("direction")) this.direction = Direction.valueOf(object.get("direction").getAsString().trim());
 	}
 
@@ -501,6 +558,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 		object.addProperty("show_overflow", showOverflow);
 		object.addProperty("direction", direction.getSerializedName());
 		object.addProperty("enabled", enabled);
+		object.addProperty("scale", scale);
 		return object;
 	}
 

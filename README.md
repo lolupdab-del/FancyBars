@@ -12,9 +12,11 @@ plus the optional vanilla-style mana bar.
 
 | Command | What it does |
 |---|---|
-| `/fancybars` | Open the Fancy Bars menu: turn each bar and its icon on/off, resize bars, recolour bars, overflow mana, absorption and text (also via Mod Menu) |
-| `/fancybars edit` | Open the drag-and-drop layout editor directly (also the **Edit GUI** button in the menu) |
+| `/fancybars` | Open the Fancy Bars menu: switch each bar and its icon on/off, and recolour bars, overflow mana, absorption and text (also via Mod Menu) |
+| `/fancybars edit` | Open the editor (also the **Edit GUI** button): drag bars anywhere, scroll over a bar to scale it, drag its left/right edge to make it longer, right-click for more options. Bars snap to each other, the hotbar and the screen centre; hold Shift to place freely |
 | `/fancybars config` | Open the extra settings (also **More Settings...** in the menu) |
+
+While fancy bars are active the vanilla XP bar is always hidden, even if you turn the fancy XP bar off.
 
 Config files live in `.minecraft/config/fancybars/` (`config.json` and `status_bars.json`).
 Your Skyblocker layout can be reused: copy `config/skyblocker/status_bars.json` to `config/fancybars/status_bars.json`, as the format is identical.
@@ -29,7 +31,7 @@ You need JDK 25.
 ./gradlew build
 ```
 
-The mod jar ends up in `build/libs/fancybars-1.1.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
+The mod jar ends up in `build/libs/fancybars-1.2.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
 
 No JDK? Push this folder to a GitHub repo: the included workflow builds it, and the jar appears under **Actions → latest run → Artifacts**.
 

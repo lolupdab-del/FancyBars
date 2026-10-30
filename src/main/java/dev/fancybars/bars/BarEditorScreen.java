@@ -1,0 +1,506 @@
+package dev.fancybars.bars;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.cursor.CursorTypes;
+import org.jspecify.annotations.Nullable;
+
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+
+import dev.fancybars.util.EnumUtils;
+import dev.fancybars.util.gui.ModernButton;
+import dev.fancybars.util.gui.ModernToggle;
+import dev.fancybars.util.gui.Theme;
+
+/**
+ * Free-form bar editor.
+ * <ul>
+ *     <li>Drag a bar to move it anywhere (snaps to other bars, the hotbar and the screen centre; hold Shift to disable snapping)</li>
+ *     <li>Drag its left or right edge to make it longer or shorter</li>
+ *     <li>Scroll over it to scale it up or down</li>
+ *     <li>Right-click it for more options</li>
+ * </ul>
+ */
+public class BarEditorScreen extends Screen {
+	private static final Identifier HOTBAR_TEXTURE = Identifier.withDefaultNamespace("hud/hotbar");
+	private static final int HOTBAR_WIDTH = 182;
+	private static final int MIN_WIDTH = 20;
+	private static final int EDGE_GRAB = 3;
+	private static final int SNAP_DISTANCE = 4;
+	private static final float SCALE_STEP = 0.1f;
+
+	private final @Nullable Screen parent;
+	private final FancyStatusBars bars = FancyStatusBars.INSTANCE;
+
+	private @Nullable StatusBar dragging;
+	private DragMode dragMode = DragMode.NONE;
+	private int grabOffsetX;
+	private int grabOffsetY;
+	private int dragStartRight;
+	private boolean pendingDetach = false;
+
+	private @Nullable StatusBar optionsBar;
+	private int optionsX;
+	private int optionsY;
+	private int optionsWidth;
+	private int optionsHeight;
+	private final List<AbstractWidget> optionWidgets = new ArrayList<>();
+
+	private final List<int[]> guides = new ArrayList<>(); // {vertical ? 1 : 0, position}
+	private boolean rebuildNextTick = false;
+
+	public BarEditorScreen(@Nullable Screen parent) {
+		super(Component.translatable("fancybars.editor.title"));
+		this.parent = parent;
+	}
+
+	@Override
+	protected void init() {
+		super.init();
+		bars.updatePositions(true);
+
+		int toolbarY = 6;
+		ModernButton done = new ModernButton(56, 16, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
+		ModernButton reset = new ModernButton(76, 16, Component.translatable("fancybars.menu.resetLayout"), () -> {
+			bars.resetBarPositions();
+			bars.statusBars.values().forEach(bar -> {
+				bar.enabled = true;
+				bar.scale = 1;
+			});
+			bars.updatePositions(true);
+			closeOptions();
+		});
+		done.setPosition(width / 2 + 2, toolbarY + 20);
+		reset.setPosition(width / 2 - 2 - reset.getWidth(), toolbarY + 20);
+		addRenderableWidget(done);
+		addRenderableWidget(reset);
+
+		if (optionsBar != null) buildOptions(optionsBar);
+	}
+
+	// ---------------------------------------------------------------- Rendering
+
+	@Override
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+		// Light dim so the world (and the real HUD position) stays visible
+		graphics.fill(0, 0, width, height, 0x40000000);
+	}
+
+	@Override
+	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+		// Toolbar panel (hidden while dragging so it never gets in the way)
+		if (dragging == null) {
+			int toolbarWidth = Math.min(width - 20, Math.max(170, font.width(Component.translatable("fancybars.editor.hint")) + 20));
+			Theme.panel(graphics, width / 2 - toolbarWidth / 2, 2, toolbarWidth, 44);
+			Theme.centeredText(graphics, font, Component.translatable("fancybars.editor.hint"), width / 2, 10, Theme.TEXT_MUTED);
+		}
+
+		// Hotbar for reference
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_TEXTURE, width / 2 - HOTBAR_WIDTH / 2, height - 22, HOTBAR_WIDTH, 22);
+
+		// Bars
+		StatusBar hovered = dragging != null ? dragging : barAt(mouseX, mouseY);
+		for (StatusBar bar : bars.statusBars.values()) {
+			if (!bar.enabled) continue;
+			bar.extractBar(graphics);
+		}
+		for (StatusBar bar : bars.statusBars.values()) {
+			if (!bar.enabled) continue;
+			bar.extractText(graphics);
+		}
+
+		// Selection outline + resize handles
+		for (StatusBar bar : bars.statusBars.values()) {
+			if (!bar.enabled) continue;
+			boolean active = bar == hovered || bar == optionsBar;
+			if (!active) continue;
+			outline(graphics, bar.getX() - 2, bar.getY() - 2, bar.getWidth() + 4, bar.getHeight() + 4, Theme.ACCENT);
+			int handleHeight = Math.max(6, bar.getHeight() - 2);
+			int handleY = bar.getY() + (bar.getHeight() - handleHeight) / 2;
+			Theme.roundedRect(graphics, bar.getX() - 4, handleY, 3, handleHeight, 1, Theme.ACCENT);
+			Theme.roundedRect(graphics, bar.getX() + bar.getWidth() + 1, handleY, 3, handleHeight, 1, Theme.ACCENT);
+		}
+
+		// Snap guides
+		for (int[] guide : guides) {
+			if (guide[0] == 1) graphics.fill(guide[1], 0, guide[1] + 1, height, Theme.ACCENT_DIM);
+			else graphics.fill(0, guide[1], width, guide[1] + 1, Theme.ACCENT_DIM);
+		}
+
+		// Size / scale readout while editing
+		if (hovered != null && optionsBar == null) {
+			Component info = Component.translatable("fancybars.editor.info", hovered.getName(), hovered.getWidth(), Math.round(hovered.effectiveScale() * 100));
+			int infoWidth = font.width(info) + 10;
+			int infoX = Math.clamp(hovered.getX() + hovered.getWidth() / 2 - infoWidth / 2, 2, width - infoWidth - 2);
+			int infoY = hovered.getY() - 18 < 48 ? hovered.getY() + hovered.getHeight() + 5 : hovered.getY() - 18;
+			Theme.roundedRectBordered(graphics, infoX, infoY, infoWidth, 13, 3, Theme.PANEL, Theme.PANEL_BORDER);
+			Theme.text(graphics, font, info, infoX + 5, infoY + 3, Theme.TEXT);
+		}
+
+		// Cursor feedback
+		if (dragging != null) {
+			graphics.requestCursor(dragMode == DragMode.MOVE ? CursorTypes.RESIZE_ALL : CursorTypes.RESIZE_EW);
+		} else if (hovered != null && !isOverOptions(mouseX, mouseY)) {
+			graphics.requestCursor(edgeAt(hovered, mouseX) != DragMode.MOVE ? CursorTypes.RESIZE_EW : CursorTypes.RESIZE_ALL);
+		}
+
+		// Options panel background (widgets render on top via super)
+		if (optionsBar != null) {
+			Theme.panel(graphics, optionsX, optionsY, optionsWidth, optionsHeight);
+			Theme.text(graphics, font, optionsBar.getName(), optionsX + 8, optionsY + 7, Theme.ACCENT);
+			graphics.fill(optionsX + 6, optionsY + 19, optionsX + optionsWidth - 6, optionsY + 20, Theme.DIVIDER);
+		}
+
+		super.extractRenderState(graphics, mouseX, mouseY, a);
+	}
+
+	private static void outline(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int color) {
+		graphics.fill(x + 1, y, x + w - 1, y + 1, color);
+		graphics.fill(x + 1, y + h - 1, x + w - 1, y + h, color);
+		graphics.fill(x, y + 1, x + 1, y + h - 1, color);
+		graphics.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+	}
+
+	// ---------------------------------------------------------------- Hit testing
+
+	private @Nullable StatusBar barAt(double mouseX, double mouseY) {
+		StatusBar found = null;
+		for (StatusBar bar : bars.statusBars.values()) {
+			if (!bar.enabled) continue;
+			if (mouseX >= bar.getX() - EDGE_GRAB && mouseX <= bar.getX() + bar.getWidth() + EDGE_GRAB
+					&& mouseY >= bar.getY() - 1 && mouseY <= bar.getY() + bar.getHeight() + 1) {
+				found = bar; // last one wins = drawn on top
+			}
+		}
+		return found;
+	}
+
+	private static DragMode edgeAt(StatusBar bar, double mouseX) {
+		if (mouseX <= bar.getX() + EDGE_GRAB - 1) return DragMode.RESIZE_LEFT;
+		if (mouseX >= bar.getX() + bar.getWidth() - EDGE_GRAB + 1) return DragMode.RESIZE_RIGHT;
+		return DragMode.MOVE;
+	}
+
+	private boolean isOverOptions(double mouseX, double mouseY) {
+		return optionsBar != null && mouseX >= optionsX && mouseX < optionsX + optionsWidth && mouseY >= optionsY && mouseY < optionsY + optionsHeight;
+	}
+
+	// ---------------------------------------------------------------- Input
+
+	@Override
+	public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
+		if (super.mouseClicked(click, doubled)) return true;
+		if (isOverOptions(click.x(), click.y())) return true;
+
+		StatusBar bar = barAt(click.x(), click.y());
+		if (click.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
+			if (bar != null) openOptions(bar, (int) click.x(), (int) click.y());
+			else closeOptions();
+			return true;
+		}
+		if (click.button() != InputConstants.MOUSE_BUTTON_LEFT) return false;
+
+		closeOptions();
+		if (bar == null) return false;
+
+		DragMode mode = edgeAt(bar, click.x());
+		// Bars are only unsnapped from the hotbar once they actually get dragged
+		pendingDetach = true;
+		dragging = bar;
+		dragMode = mode;
+		grabOffsetX = (int) click.x() - bar.getX();
+		grabOffsetY = (int) click.y() - bar.getY();
+		dragStartRight = bar.getX() + bar.getWidth();
+		return true;
+	}
+
+	@Override
+	public boolean mouseDragged(MouseButtonEvent click, double dx, double dy) {
+		if (dragging == null) return super.mouseDragged(click, dx, dy);
+		StatusBar bar = dragging;
+		if (pendingDetach) {
+			pendingDetach = false;
+			bars.detach(bar);
+		}
+		boolean snap = !minecraft.hasShiftDown();
+		guides.clear();
+		int mouseX = (int) click.x();
+		int mouseY = (int) click.y();
+
+		switch (dragMode) {
+			case MOVE -> {
+				int x = mouseX - grabOffsetX;
+				int y = mouseY - grabOffsetY;
+				if (snap) {
+					x = snapX(bar, x, bar.getWidth());
+					y = snapY(bar, y, bar.getHeight());
+				}
+				x = Math.clamp(x, 0, Math.max(0, width - bar.getWidth()));
+				y = Math.clamp(y, 0, Math.max(0, height - bar.getHeight()));
+				bars.setFreeBounds(bar, x, y, bar.getWidth());
+			}
+			case RESIZE_RIGHT -> {
+				int right = mouseX;
+				if (snap) right = snapEdge(bar, right);
+				int newWidth = Math.clamp(right - bar.getX(), minWidth(bar), width - bar.getX());
+				bars.setFreeBounds(bar, bar.getX(), bar.getY(), newWidth);
+			}
+			case RESIZE_LEFT -> {
+				int left = mouseX;
+				if (snap) left = snapEdge(bar, left);
+				left = Math.clamp(left, 0, dragStartRight - minWidth(bar));
+				bars.setFreeBounds(bar, left, bar.getY(), dragStartRight - left);
+			}
+			case NONE -> {}
+		}
+		return true;
+	}
+
+	@Override
+	public boolean mouseReleased(MouseButtonEvent click) {
+		if (dragging != null) {
+			pendingDetach = false;
+			dragging = null;
+			dragMode = DragMode.NONE;
+			guides.clear();
+			bars.updatePositions(true);
+			return true;
+		}
+		return super.mouseReleased(click);
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+		if (isOverOptions(mouseX, mouseY)) return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
+		StatusBar bar = barAt(mouseX, mouseY);
+		if (bar == null || vertical == 0) return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
+
+		bars.detach(bar);
+		float oldScale = bar.scale;
+		float newScale = Math.clamp(Math.round((oldScale + (vertical > 0 ? SCALE_STEP : -SCALE_STEP)) * 10) / 10f, StatusBar.MIN_SCALE, StatusBar.MAX_SCALE);
+		if (newScale == oldScale) return true;
+
+		// Scale around the mouse so the bar grows "towards" the cursor naturally
+		int oldX = bar.getX();
+		int oldY = bar.getY();
+		float ratio = newScale / oldScale;
+		int newWidth = Math.max(minWidth(bar), Math.round(bar.getWidth() * ratio));
+		int newX = (int) Math.round(mouseX - (mouseX - oldX) * ratio);
+		int newY = (int) Math.round(mouseY - (mouseY - oldY) * ratio);
+		bar.scale = newScale;
+		int newHeight = bar.getHeight();
+		newWidth = Math.min(newWidth, width);
+		newX = Math.clamp(newX, 0, width - newWidth);
+		newY = Math.clamp(newY, 0, Math.max(0, height - newHeight));
+		bars.setFreeBounds(bar, newX, newY, newWidth);
+		if (optionsBar == bar) requestRebuild();
+		return true;
+	}
+
+	@Override
+	public boolean keyPressed(KeyEvent event) {
+		if (event.key() == InputConstants.KEY_ESCAPE && optionsBar != null) {
+			closeOptions();
+			return true;
+		}
+		return super.keyPressed(event);
+	}
+
+	private static int minWidth(StatusBar bar) {
+		return Math.round(MIN_WIDTH * bar.effectiveScale());
+	}
+
+	// ---------------------------------------------------------------- Snapping
+
+	private List<int[]> snapTargetsX(StatusBar self) {
+		List<int[]> targets = new ArrayList<>();
+		targets.add(new int[]{width / 2});
+		targets.add(new int[]{width / 2 - HOTBAR_WIDTH / 2});
+		targets.add(new int[]{width / 2 + HOTBAR_WIDTH / 2});
+		for (StatusBar other : bars.statusBars.values()) {
+			if (other == self || !other.enabled) continue;
+			targets.add(new int[]{other.getX()});
+			targets.add(new int[]{other.getX() + other.getWidth()});
+		}
+		return targets;
+	}
+
+	private List<int[]> snapTargetsY(StatusBar self) {
+		List<int[]> targets = new ArrayList<>();
+		targets.add(new int[]{height - 22});
+		for (StatusBar other : bars.statusBars.values()) {
+			if (other == self || !other.enabled) continue;
+			targets.add(new int[]{other.getY()});
+			targets.add(new int[]{other.getY() + other.getHeight()});
+			targets.add(new int[]{other.getY() - 1});
+			targets.add(new int[]{other.getY() + other.getHeight() + 1});
+		}
+		return targets;
+	}
+
+	private int snapX(StatusBar bar, int x, int w) {
+		int best = x;
+		int bestDist = SNAP_DISTANCE + 1;
+		int guide = -1;
+		for (int[] t : snapTargetsX(bar)) {
+			int target = t[0];
+			// left edge, right edge, centre
+			int[][] candidates = {{target, target}, {target - w, target}, {target - w / 2, target}};
+			for (int[] c : candidates) {
+				int dist = Math.abs(c[0] - x);
+				if (dist < bestDist) {
+					bestDist = dist;
+					best = c[0];
+					guide = c[1];
+				}
+			}
+		}
+		if (guide >= 0) guides.add(new int[]{1, guide});
+		return best;
+	}
+
+	private int snapY(StatusBar bar, int y, int h) {
+		int best = y;
+		int bestDist = SNAP_DISTANCE + 1;
+		int guide = -1;
+		for (int[] t : snapTargetsY(bar)) {
+			int target = t[0];
+			int[][] candidates = {{target, target}, {target - h, target}};
+			for (int[] c : candidates) {
+				int dist = Math.abs(c[0] - y);
+				if (dist < bestDist) {
+					bestDist = dist;
+					best = c[0];
+					guide = c[1];
+				}
+			}
+		}
+		if (guide >= 0) guides.add(new int[]{0, guide});
+		return best;
+	}
+
+	private int snapEdge(StatusBar bar, int edge) {
+		for (int[] t : snapTargetsX(bar)) {
+			if (Math.abs(t[0] - edge) <= SNAP_DISTANCE) {
+				guides.add(new int[]{1, t[0]});
+				return t[0];
+			}
+		}
+		return edge;
+	}
+
+	// ---------------------------------------------------------------- Options panel
+
+	private void openOptions(StatusBar bar, int x, int y) {
+		optionsBar = bar;
+		optionsX = x;
+		optionsY = y;
+		rebuildWidgets();
+	}
+
+	private void closeOptions() {
+		if (optionsBar == null) return;
+		optionsBar = null;
+		rebuildWidgets();
+	}
+
+	private void buildOptions(StatusBar bar) {
+		optionWidgets.clear();
+		int w = 150;
+		int rowH = 16;
+
+		optionWidgets.add(cycle(w, rowH, "fancybars.bars.config.icon", () -> bar.getIconPosition().toString(), () -> bar.setIconPosition(EnumUtils.cycle(bar.getIconPosition()))));
+		optionWidgets.add(cycle(w, rowH, "fancybars.bars.config.text", () -> bar.getTextPosition().toString(), () -> bar.setTextPosition(EnumUtils.cycle(bar.getTextPosition()))));
+		optionWidgets.add(cycle(w, rowH, "fancybars.bars.config.direction", () -> bar.getDirection().toString(), () -> bar.setDirection(EnumUtils.cycle(bar.getDirection()))));
+		if (bar.hasMax()) optionWidgets.add(new ModernToggle(w, rowH, Component.translatable("fancybars.bars.config.showMax"), bar.showMax, value -> bar.showMax = value));
+		if (bar.hasOverflow()) optionWidgets.add(new ModernToggle(w, rowH, Component.translatable("fancybars.bars.config.showOverflow"), bar.showOverflow, value -> bar.showOverflow = value));
+		optionWidgets.add(new ModernButton(w, rowH, Component.translatable("fancybars.editor.resetScale"), () -> {
+			if (bar.anchor == null && bar.scale != 1) {
+				int newWidth = Math.max(MIN_WIDTH, Math.round(bar.getWidth() / bar.scale));
+				bar.scale = 1;
+				bars.setFreeBounds(bar, bar.getX(), bar.getY(), newWidth);
+			}
+		}));
+		optionWidgets.add(new ModernButton(w, rowH, Component.translatable("fancybars.editor.snapToHotbar"), () -> {
+			bars.snapToDefault(bar);
+			closeOptions();
+		}));
+		optionWidgets.add(new ModernButton(w, rowH, Component.translatable("fancybars.bars.config.hide"), () -> {
+			bars.setBarEnabled(bar, false);
+			bars.updatePositions(true);
+			closeOptions();
+		}));
+
+		optionsWidth = w + 12;
+		optionsHeight = 26 + optionWidgets.size() * (rowH + 3) + 3;
+		optionsX = Math.clamp(optionsX, 2, width - optionsWidth - 2);
+		optionsY = Math.clamp(optionsY, 2, height - optionsHeight - 2);
+		int y = optionsY + 24;
+		for (AbstractWidget widget : optionWidgets) {
+			widget.setPosition(optionsX + 6, y);
+			y += rowH + 3;
+			addRenderableWidget(widget);
+		}
+	}
+
+	private ModernButton cycle(int w, int h, String key, java.util.function.Supplier<String> value, Runnable cycle) {
+		ModernButton[] holder = new ModernButton[1];
+		holder[0] = new ModernButton(w, h, label(key, value.get()), () -> {
+			cycle.run();
+			holder[0].setMessage(label(key, value.get()));
+		});
+		return holder[0];
+	}
+
+	private static Component label(String key, String value) {
+		return Component.translatable(key).append(": ").append(Component.literal(value));
+	}
+
+	private void requestRebuild() {
+		rebuildNextTick = true;
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		if (rebuildNextTick) {
+			rebuildNextTick = false;
+			rebuildWidgets();
+		}
+	}
+
+	// ---------------------------------------------------------------- Lifecycle
+
+	@Override
+	public void removed() {
+		super.removed();
+		bars.updatePositions(false);
+		bars.saveBarConfig();
+	}
+
+	@Override
+	public void onClose() {
+		minecraft.gui.setScreen(parent);
+	}
+
+	@Override
+	public boolean isPauseScreen() {
+		return false;
+	}
+
+	private enum DragMode {
+		NONE,
+		MOVE,
+		RESIZE_LEFT,
+		RESIZE_RIGHT
+	}
+}
