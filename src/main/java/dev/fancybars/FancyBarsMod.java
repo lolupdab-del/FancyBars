@@ -75,6 +75,10 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.players.PlayerSizes.init();
 		dev.fancybars.fun.WallLicker.init();
 		dev.fancybars.capes.Capes.init();
+		dev.fancybars.gifs.ScreenImages.init();
+		dev.fancybars.hud.TitlesAndHotbar.init();
+		dev.fancybars.chat.ChatFilters.init();
+		dev.fancybars.items.ItemChanger.init();
 		BackpackPreview.init();
 
 		// /sbclient, with /shikiclient and /fancybars kept as aliases
@@ -84,6 +88,7 @@ public class FancyBarsMod implements ClientModInitializer {
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
+						.then(ClientCommands.literal("items").executes(_ -> queueOpenScreen(new dev.fancybars.items.ItemChangerScreen(null))))
 						.then(ClientCommands.literal("config").executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.GENERAL)))));
 			}
 		});

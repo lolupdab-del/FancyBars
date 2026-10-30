@@ -261,6 +261,18 @@ public class BarsMenuScreen extends Screen {
 				list.add(new StarItem());
 				list.add(new ProtectedItemsItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.itemCustomization"), null));
+				list.add(new ToggleItem("itemCustomizationEnabled", () -> config.itemCustomizationEnabled, value -> config.itemCustomizationEnabled = value));
+				list.add(new ToggleItem("itemCustomizationButton", () -> config.itemCustomizationButton, value -> config.itemCustomizationButton = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.items.open"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.items.ItemChangerScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.items.resetAll"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
+								Component.translatable("fancybars.items.resetAll.title"),
+								Component.translatable("fancybars.items.resetAll.message", config.customItemModels.size()),
+								() -> {
+									config.customItemModels.clear();
+									FancyBarsConfig.save();
+								})))));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
 				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
 				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
@@ -282,6 +294,22 @@ public class BarsMenuScreen extends Screen {
 							Component.translatable("fancybars.gifs.empty3")), false));
 				} else {
 					for (dev.fancybars.gifs.GifStore.Gif gif : gifs) list.add(new GifItem(gif));
+				}
+				list.add(new HeaderItem(Component.translatable("fancybars.category.screenImages"), null));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.gifs.openFolder"), dev.fancybars.gifs.ScreenImages::openFolder),
+						new ModernButton(10, 20, Component.translatable("fancybars.gifs.reload"), () -> {
+							dev.fancybars.gifs.ScreenImages.reload();
+							rebuildNextTick = true;
+						})));
+				List<dev.fancybars.gifs.ScreenImages.Image> images = dev.fancybars.gifs.ScreenImages.all();
+				if (images.isEmpty()) {
+					list.add(new InfoCardItem(Component.translatable("fancybars.screenImages.emptyTitle"), List.of(
+							Component.translatable("fancybars.screenImages.empty1"),
+							Component.translatable("fancybars.screenImages.empty2")), false));
+				} else {
+					for (dev.fancybars.gifs.ScreenImages.Image image : images) list.add(new ScreenImageItem(image));
 				}
 			}
 			case DUNGEONS -> {
@@ -362,6 +390,15 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.KEYSTROKES.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
+				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.HOTBAR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.inventoryHud"), null));
 				list.add(new ToggleItem("invHudEnabled", () -> config.invHudEnabled, value -> config.invHudEnabled = value));
 				list.add(new ToggleItem("invHudBackground", () -> config.invHudBackground, value -> config.invHudBackground = value));
@@ -369,6 +406,20 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
+			}
+			case CHAT -> {
+				String group = "";
+				for (dev.fancybars.chat.ChatFilters.Filter filter : dev.fancybars.chat.ChatFilters.ALL) {
+					if (!filter.group().equals(group)) {
+						group = filter.group();
+						list.add(new HeaderItem(Component.translatable("fancybars.chat.group." + group), null));
+					}
+					String id = filter.id();
+					list.add(new ToggleItem("chat." + id, () -> config.chatFilters.contains(id), value -> {
+						if (value) config.chatFilters.add(id);
+						else config.chatFilters.remove(id);
+					}));
+				}
 			}
 			case MINING -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.commissions"), null));
@@ -652,6 +703,7 @@ public class BarsMenuScreen extends Screen {
 		ACTION_BAR("fancybars.category.actionBar"),
 		HUD("fancybars.category.hud"),
 		MINING("fancybars.category.mining"),
+		CHAT("fancybars.category.chat"),
 		PLAYER("fancybars.category.player"),
 		GENERAL("fancybars.category.general"),
 		VANILLA_MANA("fancybars.category.vanillaMana");
@@ -1450,6 +1502,59 @@ public class BarsMenuScreen extends Screen {
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, hovered ? Theme.CARD_HOVER : Theme.CARD, hovered ? Theme.SELECTED_BORDER : Theme.CARD_BORDER);
 			Theme.boldInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 100), x + 10, y, height, Theme.TEXT);
+		}
+	}
+
+	/** One screen image: preview, name, on/off and opacity. */
+	private class ScreenImageItem extends Item {
+		private final dev.fancybars.gifs.ScreenImages.Image image;
+		private final ModernToggle toggle;
+		private final ModernButton opacity;
+
+		ScreenImageItem(dev.fancybars.gifs.ScreenImages.Image image) {
+			this.image = image;
+			this.height = 40;
+			this.searchable = true;
+			this.searchText = image.name + " screen image picture";
+			toggle = new ModernToggle(ModernToggle.SWITCH_WIDTH, ModernToggle.SWITCH_HEIGHT, null, image.settings().enabled, value -> {
+				image.settings().enabled = value;
+				FancyBarsConfig.save();
+			});
+			ModernButton[] holder = new ModernButton[1];
+			holder[0] = new ModernButton(50, 16, Component.literal(Math.round(image.settings().opacity * 100) + "%"), () -> {
+				float[] steps = {0.25f, 0.5f, 0.75f, 1f};
+				float current = image.settings().opacity;
+				float next = steps[0];
+				for (int i = 0; i < steps.length; i++) if (Math.abs(steps[i] - current) < 0.01f) next = steps[(i + 1) % steps.length];
+				image.settings().opacity = next;
+				FancyBarsConfig.save();
+				holder[0].setMessage(Component.literal(Math.round(next * 100) + "%"));
+			});
+			opacity = holder[0];
+			tipFor(opacity, Component.translatable("fancybars.screenImages.opacity"));
+			widgets.add(toggle);
+			widgets.add(opacity);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			toggle.setPosition(x + w - ModernToggle.SWITCH_WIDTH - 10, y + (height - ModernToggle.SWITCH_HEIGHT) / 2);
+			opacity.setPosition(toggle.getX() - opacity.getWidth() - 8, y + (height - opacity.getHeight()) / 2);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			int box = height - 8;
+			Theme.roundedRect(graphics, x + 4, y + 4, box, box, 4, 0xFF111320);
+			if (image.ready) {
+				float s = Math.min((float) box / image.srcW, (float) box / image.srcH);
+				float iw = image.srcW * s;
+				float ih = image.srcH * s;
+				dev.fancybars.gifs.ScreenImages.draw(graphics, image, x + 4 + (box - iw) / 2, y + 4 + (box - ih) / 2, iw, ih, 1);
+			}
+			Component name = image.error != null ? Component.translatable("fancybars.gifs.failed") : Component.literal(image.name);
+			Theme.boldInBox(graphics, font, clip(name, w - box - 150), x + box + 12, y, height, image.error != null ? 0xFFFF7070 : Theme.TEXT);
 		}
 	}
 

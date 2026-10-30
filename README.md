@@ -61,6 +61,9 @@ No JDK? Push this folder to a GitHub repo: the included workflow builds it, and 
 
 ## Credits
 
+- Chat toggles ported from [Skytils](https://github.com/Skytils/SkytilsMod) (AGPL-3.0) Spam Hider.
+- Item customization (paintbrush) from Skyblocker.
+
 - Cape texture list from [Cape Command](https://github.com/eclipseisoffline/capecommand) by eclipseisoffline; textures are downloaded from Mojang / the Minecraft Wiki at runtime.
 
 * Original fancy status bars: [Skyblocker](https://github.com/SkyblockerMod/Skyblocker) (LGPL-3.0).

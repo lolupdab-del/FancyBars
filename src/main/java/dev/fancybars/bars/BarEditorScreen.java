@@ -118,7 +118,7 @@ public class BarEditorScreen extends Screen {
 		for (AbstractWidget widget : toolbar) widget.visible = !busy;
 
 		// Hotbar for reference
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_TEXTURE, width / 2 - HOTBAR_WIDTH / 2, height - 22, HOTBAR_WIDTH, 22);
+		// (the hotbar is drawn by its own movable element)
 
 		// Bars
 		StatusBar hovered = dragging != null ? dragging : barAt(mouseX, mouseY);
@@ -187,7 +187,7 @@ public class BarEditorScreen extends Screen {
 	}
 
 	private @Nullable MovableElement elementAt(double mouseX, double mouseY) {
-		for (MovableElement element : MovableElement.ALL) {
+		for (MovableElement element : MovableElement.all()) {
 			if (isOver(element.rect(width, height), mouseX, mouseY)) return element;
 		}
 		return null;
@@ -195,7 +195,7 @@ public class BarEditorScreen extends Screen {
 
 	private void extractElements(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean canHover) {
 		MovableElement hoveredElement = draggingElement != null ? draggingElement : canHover ? elementAt(mouseX, mouseY) : null;
-		for (MovableElement element : MovableElement.ALL) {
+		for (MovableElement element : MovableElement.all()) {
 			element.drawPreview(graphics, width, height);
 		}
 		if (hoveredElement == null) return;
@@ -434,7 +434,7 @@ public class BarEditorScreen extends Screen {
 	/** Edges of the movable HUD elements other than {@code self}: {x0, y0, x1, y1}. */
 	private List<int[]> elementEdges(Object self) {
 		List<int[]> edges = new ArrayList<>();
-		for (MovableElement element : MovableElement.ALL) {
+		for (MovableElement element : MovableElement.all()) {
 			if (element == self || !element.enabled()) continue;
 			float[] r = element.rect(width, height);
 			edges.add(new int[]{Math.round(r[0]), Math.round(r[1]), Math.round(r[0] + r[2]), Math.round(r[1] + r[3])});

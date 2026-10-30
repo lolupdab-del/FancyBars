@@ -135,6 +135,54 @@ public class FancyBarsConfig {
 
 	public boolean ownNametagInF5 = false;
 
+	// ---------------------------------------------------------------- Screen images
+
+	public static final class ScreenImage {
+		public boolean enabled = true;
+
+		/** Position as a fraction of the screen, -1 = default. */
+		public float x = -1;
+
+		public float y = -1;
+
+		public float scale = 1;
+
+		public float opacity = 1;
+	}
+
+	/** File name → settings. */
+	public java.util.Map<String, ScreenImage> screenImages = new java.util.HashMap<>();
+
+	// ---------------------------------------------------------------- Titles / hotbar
+
+	public boolean titlesShown = true;
+
+	public int titleX = 0;
+
+	public int titleY = 0;
+
+	public float titleScale = 1;
+
+	public int hotbarX = 0;
+
+	public int hotbarY = 0;
+
+	public float hotbarScale = 1;
+
+	// ---------------------------------------------------------------- Chat filters (from Skytils' spam hider)
+
+	/** Ids of the chat filters that are on. */
+	public java.util.Set<String> chatFilters = new java.util.HashSet<>();
+
+	// ---------------------------------------------------------------- Item customisation (from Skyblocker)
+
+	public boolean itemCustomizationEnabled = true;
+
+	public boolean itemCustomizationButton = true;
+
+	/** Item UUID → item model id it should look like. */
+	public java.util.Map<String, String> customItemModels = new java.util.HashMap<>();
+
 	// ---------------------------------------------------------------- Capes
 
 	public boolean capeEnabled = false;
@@ -306,6 +354,11 @@ public class FancyBarsConfig {
 			if (instance.commissionsScale <= 0) instance.commissionsScale = 1;
 			if (instance.wallLickerScale <= 0) instance.wallLickerScale = 1;
 			if (instance.cape == null) instance.cape = "migrator";
+			if (instance.screenImages == null) instance.screenImages = new java.util.HashMap<>();
+			if (instance.chatFilters == null) instance.chatFilters = new java.util.HashSet<>();
+			if (instance.customItemModels == null) instance.customItemModels = new java.util.HashMap<>();
+			if (instance.titleScale <= 0) instance.titleScale = 1;
+			if (instance.hotbarScale <= 0) instance.hotbarScale = 1;
 			if (instance.playerSize <= 0) instance.playerSize = 1;
 			if (instance.playerSize != 1 && instance.playerSizeWidth == 1 && instance.playerSizeHeight == 1 && instance.playerSizeLength == 1) {
 				instance.playerSizeWidth = instance.playerSizeHeight = instance.playerSizeLength = instance.playerSize;

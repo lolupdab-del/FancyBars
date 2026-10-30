@@ -579,5 +579,197 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER};
+	// ---------------------------------------------------------------- Titles / hotbar
+
+	MovableElement TITLE = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] b = dev.fancybars.hud.TitlesAndHotbar.titleBox();
+			float cx = screenW / 2f + c.titleX;
+			float cy = screenH / 2f + c.titleY;
+			return new float[]{cx + b[0] * c.titleScale, cy + b[1] * c.titleScale, (b[2] - b[0]) * c.titleScale, (b[3] - b[1]) * c.titleScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			dev.fancybars.hud.TitlesAndHotbar.drawTitlePreview(graphics, enabled() ? 0.85f : 0.3f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] b = dev.fancybars.hud.TitlesAndHotbar.titleBox();
+			c.titleX = Math.round(x - b[0] * c.titleScale - screenW / 2f);
+			c.titleY = Math.round(y - b[1] * c.titleScale - screenH / 2f);
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().titleScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().titleScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().titlesShown;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().titlesShown = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.titleX = 0;
+			c.titleY = 0;
+			c.titleScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.titles");
+		}
+	};
+
+	MovableElement HOTBAR = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float w = dev.fancybars.hud.TitlesAndHotbar.HOTBAR_W * c.hotbarScale;
+			float h = dev.fancybars.hud.TitlesAndHotbar.HOTBAR_H * c.hotbarScale;
+			float cx = screenW / 2f + c.hotbarX;
+			float cy = screenH - dev.fancybars.hud.TitlesAndHotbar.HOTBAR_H / 2f + c.hotbarY;
+			return new float[]{cx - w / 2, cy - h / 2, w, h};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			dev.fancybars.hud.TitlesAndHotbar.drawHotbarPreview(graphics, 1);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			c.hotbarX = Math.round(x + r[2] / 2 - screenW / 2f);
+			c.hotbarY = Math.round(y + r[3] / 2 - (screenH - dev.fancybars.hud.TitlesAndHotbar.HOTBAR_H / 2f));
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().hotbarScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().hotbarScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return true;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.hotbarX = 0;
+			c.hotbarY = 0;
+			c.hotbarScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.hotbar");
+		}
+	};
+
+	/** A picture from the screen images folder. */
+	static MovableElement image(dev.fancybars.gifs.ScreenImages.Image image) {
+		return new MovableElement() {
+			@Override
+			public float[] rect(int screenW, int screenH) {
+				float[] pos = dev.fancybars.gifs.ScreenImages.position(image, screenW, screenH);
+				int[] base = image.baseSize();
+				float s = image.settings().scale;
+				return new float[]{pos[0], pos[1], base[0] * s, base[1] * s};
+			}
+
+			@Override
+			public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+				dev.fancybars.gifs.ScreenImages.drawOnScreen(graphics, image, enabled() ? 1 : 0.3f);
+			}
+
+			@Override
+			public void moveTo(float x, float y, int screenW, int screenH) {
+				float[] r = rect(screenW, screenH);
+				image.settings().x = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+				image.settings().y = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+			}
+
+			@Override
+			public float scale() {
+				return image.settings().scale;
+			}
+
+			@Override
+			public void setScale(float scale) {
+				image.settings().scale = scale;
+			}
+
+			@Override
+			public boolean enabled() {
+				return image.settings().enabled;
+			}
+
+			@Override
+			public void setEnabled(boolean enabled) {
+				image.settings().enabled = enabled;
+			}
+
+			@Override
+			public void reset() {
+				image.settings().x = -1;
+				image.settings().y = -1;
+				image.settings().scale = 1;
+				FancyBarsConfig.save();
+			}
+
+			@Override
+			public Component name() {
+				return Component.literal(image.name);
+			}
+
+			@Override
+			public boolean snapsToCenter() {
+				return false;
+			}
+		};
+	}
+
+	/** One element per image, kept so the editor can compare them by identity. */
+	java.util.Map<dev.fancybars.gifs.ScreenImages.Image, MovableElement> IMAGE_ELEMENTS = new java.util.WeakHashMap<>();
+
+	/** Every movable element: the fixed ones plus one per screen image. */
+	static java.util.List<MovableElement> all() {
+		java.util.List<MovableElement> list = new java.util.ArrayList<>(java.util.Arrays.asList(ALL));
+		for (dev.fancybars.gifs.ScreenImages.Image image : dev.fancybars.gifs.ScreenImages.all()) {
+			if (image.ready) list.add(IMAGE_ELEMENTS.computeIfAbsent(image, MovableElement::image));
+		}
+		return list;
+	}
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR};
 }

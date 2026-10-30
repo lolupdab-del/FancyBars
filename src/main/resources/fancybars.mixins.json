@@ -13,6 +13,7 @@
 		"GifInventoryScreenMixin",
 		"HudAccessor",
 		"HudProtectionMixin",
+		"ItemModelResolverMixin",
 		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin"
 	],
