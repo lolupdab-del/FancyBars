@@ -63,6 +63,9 @@ public final class Customization {
 	private static final Map<String, Component> NAME_CACHE = new HashMap<>();
 	private static final Map<String, ArmorTrim> TRIMS = new HashMap<>();
 	private static int ticks;
+	/** RGB of the 16 "&" colour codes, 0-f. */
+	public static final int[] LEGACY_COLORS = {0x000000, 0x0000AA, 0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
+			0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF};
 
 	private Customization() {}
 
@@ -272,11 +275,13 @@ public final class Customization {
 					next = Style.EMPTY.withItalic(false).withColor(Integer.parseInt(raw.substring(i + 2, i + 8), 16));
 					skip = 7;
 				} else {
-					ChatFormatting f = ChatFormatting.getByCode(code);
-					if (f != null) {
+					int colorIndex = "0123456789abcdef".indexOf(code);
+					if (colorIndex >= 0) {
+						next = Style.EMPTY.withItalic(false).withColor(LEGACY_COLORS[colorIndex]);
+					} else {
+						ChatFormatting f = ChatFormatting.getByCode(code);
 						if (f == ChatFormatting.RESET) next = Style.EMPTY.withItalic(false);
-						else if (f.isColor()) next = Style.EMPTY.withItalic(false).withColor(f);
-						else next = style.applyFormat(f);
+						else if (f != null) next = style.applyFormat(f);
 					}
 				}
 				if (next != null) {

@@ -233,7 +233,7 @@ public class ItemChangerScreen extends Screen {
 		String uuid = uuid();
 		ItemStack stack = selected();
 		int half = (rightW - 4) / 2;
-		boolean dyeable = stack.is(ItemTags.DYEABLE);
+		boolean dyeable = stack.is(ItemTags.CAULDRON_CAN_REMOVE_DYE);
 		boolean head = stack.is(Items.PLAYER_HEAD);
 		boolean armor = stack.has(DataComponents.EQUIPPABLE) && !head;
 
@@ -525,7 +525,7 @@ public class ItemChangerScreen extends Screen {
 	private void renderArmorTab(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		int y = py + 42;
 		ItemStack stack = selected();
-		boolean dyeable = stack.is(ItemTags.DYEABLE);
+		boolean dyeable = stack.is(ItemTags.CAULDRON_CAN_REMOVE_DYE);
 		boolean head = stack.is(Items.PLAYER_HEAD);
 		boolean armor = stack.has(DataComponents.EQUIPPABLE) && !head;
 		if (!dyeable && !head && !armor) {
@@ -579,16 +579,16 @@ public class ItemChangerScreen extends Screen {
 			int index = b[3];
 			Component tip = null;
 			if (index < 100) {
-				Integer color = COLORS[index].getColor();
-				Theme.roundedRect(graphics, b[0], b[1], b[2], b[2], 2, 0xFF000000 | (color == null ? 0xFFFFFF : color));
-				tip = Component.literal(COLORS[index].getName()).withStyle(COLORS[index]);
+				int color = Customization.LEGACY_COLORS[index];
+				Theme.roundedRect(graphics, b[0], b[1], b[2], b[2], 2, 0xFF000000 | color);
+				tip = Component.literal("&" + "0123456789abcdef".charAt(index) + " " + Customization.prettyId(COLORS[index].name())).withColor(color == 0 ? 0x555555 : color);
 			} else if (index < 200) {
 				String[] labels = {"B", "I", "U", "S", "K", "R"};
 				ChatFormatting[] formats = {ChatFormatting.BOLD, ChatFormatting.ITALIC, ChatFormatting.UNDERLINE, ChatFormatting.STRIKETHROUGH, ChatFormatting.OBFUSCATED, ChatFormatting.RESET};
 				Theme.roundedRect(graphics, b[0], b[1], b[2], b[2] - 2, 3, hovered ? Theme.SURFACE_HOVER : Theme.SURFACE);
 				Theme.centeredInBox(graphics, font, Component.literal(labels[index - 100]).withStyle(formats[index - 100] == ChatFormatting.RESET ? ChatFormatting.RESET : formats[index - 100]),
 						b[0] + b[2] / 2f, b[1], b[2] - 2, Theme.TEXT);
-				tip = Component.literal(formats[index - 100].getName());
+				tip = Component.literal("&" + "lonmkr".charAt(index - 100) + " " + Customization.prettyId(formats[index - 100].name()));
 			} else if (index == 200 || index == 201) {
 				Theme.roundedRect(graphics, b[0], b[1], b[2], b[2], 3, 0xFF000000 | (index == 200 ? gradientFrom : gradientTo));
 				tip = Component.translatable(index == 200 ? "fancybars.items.gradientFrom" : "fancybars.items.gradientTo");
@@ -629,7 +629,7 @@ public class ItemChangerScreen extends Screen {
 			if (mx < b[0] || mx >= b[0] + b[2] || my < b[1] || my >= b[1] + b[2]) continue;
 			int index = b[3];
 			if (index < 100 && nameField != null) {
-				nameField.setText(nameField.getText() + "&" + COLORS[index].getChar());
+				nameField.setText(nameField.getText() + "&" + "0123456789abcdef".charAt(index));
 			} else if (index < 200 && nameField != null) {
 				nameField.setText(nameField.getText() + "&" + "lonmkr".charAt(index - 100));
 			} else if (index == 200 || index == 201) {
