@@ -314,6 +314,8 @@
 	"fancybars.config.viewmodelRotZ.@Tooltip": "Roll sideways.",
 	"fancybars.config.viewmodelScale": "Size",
 	"fancybars.config.viewmodelScale.@Tooltip": "How big it is.",
+	"fancybars.config.viewmodelSwingSpeed": "Swing Speed",
+	"fancybars.config.viewmodelSwingSpeed.@Tooltip": "How fast your hand swings (100% = normal, higher = faster). Visual only.",
 	"fancybars.config.viewmodelX": "Left / Right",
 	"fancybars.config.viewmodelX.@Tooltip": "Move sideways.",
 	"fancybars.config.viewmodelY": "Up / Down",

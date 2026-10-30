@@ -179,6 +179,9 @@ public class FancyBarsConfig {
 	/** No first-person swing animation. */
 	public boolean viewmodelNoSwing = false;
 
+	/** Swing animation speed multiplier (1 = normal). */
+	public float viewmodelSwingSpeed = 1;
+
 	/** The empty hand uses the held item settings. */
 	public boolean viewmodelApplyToHand = false;
 
@@ -471,6 +474,7 @@ public class FancyBarsConfig {
 			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
 			if (instance.viewmodelItemScale <= 0) instance.viewmodelItemScale = 1;
 			if (instance.viewmodelArmScale <= 0) instance.viewmodelArmScale = 1;
+			if (instance.viewmodelSwingSpeed <= 0) instance.viewmodelSwingSpeed = 1;
 			if (instance.playerSize <= 0) instance.playerSize = 1;
 			if (instance.playerSize != 1 && instance.playerSizeWidth == 1 && instance.playerSizeHeight == 1 && instance.playerSizeLength == 1) {
 				instance.playerSizeWidth = instance.playerSizeHeight = instance.playerSizeLength = instance.playerSize;

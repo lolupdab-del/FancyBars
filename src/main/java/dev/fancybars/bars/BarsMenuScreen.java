@@ -460,6 +460,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("viewmodelEnabled", () -> config.viewmodelEnabled, value -> config.viewmodelEnabled = value));
 				list.add(new ToggleItem("viewmodelIgnoreHaste", () -> config.viewmodelIgnoreHaste, value -> config.viewmodelIgnoreHaste = value));
 				list.add(new ToggleItem("viewmodelNoSwing", () -> config.viewmodelNoSwing, value -> config.viewmodelNoSwing = value));
+				list.add(new SliderItem("viewmodelSwingSpeed", 0.25f, 3, 0.05f, true, () -> config.viewmodelSwingSpeed, value -> config.viewmodelSwingSpeed = value));
 				list.add(new ToggleItem("viewmodelApplyToHand", () -> config.viewmodelApplyToHand, value -> config.viewmodelApplyToHand = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.viewmodel.item"), null));
 				list.add(new SliderItem("viewmodelX", -1, 1, 0.02f, false, () -> config.viewmodelItemX, value -> config.viewmodelItemX = value));
@@ -484,6 +485,7 @@ public class BarsMenuScreen extends Screen {
 					config.viewmodelArmX = config.viewmodelArmY = config.viewmodelArmZ = 0;
 					config.viewmodelArmRotX = config.viewmodelArmRotY = config.viewmodelArmRotZ = 0;
 					config.viewmodelArmScale = 1;
+					config.viewmodelSwingSpeed = 1;
 					FancyBarsConfig.save();
 					rebuildNextTick = true;
 				})));
