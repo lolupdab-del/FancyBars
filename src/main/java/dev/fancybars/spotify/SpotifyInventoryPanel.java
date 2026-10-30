@@ -201,4 +201,10 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 
 	@Override
 	protected void updateWidgetNarration(NarrationElementOutput output) {}
+
+	/** Never take keyboard focus away from the inventory. */
+	@Override
+	public net.minecraft.client.gui.@org.jspecify.annotations.Nullable ComponentPath nextFocusPath(net.minecraft.client.gui.navigation.FocusNavigationEvent event) {
+		return null;
+	}
 }

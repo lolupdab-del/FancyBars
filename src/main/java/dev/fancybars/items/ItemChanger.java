@@ -94,5 +94,11 @@ public final class ItemChanger {
 
 		@Override
 		protected void updateWidgetNarration(NarrationElementOutput output) {}
+
+		/** Never take keyboard focus: arrow keys must stay with the chat box / inventory (chat history, editing). */
+		@Override
+		public net.minecraft.client.gui.@org.jspecify.annotations.Nullable ComponentPath nextFocusPath(net.minecraft.client.gui.navigation.FocusNavigationEvent event) {
+			return null;
+		}
 	}
 }
