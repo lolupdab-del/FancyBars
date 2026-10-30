@@ -31,6 +31,6 @@ public abstract class AvatarRendererMixin {
 	private void fancybars$ownNametag(Avatar entity, double distance, CallbackInfoReturnable<Boolean> cir) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!FancyBarsConfig.get().ownNametagInF5 || entity != mc.player || mc.options.getCameraType() == CameraType.FIRST_PERSON) return;
-		if (!mc.options.hideGui && !entity.isInvisibleTo(mc.player)) cir.setReturnValue(true);
+		if (!entity.isInvisibleTo(mc.player)) cir.setReturnValue(true);
 	}
 }
