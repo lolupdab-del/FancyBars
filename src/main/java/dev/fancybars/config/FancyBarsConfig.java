@@ -281,6 +281,9 @@ public class FancyBarsConfig {
 	/** Swing in Place only when holding an item; the empty hand swings normally. */
 	public boolean viewmodelSwingInPlaceItemsOnly = false;
 
+	/** Re-equip animation: 0 vanilla, 1 none, 2 subtle, 3 only when switching items. */
+	public int viewmodelReequip = 0;
+
 	/** Swing animation speed multiplier (1 = normal). */
 	public float viewmodelSwingSpeed = 1;
 

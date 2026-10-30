@@ -28,6 +28,31 @@ import dev.fancybars.config.FancyBarsConfig;
 public abstract class ItemInHandRendererMixin {
 	private static final String SUBMIT = "submitArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V";
 
+	/**
+	 * Re-equip animation (the dip when your held item changes):
+	 * 0 vanilla, 1 none, 2 subtle (shallow dip), 3 slot switch only (ignores SkyBlock updating the same item).
+	 */
+	@ModifyVariable(method = SUBMIT, at = @At("HEAD"), argsOnly = true, ordinal = 3, require = 0)
+	private float fancybars$reequip(float equipProgress) {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		if (!c.viewmodelEnabled) return equipProgress;
+		return switch (c.viewmodelReequip) {
+			case 1 -> 0;
+			case 2 -> equipProgress * 0.35f;
+			default -> equipProgress;
+		};
+	}
+
+	@org.spongepowered.asm.mixin.injection.Inject(method = "shouldInstantlyReplaceVisibleItem", at = @At("HEAD"), cancellable = true, require = 0)
+	private void fancybars$sameItem(ItemStack oldStack, ItemStack newStack, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		if (!c.viewmodelEnabled || c.viewmodelReequip != 3) return;
+		// same item (SkyBlock constantly rewrites lore / data): swap it in without the dip
+		String a = dev.fancybars.protection.ItemProtection.getUuid(oldStack);
+		boolean same = !a.isEmpty() ? a.equals(dev.fancybars.protection.ItemProtection.getUuid(newStack)) : oldStack.getItem() == newStack.getItem();
+		if (same) cir.setReturnValue(true);
+	}
+
 	/** "No Swing": first-person swing animation stays at rest. */
 	@ModifyVariable(method = SUBMIT, at = @At("HEAD"), argsOnly = true, ordinal = 2, require = 0)
 	private float fancybars$noSwing(float swingProgress) {
