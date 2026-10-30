@@ -38,9 +38,7 @@ public final class ItemChanger {
 			if (!config.itemCustomizationEnabled || !config.itemCustomizationButton || !SkyblockLocation.isOnSkyblock()) return;
 			if (!(screen instanceof InventoryScreen inventory)) return;
 			ContainerScreenAccessor accessor = (ContainerScreenAccessor) inventory;
-			PaintbrushButton button = new PaintbrushButton(accessor.fancybars$getLeftPos() + 63, accessor.fancybars$getTopPos() + 10);
-			Screens.getWidgets(inventory).add(button);
-			inventory.registerRecipeBookToggleCallback(() -> button.setPosition(accessor.fancybars$getLeftPos() + 63, accessor.fancybars$getTopPos() + 10));
+			Screens.getWidgets(inventory).add(new PaintbrushButton(accessor));
 		});
 	}
 
@@ -72,13 +70,18 @@ public final class ItemChanger {
 
 	/** Skyblocker's little paintbrush button, top of the player preview in the inventory. */
 	private static final class PaintbrushButton extends AbstractWidget {
-		PaintbrushButton(int x, int y) {
-			super(x, y, 10, 10, Component.translatable("fancybars.items.button"));
+		private final ContainerScreenAccessor screen;
+
+		PaintbrushButton(ContainerScreenAccessor screen) {
+			super(screen.fancybars$getLeftPos() + 63, screen.fancybars$getTopPos() + 10, 10, 10, Component.translatable("fancybars.items.button"));
+			this.screen = screen;
 			setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("fancybars.items.button")));
 		}
 
 		@Override
 		protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+			// follow the inventory when the recipe book opens / closes
+			setPosition(screen.fancybars$getLeftPos() + 63, screen.fancybars$getTopPos() + 10);
 			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, PAINTBRUSH, getX(), getY(), getWidth(), getHeight(), isHovered() ? 0xFFFAFA96 : 0x80FFFFFF);
 			handleCursor(graphics);
 		}
