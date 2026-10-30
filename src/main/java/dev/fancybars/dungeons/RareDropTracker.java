@@ -68,7 +68,7 @@ public final class RareDropTracker {
 			new RareItem("Wither Shield", "§6", () -> new ItemStack(Items.PAPER)),
 			new RareItem("Auto Recombobulator", "§6", () -> new ItemStack(Items.REPEATER)),
 			new RareItem("Dark Claymore", "§6", () -> new ItemStack(Items.STONE_SWORD)),
-			new RareItem("Necron Dye", "§d", () -> new ItemStack(Items.RED_DYE)),
+			new RareItem("Necron Dye", "§d", () -> new ItemStack(Items.REDSTONE)),
 			new RareItem("Master Skull - Tier 5", "§d", () -> new ItemStack(Items.WITHER_SKELETON_SKULL)),
 			new RareItem("First Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)),
 			new RareItem("Second Master Star", "§5", () -> new ItemStack(Items.NETHER_STAR)),
