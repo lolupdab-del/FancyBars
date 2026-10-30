@@ -42,7 +42,7 @@ You need JDK 25.
 ./gradlew build
 ```
 
-The mod jar ends up in `build/libs/fancybars-1.7.0+26.2.jar`. Put it in your `mods` folder next to Fabric API.
+The mod jar ends up in `build/libs/fancybars-1.7.1+26.2.jar`. Put it in your `mods` folder next to Fabric API.
 
 No JDK? Push this folder to a GitHub repo: the included workflow builds it, and the jar appears under **Actions → latest run → Artifacts**.
 

@@ -30,7 +30,13 @@ import dev.fancybars.util.gui.Theme;
 public final class DungeonSecrets {
 	public static final Pattern SECRETS = Pattern.compile("(\\d+)/(\\d+) Secrets");
 	private static final int WORD_COLOR = 0xFFAAAAAA;
-	private static final ItemStack CHEST = new ItemStack(Items.CHEST);
+	/** Created on first use: item stacks can't be made while the mod is loading (item components aren't bound yet). */
+	private static ItemStack chest;
+
+	private static ItemStack chest() {
+		if (chest == null) chest = new ItemStack(Items.CHEST);
+		return chest;
+	}
 
 	private static int secrets = -1;
 	private static int maxSecrets = 0;
@@ -143,7 +149,7 @@ public final class DungeonSecrets {
 			int countY = config.secretsShowChest ? 4 : 0;
 			graphics.text(font, count, textX, countY, 0xFFFFFFFF, true);
 		}
-		if (config.secretsShowChest) graphics.item(CHEST, 0, Math.max(0, (size[1] - 16) / 2));
+		if (config.secretsShowChest) graphics.item(chest(), 0, Math.max(0, (size[1] - 16) / 2));
 		pose.popMatrix();
 	}
 
