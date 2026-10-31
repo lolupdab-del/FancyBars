@@ -62,19 +62,23 @@ public class ModernToggle extends AbstractWidget {
 			Theme.textInBox(graphics, font, label, getX() + 8, getY(), getHeight(), active ? Theme.TEXT_SOFT : Theme.TEXT_DISABLED);
 		}
 
-		// Track
+		// Track: a small rounded rectangle, accent when on, outlined grey when off
+		int r = 3;
+		int accent = Theme.colorAt(graphics, Theme.ACCENT, switchX + SWITCH_WIDTH / 2f);
 		if (!active) {
-			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, Theme.SURFACE_DISABLED);
+			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, r, Theme.SURFACE_DISABLED);
 		} else {
-			if (eased > 0.01f) Theme.glow(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, eased * (0.25f + hover * 0.35f));
-			int off = Theme.lerpColor(0xFF573D48, 0xFF684A57, hover);
-			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, SWITCH_HEIGHT / 2, Theme.lerpColor(off, Theme.colorAt(graphics, Theme.ACCENT, switchX + SWITCH_WIDTH / 2f), eased));
+			int off = Theme.lerpColor(Theme.SURFACE, Theme.SURFACE_HOVER, hover);
+			Theme.roundedRect(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, r, Theme.lerpColor(off, accent, eased));
+			if (eased < 0.99f) Theme.roundedOutline(graphics, switchX, switchY, SWITCH_WIDTH, SWITCH_HEIGHT, r,
+					Theme.withAlpha(Theme.lerpColor(0xFF3A3D46, 0xFF4B4F59, hover), 1 - eased));
 		}
 
-		// Knob
+		// Knob: a square that slides across, grey when off and dark on the accent when on
 		int knobSize = SWITCH_HEIGHT - 4;
 		int knobX = switchX + 2 + Math.round((SWITCH_WIDTH - 4 - knobSize) * eased);
-		Theme.circle(graphics, knobX, switchY + 2, knobSize, active ? Theme.lerpColor(0xFFC9CCE0, 0xFFFFFFFF, eased) : Theme.TEXT_DISABLED);
+		int knob = active ? Theme.lerpColor(Theme.lerpColor(0xFF4B4F59, 0xFF8A8F9C, hover), Theme.TEXT_ON_ACCENT, eased) : Theme.TEXT_DISABLED;
+		Theme.roundedRect(graphics, knobX, switchY + 2, knobSize, knobSize, 2, knob);
 
 		if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 	}

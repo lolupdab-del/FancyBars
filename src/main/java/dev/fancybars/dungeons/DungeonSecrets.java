@@ -159,7 +159,7 @@ public final class DungeonSecrets {
 
 		int textX = config.secretsShowChest ? 18 : 0;
 		int[] size = size(found, max);
-		if (config.textHudBackgrounds) Theme.hudPanel(graphics, -4, -4, size[0] + 8, size[1] + 7, 4, 0.55f, 255);
+		if (config.textHudBackgrounds) Theme.hudPanel(graphics, -4, -4, size[0] + 8, size[1] + 7, 4, 0.88f, 255);
 		Component count = countText(found, max);
 		if (config.secretsShowWord) {
 			Component word = wordText();

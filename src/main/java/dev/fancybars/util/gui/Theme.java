@@ -16,7 +16,7 @@ import dev.fancybars.FancyBarsMod;
 
 /**
  * Fancy Bars UI theme. Everything is drawn from high-resolution anti-aliased textures (rounded rectangles,
- * outlines, circles, shadows) and the Inter TrueType font, so nothing is aligned to the chunky GUI pixel grid.
+ * outlines, circles, shadows) and the Geist TrueType font, so nothing is aligned to the chunky GUI pixel grid.
  */
 public final class Theme {
 	// Surfaces (dark navy-grey, like modern mod menus)
@@ -52,14 +52,14 @@ public final class Theme {
 	public static final int RADIUS = 4;
 	public static final int PANEL_RADIUS = 6;
 
-	/** Inter cap height as a fraction of the TrueType "size" (stb scales so ascent - descent = size). */
-	private static final float CAP_RATIO = 0.6013f;
+	/** Geist cap height as a fraction of the TrueType "size" (stb scales so ascent - descent = size). */
+	private static final float CAP_RATIO = 0.5462f;
 	/** Minecraft puts the text baseline 7 GUI px below the y you draw at. */
 	private static final float BASELINE = 7f;
 
-	public static final float UI_SIZE = 10f;
-	public static final float TITLE_SIZE = 16f;
-	public static final float BAR_SIZE = 9.5f;
+	public static final float UI_SIZE = 11f;
+	public static final float TITLE_SIZE = 17.5f;
+	public static final float BAR_SIZE = 10.5f;
 	public static final float UI_CAP = UI_SIZE * CAP_RATIO;
 	public static final float TITLE_CAP = TITLE_SIZE * CAP_RATIO;
 	public static final float BAR_CAP = BAR_SIZE * CAP_RATIO;
@@ -69,7 +69,9 @@ public final class Theme {
 	private static final FontDescription[] TITLE_FONTS = fonts("title");
 	private static final FontDescription[] BAR_FONTS = fonts("bar");
 	private static final FontDescription[] SMALL_FONTS = fonts("small");
-	public static final float SMALL_SIZE = 7.5f;
+	private static final FontDescription[] MONO_FONTS = fonts("mono");
+	public static final float MONO_CAP = 10f * CAP_RATIO;
+	public static final float SMALL_SIZE = 8.25f;
 	public static final float SMALL_CAP = SMALL_SIZE * CAP_RATIO;
 
 	/** Kept for code that wants "the" UI font; resolves to the variant for the current GUI scale. */
@@ -133,6 +135,18 @@ public final class Theme {
 	public static MutableComponent small(Component text) {
 		FontDescription font = SMALL_FONTS[guiScale()];
 		return text.copy().withStyle(style -> style.withFont(font));
+	}
+
+	/** Geist Mono, for numbers and values. */
+	public static MutableComponent mono(Component text) {
+		FontDescription font = MONO_FONTS[guiScale()];
+		return text.copy().withStyle(style -> style.withFont(font));
+	}
+
+	/** Mono text drawn right-aligned so its right edge is at {@code right}, vertically centred in a box. */
+	public static void monoInBox(GuiGraphicsExtractor graphics, Font font, Component text, float right, float boxY, float boxHeight, int color) {
+		Component c = mono(text);
+		drawAtCapTop(graphics, font, c, right - font.width(c), boxY + (boxHeight - MONO_CAP) / 2f, MONO_CAP, color);
 	}
 
 	public static MutableComponent bold(Component text) {
@@ -315,7 +329,12 @@ public final class Theme {
 	/** A HUD box: themed background (HUD opacity) and the Appearance border. */
 	public static void hudPanel(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, float bgAlpha, int alpha) {
 		roundedRect(graphics, x, y, width, height, radius, hudBg(bgAlpha, alpha));
-		if (cfg().hudBorders) border(graphics, x, y, width, height, radius, hudAccent(0.4f, 255), alpha);
+		if (cfg().hudBorders) border(graphics, x, y, width, height, radius, hudLine(), alpha);
+	}
+
+	/** Hairline border colour for HUD boxes (neutral grey, or your accent dimmed with Custom Colors). */
+	public static int hudLine() {
+		return customColors() ? hudAccent(0.4f, 255) : 0xFF26282E;
 	}
 
 	/** Secondary HUD text (artists, labels). */
@@ -379,41 +398,41 @@ public final class Theme {
 	public static final int BRAND_BLUE = 0xFF7CC8FF;
 
 	static {
-		NIGHT.put(0x271A1F, 0x0C102F);
-		NIGHT.put(0x2D1E24, 0x0E1335);
-		NIGHT.put(0x24181D, 0x0B0F2C);
-		NIGHT.put(0x49313B, 0x171E53);
-		NIGHT.put(0x332229, 0x10153C);
-		NIGHT.put(0x4F3641, 0x1A2159);
-		NIGHT.put(0x3F2A33, 0x141A48);
-		NIGHT.put(0x39282F, 0x121942);
-		NIGHT.put(0x47323A, 0x171F51);
-		NIGHT.put(0x2B1F24, 0x0E1333);
-		NIGHT.put(0x5A3A48, 0x1B2464);
-		NIGHT.put(0x422D36, 0x151C4B);
-		NIGHT.put(0x312128, 0x101439);
-		NIGHT.put(0x3A272F, 0x121843);
-		NIGHT.put(0x573D48, 0x1D2661);
-		NIGHT.put(0x684A57, 0x232E73);
-		NIGHT.put(0x36232B, 0x10163F);
-		NIGHT.put(0x22161B, 0x0A0E2A);
-		NIGHT.put(0x201318, 0x080C28);
-		NIGHT.put(0x6B4E5A, 0x253076);
-		NIGHT.put(0x1C1216, 0x080B23);
-		NIGHT.put(0xFF8FC8, 0x6FA8FF);
-		NIGHT.put(0xFFC4E1, 0xB8D4FF);
-		NIGHT.put(0xD6448F, 0x2F64D6);
-		NIGHT.put(0xFFAED6, 0x93BCFF);
-		NIGHT.put(0xAF3D78, 0x2F4FAF);
-		NIGHT.put(0xC47CA6, 0x5F7FD0);
-		NIGHT.put(0x52233A, 0x16244A);
-		NIGHT.put(0x6C2B4C, 0x1F3670);
-		NIGHT.put(0xF7EEF2, 0xE8EEFA);
-		NIGHT.put(0xEED8E2, 0xD4DCF0);
-		NIGHT.put(0xC2A2B0, 0x98A6C8);
-		NIGHT.put(0x79606A, 0x56607E);
-		NIGHT.put(0x2A0B1B, 0x081430);
-		NIGHT.put(0xC9CCE0, 0xC9D3EC);
+		NIGHT.put(0x271A1F, 0x0E0F12);
+		NIGHT.put(0x2D1E24, 0x121418);
+		NIGHT.put(0x24181D, 0x0C0D10);
+		NIGHT.put(0x49313B, 0x26282E);
+		NIGHT.put(0x332229, 0x121418);
+		NIGHT.put(0x4F3641, 0x1F2126);
+		NIGHT.put(0x3F2A33, 0x17191E);
+		NIGHT.put(0x39282F, 0x15171B);
+		NIGHT.put(0x47323A, 0x1C1E23);
+		NIGHT.put(0x2B1F24, 0x111216);
+		NIGHT.put(0x5A3A48, 0x1D2030);
+		NIGHT.put(0x422D36, 0x1F2126);
+		NIGHT.put(0x312128, 0x14161A);
+		NIGHT.put(0x3A272F, 0x17191D);
+		NIGHT.put(0x573D48, 0x26282E);
+		NIGHT.put(0x684A57, 0x33363E);
+		NIGHT.put(0x36232B, 0x15171B);
+		NIGHT.put(0x22161B, 0x0C0D10);
+		NIGHT.put(0x201318, 0x0A0B0E);
+		NIGHT.put(0x6B4E5A, 0x3A3D46);
+		NIGHT.put(0x1C1216, 0x08090B);
+		NIGHT.put(0xFF8FC8, 0x7C8CFF);
+		NIGHT.put(0xFFC4E1, 0xC5CCFF);
+		NIGHT.put(0xD6448F, 0x5560E0);
+		NIGHT.put(0xFFAED6, 0xA3ADFF);
+		NIGHT.put(0xAF3D78, 0x4A55B8);
+		NIGHT.put(0xC47CA6, 0x3A3F55);
+		NIGHT.put(0x52233A, 0x1A1D33);
+		NIGHT.put(0x6C2B4C, 0x262A4A);
+		NIGHT.put(0xF7EEF2, 0xECECF1);
+		NIGHT.put(0xEED8E2, 0xC8CCD6);
+		NIGHT.put(0xC2A2B0, 0x8A8F9C);
+		NIGHT.put(0x79606A, 0x4B4F59);
+		NIGHT.put(0x2A0B1B, 0x0E0F12);
+		NIGHT.put(0xC9CCE0, 0xC8CCD6);
 	}
 
 	public static boolean shikiMode() {
@@ -533,7 +552,7 @@ public final class Theme {
 	/** HUD panel background: the element's base opacity times the HUD Opacity setting. */
 	public static int hudBg(float baseAlpha, int alpha) {
 		dev.fancybars.config.FancyBarsConfig c = cfg();
-		int bg = c.customColors ? c.themeBackground : 0x101014;
+		int bg = customColors() ? c.themeBackground : 0x0E0F12;
 		int a = Math.round(Math.clamp(alpha * baseAlpha * c.hudOpacity, 0, 255));
 		return a << 24 | bg & 0xFFFFFF;
 	}
@@ -592,15 +611,11 @@ public final class Theme {
 			}
 			return custom;
 		}
-		// night blue: S and B in the two theme blues, CLIENT fading from pale to deep blue
-		MutableComponent text = Component.empty()
-				.append(Component.literal("S").withColor(0xB8D4FF))
-				.append(Component.literal("B").withColor(0x6FA8FF));
-		String rest = "CLIENT";
-		for (int i = 0; i < rest.length(); i++) {
-			text.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(lerpColor(0xFFD4E4FF, 0xFF4F86F0, i / (float) (rest.length() - 1)) & 0xFFFFFF));
-		}
-		return text;
+		// default: pink S, blue B, CLIENT in the text colour
+		return Component.empty()
+				.append(Component.literal("S").withColor(0xFF8FC8))
+				.append(Component.literal("B").withColor(0x6FA8FF))
+				.append(Component.literal("CLIENT").withColor(0xECECF1));
 	}
 
 	public static String brandName() {

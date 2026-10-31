@@ -259,7 +259,7 @@ public final class MelodyMessage {
 		pose.scale(scale, scale);
 		if (FancyBarsConfig.get().textHudBackgrounds) {
 			int[] s = size(sample);
-			Theme.hudPanel(graphics, -4, -4, s[0] + 8, s[1] + 7, 4, 0.55f, 255);
+			Theme.hudPanel(graphics, -4, -4, s[0] + 8, s[1] + 7, 4, 0.88f, 255);
 		}
 		Minecraft mc = Minecraft.getInstance();
 		String me = mc.player != null ? mc.player.getGameProfile().name() : "You";

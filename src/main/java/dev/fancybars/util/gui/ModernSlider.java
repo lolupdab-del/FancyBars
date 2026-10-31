@@ -91,18 +91,20 @@ public class ModernSlider extends AbstractWidget {
 		int trackY = getY() + getHeight() / 2 - 2;
 		int trackX = getX() + 4;
 		int trackW = getWidth() - 8;
-		Theme.roundedRect(graphics, trackX, trackY, trackW, 4, 2, Theme.lerpColor(0xFF573D48, 0xFF684A57, hover));
+		trackY = getY() + getHeight() / 2 - 1;
+		Theme.roundedRect(graphics, trackX, trackY, trackW, 2, 1, Theme.lerpColor(0xFF573D48, 0xFF684A57, hover));
 		float fillF = trackW * t;
 		int fill = Math.round(fillF);
-		if (fill > 0) Theme.roundedRect(graphics, trackX, trackY, Math.max(4, fill), 4, 2, Theme.ACCENT);
-		int knob = 10;
+		if (fill > 0) Theme.roundedRect(graphics, trackX, trackY, Math.max(2, fill), 2, 1, Theme.ACCENT);
+		int knob = 3;
 		// sub-pixel knob position so it glides instead of jumping a pixel at a time
 		float knobXf = trackX + fillF - knob / 2f;
 		int knobX = Math.round(knobXf);
 		graphics.pose().pushMatrix();
 		graphics.pose().translate(knobXf - knobX, 0);
-		Theme.glow(graphics, knobX, getY() + (getHeight() - knob) / 2, knob, knob, knob / 2, 0.2f + hover * 0.3f);
-		Theme.circle(graphics, knobX, getY() + (getHeight() - knob) / 2, knob, 0xFFFFFFFF);
+		// a thin vertical handle, like a fader
+		int knobH = 10;
+		Theme.roundedRect(graphics, knobX, getY() + (getHeight() - knobH) / 2, knob, knobH, 1, Theme.lerpColor(0xFFC8CCD6, 0xFFFFFFFF, hover));
 		graphics.pose().popMatrix();
 		if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		lastFrame = Util.getMillis();

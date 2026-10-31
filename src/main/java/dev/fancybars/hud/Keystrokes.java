@@ -186,11 +186,11 @@ public final class Keystrokes {
 			int ky = Math.round(key.y());
 			int kw = Math.round(key.x() + key.w()) - kx;
 			int kh = Math.round(key.h());
-			int idle = Theme.hudBg(0.5f, a);
+			int idle = Theme.hudBg(0.88f, a);
 			int pressed = (Math.round(a * 0.85f) << 24) | (Theme.colorAt(graphics, Theme.ACCENT, kx + kw / 2f) & 0xFFFFFF);
 			Theme.roundedRect(graphics, kx, ky, kw, kh, 4, Theme.lerpColor(idle, pressed, p));
-			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, kx, ky, kw, kh, 4, Theme.hudAccent(0.35f, 255), a);
-			int textColor = Theme.lerpColor(Theme.hudText(255), 0xFF1A1018, p);
+			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, kx, ky, kw, kh, 4, Theme.hudLine(), a);
+			int textColor = Theme.lerpColor(Theme.hudText(255), Theme.night(Theme.TEXT_ON_ACCENT), p);
 			Component label = Theme.bold(Component.literal(key.label()));
 			float lw = font.width(label);
 			float scaleText = Math.min(1, (kw - 3) / lw);

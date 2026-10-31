@@ -52,7 +52,7 @@ public final class InventoryHud {
 		pose.scale(scale, scale);
 		int a = Math.round(alpha * 255);
 		if (config.invHudBackground) {
-			Theme.hudPanel(graphics, 0, 0, WIDTH, HEIGHT, 5, 0.55f, a);
+			Theme.hudPanel(graphics, 0, 0, WIDTH, HEIGHT, 5, 0.82f, a);
 		}
 		for (int i = 0; i < 27; i++) {
 			int sx = PAD + (i % 9) * SLOT;

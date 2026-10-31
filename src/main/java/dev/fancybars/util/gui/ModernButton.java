@@ -59,11 +59,9 @@ public class ModernButton extends AbstractWidget {
 			Theme.card(graphics, x, y, w, h, radius, Theme.SURFACE_DISABLED, Theme.DIVIDER);
 			textColor = Theme.TEXT_DISABLED;
 		} else if (style == Style.PRIMARY) {
-			Theme.glow(graphics, x, y, w, h, radius, 0.25f + hover * 0.45f);
-			Theme.card(graphics, x, y, w, h, radius,
-					Theme.lerpColor(0xF052233A, 0xF06C2B4C, hover),
-					Theme.lerpColor(Theme.ACCENT_DIM, Theme.ACCENT, hover));
-			textColor = Theme.lerpColor(Theme.ACCENT_LIGHT, 0xFFFFFFFF, hover);
+			// solid accent button with dark text
+			Theme.roundedRect(graphics, x, y, w, h, radius, Theme.lerpColor(Theme.ACCENT, Theme.ACCENT_HOVER, hover));
+			textColor = Theme.TEXT_ON_ACCENT;
 		} else if (selected) {
 			Theme.card(graphics, x, y, w, h, radius, Theme.SELECTED, Theme.SELECTED_BORDER);
 			textColor = Theme.TEXT;

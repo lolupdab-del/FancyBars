@@ -6,8 +6,8 @@
   },
   {
    "type": "ttf",
-   "file": "fancybars:inter-bold.ttf",
-   "size": 16.0,
+   "file": "fancybars:geist-semibold.ttf",
+   "size": 17.5,
    "oversample": 2.0,
    "shift": [
     0,

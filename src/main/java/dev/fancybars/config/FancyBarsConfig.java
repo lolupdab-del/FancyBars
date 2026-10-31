@@ -115,11 +115,11 @@ public class FancyBarsConfig {
 	/** Use your own colours for every menu and HUD instead of night blue / SHIKIMODE pink. */
 	public boolean customColors = false;
 
-	public int themeAccent = 0x6FA8FF;
+	public int themeAccent = 0x7C8CFF;
 
-	public int themeBackground = 0x0B1430;
+	public int themeBackground = 0x0E0F12;
 
-	public int themeText = 0xE8EEFA;
+	public int themeText = 0xECECF1;
 
 	/** See-through-ness of menu panels and cards (1 = normal). */
 	public float panelOpacity = 1;
@@ -159,7 +159,7 @@ public class FancyBarsConfig {
 	/** Use {@link #borderColor} for borders instead of the theme's. */
 	public boolean customBorder = false;
 
-	public int borderColor = 0x6FA8FF;
+	public int borderColor = 0x7C8CFF;
 
 	public float borderOpacity = 0.6f;
 

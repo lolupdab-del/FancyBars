@@ -617,6 +617,7 @@
 	"fancybars.menu.resetLayout": "Reset Layout",
 	"fancybars.menu.results": "Results for \"%s\"",
 	"fancybars.menu.search": "Search...",
+	"fancybars.menu.searchResults": "Search results",
 	"fancybars.menu.shown.@Tooltip": "Show or hide this bar.",
 	"fancybars.menu.title": "SBCLIENT",
 	"fancybars.menu.titleAccent": "SB",
