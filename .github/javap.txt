@@ -18,3 +18,5 @@ net.minecraft.client.MouseHandler
 net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState
 net.minecraft.client.player.FirstPersonHandsAndItems
 net.minecraft.client.renderer.state.level.PlayerRenderState
+net.minecraft.client.gui.GuiGraphicsExtractor
+net.minecraft.client.multiplayer.MultiPlayerGameMode

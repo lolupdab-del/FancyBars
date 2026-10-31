@@ -15,7 +15,7 @@ import dev.fancybars.config.FancyBarsConfig;
 public abstract class LivingEntitySwingMixin {
 	private static final int NORMAL_SWING = 6;
 
-	@ModifyReturnValue(method = "getCurrentSwingDuration", at = @At("RETURN"), require = 0)
+	@ModifyReturnValue(method = "getModifiedSwingDuration", at = @At("RETURN"), require = 0)
 	private int fancybars$ignoreHaste(int original) {
 		FancyBarsConfig c = FancyBarsConfig.get();
 		if (!c.viewmodelEnabled || (Object) this != Minecraft.getInstance().player) return original;

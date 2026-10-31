@@ -15,7 +15,7 @@ import dev.fancybars.util.SkyblockLocation;
  */
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerProtectionMixin {
-	@Inject(method = "drop(Z)Z", at = @At("HEAD"), cancellable = true)
+	@Inject(method = "drop(Z)Z", at = @At("HEAD"), cancellable = true, require = 0)
 	private void fancybars$preventDrop(CallbackInfoReturnable<Boolean> cir) {
 		LocalPlayer self = (LocalPlayer) (Object) this;
 		if (SkyblockLocation.isOnSkyblock() && !SkyblockLocation.isInDungeons() && ItemProtection.isItemProtected(self.getMainHandItem())) {
