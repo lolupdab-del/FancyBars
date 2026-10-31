@@ -94,7 +94,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		// /sbclient, with /shikiclient and /fancybars kept as aliases
 		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> {
 			dev.fancybars.commands.Commands.register(dispatcher);
-			for (String name : new String[]{"sbclient", "shikiclient", NAMESPACE}) {
+			for (String name : new String[]{"sbclient", "sbc", "shikiclient", NAMESPACE}) {
 				dispatcher.register(ClientCommands.literal(name)
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))

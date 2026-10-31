@@ -170,7 +170,7 @@ public final class WallLicker {
 
 	public static Component text() {
 		return Theme.bold(Component.literal("Licks: ").withColor(Theme.night(Theme.ACCENT) & 0xFFFFFF)
-				.append(Component.literal(String.valueOf(FancyBarsConfig.get().wallLicksRun)).withColor(0xFFFFFF)));
+				.append(Component.literal(String.valueOf(FancyBarsConfig.get().wallLicksRun)).withColor(Theme.hudText(255) & 0xFFFFFF)));
 	}
 
 	public static int[] size() {
@@ -196,7 +196,7 @@ public final class WallLicker {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
-		Theme.roundedRect(graphics, 0, 0, size[0], size[1], 5, (Math.round(a * 0.55f) << 24) | 0x101014);
+		Theme.roundedRect(graphics, 0, 0, size[0], size[1], 5, Theme.hudBg(0.55f, a));
 		Theme.boldInBox(graphics, font, text(), 6, 0, size[1], (a << 24) | 0xFFFFFF);
 		pose.popMatrix();
 	}

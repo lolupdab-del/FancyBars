@@ -101,8 +101,8 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 
 		graphics.nextStratum();
 		Theme.shadow(graphics, x, y, W, H, 8, 0, 2);
-		Theme.roundedRect(graphics, x, y, W, H, 8, 0xF00B1020);
-		Theme.roundedOutline(graphics, x, y, W, H, 8, 0x661DB954);
+		Theme.roundedRect(graphics, x, y, W, H, 8, Theme.hudBg(0.94f, 255));
+		Theme.roundedOutline(graphics, x, y, W, H, 8, Theme.customColors() ? Theme.hudAccent(0.4f, 255) : 0x661DB954);
 
 		// art + text
 		SpotifyUi.art(graphics, s.artUrl, x + PAD, y + PAD, ART);

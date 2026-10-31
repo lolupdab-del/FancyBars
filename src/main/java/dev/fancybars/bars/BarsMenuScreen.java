@@ -595,7 +595,39 @@ public class BarsMenuScreen extends Screen {
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
+				list.add(new HeaderItem(Component.translatable("fancybars.appearance.title"), Component.translatable("fancybars.appearance.hint")));
 				list.add(new ToggleItem("shikiMode", () -> config.shikiMode, value -> config.shikiMode = value));
+				list.add(new ToggleItem("customColors", () -> config.customColors, value -> config.customColors = value));
+				list.add(new PresetItem());
+				list.add(new SwatchItem("themeAccent", () -> new Color(config.themeAccent, false), color -> {
+					config.themeAccent = color.getRGB() & 0xFFFFFF;
+					config.customColors = true;
+				}));
+				list.add(new SwatchItem("themeBackground", () -> new Color(config.themeBackground, false), color -> {
+					config.themeBackground = color.getRGB() & 0xFFFFFF;
+					config.customColors = true;
+				}));
+				list.add(new SwatchItem("themeText", () -> new Color(config.themeText, false), color -> {
+					config.themeText = color.getRGB() & 0xFFFFFF;
+					config.customColors = true;
+				}));
+				list.add(new SliderItem("panelOpacity", 0.3f, 1, 0.05f, true, () -> config.panelOpacity, value -> config.panelOpacity = value));
+				list.add(new SliderItem("hudOpacity", 0, 1.5f, 0.05f, true, () -> config.hudOpacity, value -> config.hudOpacity = value));
+				list.add(new SliderItem("cornerRoundness", 0, 2, 0.1f, true, () -> config.cornerRoundness, value -> config.cornerRoundness = value));
+				list.add(new SliderItem("backdropDarkness", 0, 1, 0.05f, true, () -> config.backdropDarkness, value -> config.backdropDarkness = value));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.appearance.reset"), () -> {
+					config.customColors = false;
+					config.themeAccent = 0x6FA8FF;
+					config.themeBackground = 0x0B1430;
+					config.themeText = 0xE8EEFA;
+					config.panelOpacity = 1;
+					config.hudOpacity = 1;
+					config.cornerRoundness = 1;
+					config.backdropDarkness = 0.4f;
+					FancyBarsConfig.save();
+					rebuildNextTick = true;
+				})));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
 				list.add(new ToggleItem("riftHealthHP", () -> config.riftHealthHP, value -> config.riftHealthHP = value));
@@ -1911,6 +1943,72 @@ public class BarsMenuScreen extends Screen {
 			if (index < 0) return false;
 			config.cape = ids.get(index);
 			config.capeEnabled = !config.cape.equals(dev.fancybars.capes.Capes.NONE);
+			FancyBarsConfig.save();
+			rebuildNextTick = true;
+			return true;
+		}
+	}
+
+	/** Ready-made colour themes: click one to use it (turns Custom Colors on). */
+	private class PresetItem extends Item {
+		private static final String[] NAMES = {"night", "ocean", "forest", "crimson", "sunset", "purple", "sakura", "mono"};
+		private static final int[][] COLORS = {
+				{0x6FA8FF, 0x0B1430, 0xE8EEFA}, {0x3FD0E0, 0x06202A, 0xE6F7FA}, {0x5ED17A, 0x0B1F14, 0xE8F5EC}, {0xFF5A6A, 0x220A10, 0xFBEAEC},
+				{0xFF9F45, 0x25120A, 0xFFF1E6}, {0xB57CFF, 0x170E2A, 0xF1EAFF}, {0xFF8FC8, 0x25121C, 0xFBEFF5}, {0xD0D0D0, 0x141414, 0xF2F2F2}};
+		private static final int SIZE = 18;
+
+		PresetItem() {
+			this.height = 30;
+			this.searchable = true;
+			this.searchText = "theme preset colour color appearance";
+		}
+
+		@Override
+		void layout(int x, int y, int w) {}
+
+		private int index(double mouseX, double mouseY, int x, int w) {
+			int startX = x + w - 10 - NAMES.length * (SIZE + 4) + 4;
+			for (int i = 0; i < NAMES.length; i++) {
+				int sx = startX + i * (SIZE + 4);
+				int sy = this.y + (height - SIZE) / 2;
+				if (mouseX >= sx && mouseX < sx + SIZE && mouseY >= sy && mouseY < sy + SIZE) return i;
+			}
+			return -1;
+		}
+
+		private int lastX;
+		private int lastW;
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			lastX = x;
+			lastW = w;
+			Theme.card(graphics, x, y, w, height, Theme.PANEL_RADIUS, Theme.CARD, Theme.CARD_BORDER);
+			Theme.boldInBox(graphics, font, Component.translatable("fancybars.appearance.presets"), x + 10, y, height, Theme.TEXT);
+			int hovered = index(mouseX, mouseY, x, w);
+			int startX = x + w - 10 - NAMES.length * (SIZE + 4) + 4;
+			for (int i = 0; i < NAMES.length; i++) {
+				int sx = startX + i * (SIZE + 4);
+				int sy = y + (height - SIZE) / 2;
+				boolean active = config.customColors && config.themeAccent == COLORS[i][0] && config.themeBackground == COLORS[i][1];
+				Theme.roundedRect(graphics, sx, sy, SIZE, SIZE, SIZE / 2, 0xFF000000 | COLORS[i][1]);
+				Theme.roundedRect(graphics, sx + 4, sy + 4, SIZE - 8, SIZE - 8, (SIZE - 8) / 2, 0xFF000000 | COLORS[i][0]);
+				if (active || i == hovered) Theme.roundedOutline(graphics, sx - 1, sy - 1, SIZE + 2, SIZE + 2, SIZE / 2 + 1, active ? 0xFFFFFFFF : 0x99FFFFFF);
+				if (i == hovered) {
+					tip(NAMES[i], Component.translatable("fancybars.appearance.preset." + NAMES[i]));
+					graphics.requestCursor(CursorTypes.POINTING_HAND);
+				}
+			}
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			int i = index(mouseX, mouseY, lastX, lastW);
+			if (i < 0) return false;
+			config.customColors = true;
+			config.themeAccent = COLORS[i][0];
+			config.themeBackground = COLORS[i][1];
+			config.themeText = COLORS[i][2];
 			FancyBarsConfig.save();
 			rebuildNextTick = true;
 			return true;

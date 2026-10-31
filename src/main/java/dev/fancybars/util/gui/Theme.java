@@ -228,6 +228,7 @@ public final class Theme {
 	// ------------------------------------------------------------ Shapes
 
 	private static int radiusIndex(int radius, int width, int height) {
+		radius = radius(radius);
 		int max = Math.min(width, height) / 2;
 		int r = Math.min(radius, max);
 		int best = 0;
@@ -242,7 +243,7 @@ public final class Theme {
 	 */
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		if (radius <= 1 || Math.min(width, height) < 4) {
+		if (radius(radius) <= 1 || Math.min(width, height) < 4) {
 			graphics.fill(x, y, x + width, y + height, night(color));
 			return;
 		}
@@ -312,7 +313,7 @@ public final class Theme {
 	}
 
 	public static void backdrop(GuiGraphicsExtractor graphics, int width, int height) {
-		graphics.fill(0, 0, width, height, BACKDROP);
+		graphics.fill(0, 0, width, height, Math.round(Math.clamp(cfg().backdropDarkness, 0, 1) * 255) << 24);
 	}
 
 	// ------------------------------------------------------------ Night blue (default) / SHIKIMODE (pink)
@@ -364,8 +365,129 @@ public final class Theme {
 		return dev.fancybars.config.FancyBarsConfig.get().shikiMode;
 	}
 
-	/** The colour to actually draw: theme colours turn night blue unless SHIKIMODE is on. Alpha is kept. */
+	// ------------------------------------------------------------ Custom colours (Appearance settings)
+
+	private static final java.util.Set<Integer> ACCENT_KEYS = java.util.Set.of(0xFF8FC8, 0xFFC4E1, 0xD6448F, 0xFFAED6, 0xAF3D78, 0xC47CA6, 0x52233A, 0x6C2B4C);
+	private static final java.util.Set<Integer> TEXT_KEYS = java.util.Set.of(0xF7EEF2, 0xEED8E2, 0xC2A2B0, 0x79606A, 0xC9CCE0);
+	private static final java.util.Map<Integer, Integer> CUSTOM = new java.util.HashMap<>();
+	private static long customKey = Long.MIN_VALUE;
+
+	private static dev.fancybars.config.FancyBarsConfig cfg() {
+		return dev.fancybars.config.FancyBarsConfig.get();
+	}
+
+	public static boolean customColors() {
+		return cfg().customColors;
+	}
+
+	/** RGB → {h, s, l} (0..1). */
+	public static float[] hsl(int rgb) {
+		float r = (rgb >> 16 & 0xFF) / 255f, g = (rgb >> 8 & 0xFF) / 255f, b = (rgb & 0xFF) / 255f;
+		float max = Math.max(r, Math.max(g, b)), min = Math.min(r, Math.min(g, b));
+		float l = (max + min) / 2, h = 0, sat = 0;
+		if (max != min) {
+			float d = max - min;
+			sat = l > 0.5f ? d / (2 - max - min) : d / (max + min);
+			if (max == r) h = (g - b) / d + (g < b ? 6 : 0);
+			else if (max == g) h = (b - r) / d + 2;
+			else h = (r - g) / d + 4;
+			h /= 6;
+		}
+		return new float[]{h, sat, l};
+	}
+
+	public static int rgb(float h, float sat, float l) {
+		sat = Math.clamp(sat, 0, 1);
+		l = Math.clamp(l, 0, 1);
+		if (sat == 0) {
+			int v = Math.round(l * 255);
+			return v << 16 | v << 8 | v;
+		}
+		float q = l < 0.5f ? l * (1 + sat) : l + sat - l * sat;
+		float p = 2 * l - q;
+		return Math.round(hue(p, q, h + 1 / 3f) * 255) << 16 | Math.round(hue(p, q, h) * 255) << 8 | Math.round(hue(p, q, h - 1 / 3f) * 255);
+	}
+
+	private static float hue(float p, float q, float t) {
+		if (t < 0) t += 1;
+		if (t > 1) t -= 1;
+		if (t < 1 / 6f) return p + (q - p) * 6 * t;
+		if (t < 1 / 2f) return q;
+		if (t < 2 / 3f) return p + (q - p) * (2 / 3f - t) * 6;
+		return p;
+	}
+
+	/** Re-tints a night-theme colour onto a user colour, keeping its relative brightness. */
+	private static int retint(int nightRgb, int referenceRgb, int userRgb) {
+		float[] n = hsl(nightRgb), ref = hsl(referenceRgb), user = hsl(userRgb);
+		float light = ref[2] < 0.001f ? n[2] : n[2] * (user[2] / ref[2]);
+		float sat = ref[1] < 0.001f ? user[1] : user[1] * Math.min(1.5f, n[1] / ref[1]);
+		return rgb(user[0], sat, light);
+	}
+
+	private static void rebuildCustom() {
+		dev.fancybars.config.FancyBarsConfig c = cfg();
+		long key = ((long) c.themeAccent << 40) ^ ((long) c.themeBackground << 20) ^ c.themeText;
+		if (key == customKey) return;
+		customKey = key;
+		CUSTOM.clear();
+		int accentRef = NIGHT.get(0xFF8FC8);
+		int surfaceRef = NIGHT.get(PANEL & 0xFFFFFF);
+		int textRef = NIGHT.get(TEXT & 0xFFFFFF);
+		for (java.util.Map.Entry<Integer, Integer> e : NIGHT.entrySet()) {
+			int k = e.getKey();
+			int v = e.getValue();
+			int out;
+			if (ACCENT_KEYS.contains(k)) out = retint(v, accentRef, c.themeAccent);
+			else if (TEXT_KEYS.contains(k)) out = retint(v, textRef, c.themeText);
+			else if (k == 0x2A0B1B) out = rgb(hsl(c.themeAccent)[0], 0.6f, 0.08f); // text on accent buttons
+			else out = retint(v, surfaceRef, c.themeBackground);
+			CUSTOM.put(k, out);
+		}
+	}
+
+	/** Theme corner radius scaled by the Corner Roundness setting. */
+	public static int radius(int r) {
+		return Math.round(r * cfg().cornerRoundness);
+	}
+
+	/** The theme accent as it's drawn right now (night / pink / custom). */
+	public static int accent() {
+		return night(ACCENT);
+	}
+
+	/** HUD panel background: the element's base opacity times the HUD Opacity setting. */
+	public static int hudBg(float baseAlpha, int alpha) {
+		dev.fancybars.config.FancyBarsConfig c = cfg();
+		int bg = c.customColors ? c.themeBackground : 0x101014;
+		int a = Math.round(Math.clamp(alpha * baseAlpha * c.hudOpacity, 0, 255));
+		return a << 24 | bg & 0xFFFFFF;
+	}
+
+	/** HUD accent (outlines, highlights) with an alpha. */
+	public static int hudAccent(float baseAlpha, int alpha) {
+		return Math.round(Math.clamp(alpha * baseAlpha, 0, 255)) << 24 | accent() & 0xFFFFFF;
+	}
+
+	/** HUD main text colour. */
+	public static int hudText(int alpha) {
+		dev.fancybars.config.FancyBarsConfig c = cfg();
+		return alpha << 24 | (c.customColors ? c.themeText : 0xFFFFFF) & 0xFFFFFF;
+	}
+
+	/** The colour to actually draw: theme colours turn night blue (or your custom colours) unless SHIKIMODE is on. Alpha is kept. */
 	public static int night(int color) {
+		if (customColors()) {
+			rebuildCustom();
+			Integer mapped = CUSTOM.get(color & 0xFFFFFF);
+			if (mapped == null) return color;
+			int alpha = color >>> 24;
+			// panel opacity applies to the see-through surfaces only
+			if (alpha < 255 && !ACCENT_KEYS.contains(color & 0xFFFFFF) && !TEXT_KEYS.contains(color & 0xFFFFFF)) {
+				alpha = Math.round(Math.clamp(alpha * cfg().panelOpacity, 0, 255));
+			}
+			return alpha << 24 | mapped;
+		}
 		if (shikiMode()) return color;
 		Integer mapped = NIGHT.get(color & 0xFFFFFF);
 		return mapped == null ? color : (color & 0xFF000000) | mapped;
@@ -385,6 +507,16 @@ public final class Theme {
 	public static MutableComponent brand() {
 		if (shikiMode()) {
 			return Component.empty().append(Component.literal("Shiki").withColor(ACCENT & 0xFFFFFF)).append(Component.literal("Client").withColor(TEXT & 0xFFFFFF));
+		}
+		if (customColors()) {
+			int acc = night(ACCENT) & 0xFFFFFF;
+			int light = night(ACCENT_LIGHT) & 0xFFFFFF;
+			MutableComponent custom = Component.empty().append(Component.literal("S").withColor(light)).append(Component.literal("B").withColor(acc));
+			String rest = "CLIENT";
+			for (int i = 0; i < rest.length(); i++) {
+				custom.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(lerpColor(0xFF000000 | light, 0xFF000000 | acc, i / (float) (rest.length() - 1)) & 0xFFFFFF));
+			}
+			return custom;
 		}
 		// night blue: S and B in the two theme blues, CLIENT fading from pale to deep blue
 		MutableComponent text = Component.empty()

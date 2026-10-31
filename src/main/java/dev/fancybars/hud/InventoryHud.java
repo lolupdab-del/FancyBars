@@ -52,8 +52,8 @@ public final class InventoryHud {
 		pose.scale(scale, scale);
 		int a = Math.round(alpha * 255);
 		if (config.invHudBackground) {
-			Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 5, (Math.round(a * 0.55f) << 24) | 0x101014);
-			Theme.roundedOutline(graphics, 0, 0, WIDTH, HEIGHT, 5, (Math.round(a * 0.35f) << 24) | (Theme.colorAt(graphics, Theme.ACCENT, WIDTH / 2f) & 0xFFFFFF));
+			Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 5, Theme.hudBg(0.55f, a));
+			Theme.roundedOutline(graphics, 0, 0, WIDTH, HEIGHT, 5, Theme.hudAccent(0.35f, a));
 		}
 		for (int i = 0; i < 27; i++) {
 			int sx = PAD + (i % 9) * SLOT;

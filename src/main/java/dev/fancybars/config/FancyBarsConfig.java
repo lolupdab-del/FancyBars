@@ -110,6 +110,29 @@ public class FancyBarsConfig {
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
 
+	// ---------------------------------------------------------------- Appearance (whole mod)
+
+	/** Use your own colours for every menu and HUD instead of night blue / SHIKIMODE pink. */
+	public boolean customColors = false;
+
+	public int themeAccent = 0x6FA8FF;
+
+	public int themeBackground = 0x0B1430;
+
+	public int themeText = 0xE8EEFA;
+
+	/** See-through-ness of menu panels and cards (1 = normal). */
+	public float panelOpacity = 1;
+
+	/** Corner roundness multiplier (0 = square, 1 = normal, 2 = extra round). */
+	public float cornerRoundness = 1;
+
+	/** How dark the world gets behind menus. */
+	public float backdropDarkness = 0.4f;
+
+	/** Opacity multiplier for every HUD background (1 = normal). */
+	public float hudOpacity = 1;
+
 	/** Snap things to each other / the screen centre in the editor. */
 	public boolean editorSnapping = true;
 
@@ -580,6 +603,8 @@ public class FancyBarsConfig {
 			if (instance.spotifyScale <= 0) instance.spotifyScale = 1;
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
+			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.cornerRoundness < 0) instance.cornerRoundness = 1;
 			if (instance.termScale <= 0) instance.termScale = 1;
 			if (instance.commandAliases == null) instance.commandAliases = new java.util.ArrayList<>();
 			if (instance.shitterList == null) instance.shitterList = new java.util.ArrayList<>();

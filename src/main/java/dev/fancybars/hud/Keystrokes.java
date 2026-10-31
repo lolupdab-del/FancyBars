@@ -186,10 +186,10 @@ public final class Keystrokes {
 			int ky = Math.round(key.y());
 			int kw = Math.round(key.x() + key.w()) - kx;
 			int kh = Math.round(key.h());
-			int idle = (Math.round(a * 0.5f) << 24) | 0x101014;
+			int idle = Theme.hudBg(0.5f, a);
 			int pressed = (Math.round(a * 0.85f) << 24) | (Theme.colorAt(graphics, Theme.ACCENT, kx + kw / 2f) & 0xFFFFFF);
 			Theme.roundedRect(graphics, kx, ky, kw, kh, 4, Theme.lerpColor(idle, pressed, p));
-			int textColor = Theme.lerpColor(0xFFFFFFFF, 0xFF1A1018, p);
+			int textColor = Theme.lerpColor(Theme.hudText(255), 0xFF1A1018, p);
 			Component label = Theme.bold(Component.literal(key.label()));
 			float lw = font.width(label);
 			float scaleText = Math.min(1, (kw - 3) / lw);
