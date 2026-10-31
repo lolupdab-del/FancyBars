@@ -106,8 +106,9 @@ public final class GifInventory {
 				image = com.mojang.blaze3d.platform.NativeImage.read(in);
 			}
 			float scale = image.getWidth() / 256f;
-			if (c.gifsHideCraftingGrid) fill(image, scale, 96, 15, 172, 57);
-			if (c.hideOffhandSlot) fill(image, scale, 75, 60, 95, 80);
+			// offhand first, so the crafting fill's left edge samples the cleaned area
+			if (c.hideOffhandSlot) fill(image, scale, 75, 60, 95, 80, true);
+			if (c.gifsHideCraftingGrid) fill(image, scale, 96, 15, 171, 57, false);
 			patchedW = image.getWidth();
 			patchedH = image.getHeight();
 			net.minecraft.client.renderer.texture.DynamicTexture texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "SBCLIENT inventory", image);
@@ -121,8 +122,31 @@ public final class GifInventory {
 		}
 	}
 
-	/** Fills the box (in vanilla 256-px texture units, end exclusive) from its surrounding pixels. */
-	private static void fill(com.mojang.blaze3d.platform.NativeImage img, float scale, int x0, int y0, int x1, int y1) {
+	/** Average colour (per channel, ARGB) of the box x0..x1, y0..y1 (inclusive, clamped to the image). */
+	private static float[] average(com.mojang.blaze3d.platform.NativeImage img, int x0, int y0, int x1, int y1) {
+		x0 = Math.clamp(x0, 0, img.getWidth() - 1);
+		x1 = Math.clamp(x1, 0, img.getWidth() - 1);
+		y0 = Math.clamp(y0, 0, img.getHeight() - 1);
+		y1 = Math.clamp(y1, 0, img.getHeight() - 1);
+		float[] sum = new float[4];
+		int n = 0;
+		for (int y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
+			for (int x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
+				int c = img.getPixel(x, y);
+				for (int k = 0; k < 4; k++) sum[k] += c >>> (k * 8) & 0xFF;
+				n++;
+			}
+		}
+		for (int k = 0; k < 4; k++) sum[k] /= Math.max(1, n);
+		return sum;
+	}
+
+	/**
+	 * Fills the box (vanilla 256-px texture units, end exclusive) from its surroundings. The edge colours are
+	 * blurred first (so single stars or slot lines don't get stretched into streaks), then each pixel blends the
+	 * nearest edges by inverse distance. {@code useRight} is off where the box touches the panel's frame.
+	 */
+	private static void fill(com.mojang.blaze3d.platform.NativeImage img, float scale, int x0, int y0, int x1, int y1, boolean useRight) {
 		int ax = Math.max(1, Math.round(x0 * scale));
 		int ay = Math.max(1, Math.round(y0 * scale));
 		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
@@ -130,39 +154,38 @@ public final class GifInventory {
 		if (bx - ax < 2 || by - ay < 2) return;
 		int w = bx - ax;
 		int h = by - ay;
-		int[] top = new int[w];
-		int[] bottom = new int[w];
-		int[] left = new int[h];
-		int[] right = new int[h];
+		int blur = Math.max(2, Math.round(7 * scale));
+		int band = Math.max(1, Math.round(3 * scale));
+		float[][] top = new float[w][];
+		float[][] bottom = new float[w][];
+		float[][] left = new float[h][];
+		float[][] right = new float[h][];
 		for (int i = 0; i < w; i++) {
-			top[i] = img.getPixel(ax + i, ay - 1);
-			bottom[i] = img.getPixel(ax + i, by);
+			top[i] = average(img, ax + i - blur, ay - band, ax + i + blur, ay - 1);
+			bottom[i] = average(img, ax + i - blur, by, ax + i + blur, by + band - 1);
 		}
 		for (int j = 0; j < h; j++) {
-			left[j] = img.getPixel(ax - 1, ay + j);
-			right[j] = img.getPixel(bx, ay + j);
+			left[j] = average(img, ax - band, ay + j - blur, ax - 1, ay + j + blur);
+			right[j] = useRight ? average(img, bx, ay + j - blur, bx + band - 1, ay + j + blur) : null;
 		}
-		int c00 = img.getPixel(ax - 1, ay - 1);
-		int c10 = img.getPixel(bx, ay - 1);
-		int c01 = img.getPixel(ax - 1, by);
-		int c11 = img.getPixel(bx, by);
 		for (int j = 0; j < h; j++) {
-			float v = (j + 1f) / (h + 1f);
 			for (int i = 0; i < w; i++) {
-				float u = (i + 1f) / (w + 1f);
+				float dTop = j + 1f;
+				float dBottom = h - j;
+				float dLeft = i + 1f;
+				float dRight = w - i;
+				float wt = 1 / (dTop * dTop), wb = 1 / (dBottom * dBottom), wl = 1 / (dLeft * dLeft), wr = useRight ? 1 / (dRight * dRight) : 0;
+				float total = wt + wb + wl + wr;
 				int out = 0;
-				for (int shift = 0; shift <= 24; shift += 8) {
-					float l = left[j] >>> shift & 0xFF, r = right[j] >>> shift & 0xFF, t = top[i] >>> shift & 0xFF, b = bottom[i] >>> shift & 0xFF;
-					float k00 = c00 >>> shift & 0xFF, k10 = c10 >>> shift & 0xFF, k01 = c01 >>> shift & 0xFF, k11 = c11 >>> shift & 0xFF;
-					// Coons patch: edge blends minus the corner blend
-					float value = (1 - u) * l + u * r + (1 - v) * t + v * b
-							- ((1 - u) * (1 - v) * k00 + u * (1 - v) * k10 + (1 - u) * v * k01 + u * v * k11);
-					out |= Math.clamp(Math.round(value), 0, 255) << shift;
+				for (int k = 0; k < 4; k++) {
+					float value = top[i][k] * wt + bottom[i][k] * wb + left[j][k] * wl + (useRight ? right[j][k] * wr : 0);
+					out |= Math.clamp(Math.round(value / total), 0, 255) << (k * 8);
 				}
 				img.setPixel(ax + i, ay + j, out);
 			}
 		}
 	}
+
 
 	/** Draws the patched background over the normal one (before GIFs and the player, so those stay on top). */
 	public static void coverHiddenSlots(InventoryScreen screen, GuiGraphicsExtractor graphics) {
