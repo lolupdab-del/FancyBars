@@ -299,13 +299,8 @@ public final class Theme {
 			int f = night(fallback);
 			color = Math.round((f >>> 24) * alpha / 255f) << 24 | f & 0xFFFFFF;
 		}
-		int rings = (int) Math.ceil(thickness);
-		for (int i = 0; i < rings && width - i * 2 > 2 && height - i * 2 > 2; i++) {
-			// the last ring is faded by the fractional part so thickness changes smoothly
-			float part = Math.min(1, thickness - i);
-			int ringColor = part >= 1 ? color : Math.round((color >>> 24) * part) << 24 | color & 0xFFFFFF;
-			rawOutline(graphics, x + i, y + i, width - i * 2, height - i * 2, radius - i, ringColor);
-		}
+		int r = radius(radius) <= 1 || Math.min(width, height) < 4 ? 0 : RADII[radiusIndex(radius, width, height)];
+		Ring.draw(graphics, x, y, width, height, r, thickness, color);
 	}
 
 	/** A HUD box: themed background (HUD opacity) and the Appearance border. */
