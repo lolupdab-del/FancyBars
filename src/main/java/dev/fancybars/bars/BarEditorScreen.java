@@ -422,7 +422,7 @@ public class BarEditorScreen extends Screen {
 			return true;
 		}
 		// R: put whatever is under the mouse back where it started
-		if (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_R && dragging == null && draggingElement == null) {
+		if (event.key() == com.mojang.blaze3d.platform.InputConstants.KEY_R && dragging == null && draggingElement == null) {
 			double mouseX = minecraft.mouseHandler.getScaledXPos(minecraft.getWindow());
 			double mouseY = minecraft.mouseHandler.getScaledYPos(minecraft.getWindow());
 			MovableElement element = elementAt(mouseX, mouseY);

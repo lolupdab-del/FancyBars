@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.joml.Matrix3x2fStack;
-import org.lwjgl.glfw.GLFW;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -71,9 +70,9 @@ public final class Keystrokes {
 			float wide = U * 1.5f + GAP / 2f;
 			String[][] rows = {{"TAB", "Q", "W", "E", "R"}, {"CAPS", "A", "S", "D", "F"}, {"SHIFT", "Z", "X", "C", "V"}};
 			int[][] codes = {
-					{GLFW.GLFW_KEY_TAB, GLFW.GLFW_KEY_Q, GLFW.GLFW_KEY_W, GLFW.GLFW_KEY_E, GLFW.GLFW_KEY_R},
-					{GLFW.GLFW_KEY_CAPS_LOCK, GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_F},
-					{GLFW.GLFW_KEY_LEFT_SHIFT, GLFW.GLFW_KEY_Z, GLFW.GLFW_KEY_X, GLFW.GLFW_KEY_C, GLFW.GLFW_KEY_V}};
+					{InputConstants.KEY_TAB, InputConstants.KEY_Q, InputConstants.KEY_W, InputConstants.KEY_E, InputConstants.KEY_R},
+					{InputConstants.KEY_CAPSLOCK, InputConstants.KEY_A, InputConstants.KEY_S, InputConstants.KEY_D, InputConstants.KEY_F},
+					{InputConstants.KEY_LSHIFT, InputConstants.KEY_Z, InputConstants.KEY_X, InputConstants.KEY_C, InputConstants.KEY_V}};
 			for (int r = 0; r < 3; r++) {
 				float x = 0;
 				for (int c = 0; c < 5; c++) {
@@ -85,18 +84,18 @@ public final class Keystrokes {
 			}
 			width = wide + 4 * (U + GAP);
 		} else if (mode == MODE_WASD) {
-			keys.add(new Key("W", GLFW.GLFW_KEY_W, U + GAP, 0, U, U));
+			keys.add(new Key("W", InputConstants.KEY_W, U + GAP, 0, U, U));
 			y += U + GAP;
-			keys.add(new Key("A", GLFW.GLFW_KEY_A, 0, y, U, U));
-			keys.add(new Key("S", GLFW.GLFW_KEY_S, U + GAP, y, U, U));
-			keys.add(new Key("D", GLFW.GLFW_KEY_D, (U + GAP) * 2, y, U, U));
+			keys.add(new Key("A", InputConstants.KEY_A, 0, y, U, U));
+			keys.add(new Key("S", InputConstants.KEY_S, U + GAP, y, U, U));
+			keys.add(new Key("D", InputConstants.KEY_D, (U + GAP) * 2, y, U, U));
 			y += U + GAP;
 			width = U * 3 + GAP * 2;
 		} else {
 			width = U * 3 + GAP * 2;
 		}
 		if (mode != MODE_MOUSE) {
-			keys.add(new Key("———", GLFW.GLFW_KEY_SPACE, 0, y, width, SPACE_H));
+			keys.add(new Key("———", InputConstants.KEY_SPACE, 0, y, width, SPACE_H));
 			y += SPACE_H + GAP;
 		}
 		float half = (width - GAP) / 2f;
@@ -155,9 +154,9 @@ public final class Keystrokes {
 
 	private static boolean isDown(int code) {
 		Minecraft mc = Minecraft.getInstance();
-		if (code == MOUSE_LEFT) return GLFW.glfwGetMouseButton(mc.getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-		if (code == MOUSE_RIGHT) return GLFW.glfwGetMouseButton(mc.getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS;
-		return InputConstants.isKeyDown(mc.getWindow(), code);
+		if (code == MOUSE_LEFT) return mc.mouseHandler.isLeftPressed();
+		if (code == MOUSE_RIGHT) return mc.mouseHandler.isRightPressed();
+		return InputConstants.isKeyDown(code);
 	}
 
 	public static void render(GuiGraphicsExtractor graphics) {

@@ -124,7 +124,7 @@ public final class ScreenImages {
 			Files.createDirectories(folder());
 		} catch (Exception ignored) {
 		}
-		Util.getPlatform().openPath(folder());
+		dev.fancybars.util.OpenUtil.open(folder());
 	}
 
 	private static void decode(Image image, Path path) {

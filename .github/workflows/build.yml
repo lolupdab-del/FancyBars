@@ -32,7 +32,7 @@ jobs:
       - name: Dump class signatures
         if: always() && hashFiles('.github/javap.txt') != ''
         run: |
-          find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -iE 'minecraft|fabric-rendering|fabric-api' | grep -v sources > /tmp/mcjars.txt || true
+          find ~/.gradle/caches .gradle -name '*.jar' 2>/dev/null | grep -iE 'minecraft|fabric-rendering|fabric-api' | grep -v sources | awk '{print (index($0,"fabric-loom/26.3")?0:1) " " $0}' | sort -n | cut -d' ' -f2- > /tmp/mcjars.txt || true
           cat /tmp/mcjars.txt > javap-out.txt
           while read -r cls; do
             [ -z "$cls" ] && continue

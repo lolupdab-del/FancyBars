@@ -151,7 +151,7 @@ public final class GifInventory {
 		try {
 			Path folder = GifStore.folder();
 			Files.createDirectories(folder);
-			Util.getPlatform().openPath(folder);
+			dev.fancybars.util.OpenUtil.open(folder);
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.error("[FancyBars] Could not open GIF folder", e);
 		}

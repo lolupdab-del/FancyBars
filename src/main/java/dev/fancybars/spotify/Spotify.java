@@ -158,7 +158,7 @@ public final class Spotify {
 		pendingLogin = server;
 		status = "Waiting for you to log in in your browser…";
 		FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> waitForCallback(server, clientId, verifier, stateParam));
-		Util.getPlatform().openUri(url);
+		dev.fancybars.util.OpenUtil.open(url);
 	}
 
 	/** A tiny one-shot web server on 127.0.0.1 that catches Spotify's redirect with the login code. */

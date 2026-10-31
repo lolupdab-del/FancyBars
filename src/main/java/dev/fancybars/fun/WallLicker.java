@@ -163,7 +163,7 @@ public final class WallLicker {
 			Files.createDirectories(SOUND_DIR);
 		} catch (Exception ignored) {
 		}
-		Util.getPlatform().openPath(SOUND_DIR);
+		dev.fancybars.util.OpenUtil.open(SOUND_DIR);
 	}
 
 	// ---------------------------------------------------------------- HUD

@@ -72,9 +72,9 @@ public abstract class ItemInHandRendererMixin {
 			float pz = -0.72f;
 			poseStack.translate(x * side, y, z);
 			poseStack.translate(px, py, pz);
-			poseStack.mulPose(Axis.XP.rotationDegrees(rx));
-			poseStack.mulPose(Axis.YP.rotationDegrees(ry * side));
-			poseStack.mulPose(Axis.ZP.rotationDegrees(rz * side));
+			poseStack.rotate(Axis.XP.rotationDegrees(rx));
+			poseStack.rotate(Axis.YP.rotationDegrees(ry * side));
+			poseStack.rotate(Axis.ZP.rotationDegrees(rz * side));
 			poseStack.scale(scale, scale, scale);
 			poseStack.translate(-px, -py, -pz);
 		}

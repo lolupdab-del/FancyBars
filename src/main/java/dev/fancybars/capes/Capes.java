@@ -215,6 +215,6 @@ public final class Capes {
 			Files.createDirectories(CUSTOM_DIR);
 		} catch (Exception ignored) {
 		}
-		Util.getPlatform().openPath(CUSTOM_DIR);
+		dev.fancybars.util.OpenUtil.open(CUSTOM_DIR);
 	}
 }
