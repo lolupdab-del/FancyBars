@@ -1,4 +1,4 @@
-net.minecraft.client.renderer.OrderedSubmitNodeCollector
-com.mojang.blaze3d.vertex.VertexConsumer
-net.minecraft.client.renderer.state.level.LevelRenderState
-net.minecraft.world.item.DyeColor
+com.mojang.blaze3d.vertex.PoseStack
+net.minecraft.util.Util
+net.minecraft.util.Util$OS
+com.mojang.blaze3d.platform.InputConstants

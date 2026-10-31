@@ -44,6 +44,9 @@ jobs:
               fi
             done
           done < .github/javap.txt
+          echo "=== CLASS SEARCH" >> javap-out.txt
+          for jar in $(cat /tmp/mcjars.txt); do unzip -l "$jar" 2>/dev/null | grep -iE 'RenderPipeline|InHandRenderer|HandRenderer|ItemInHand|/Util\$OS|Platform|InputConstants|glfw|Keys\.class|KeyCodes|FirstPerson|/PoseStack' | awk -v j="$jar" '{print $4}' ; done | sort -u >> javap-out.txt
+          find ~/.gradle/caches -name '*.jar' | grep -iE 'lwjgl' | head -20 >> javap-out.txt
       - uses: actions/upload-artifact@v4
         with:
           name: fancybars
