@@ -1,4 +1,7 @@
 [
+  {"version": "2.24.4", "date": "2026-10-31",
+   "added": [],
+   "fixed": ["No more leftover dark arrows / boxes where the crafting grid is hidden"]},
   {"version": "2.24.3", "date": "2026-10-31",
    "added": [],
    "fixed": ["Hidden crafting grid / offhand slot now show your resource pack's real artwork underneath (rebuilt from the pack's other container screens), with a soft blend only as a fallback"]},

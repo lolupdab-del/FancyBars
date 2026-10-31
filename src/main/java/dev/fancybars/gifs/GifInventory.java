@@ -184,7 +184,29 @@ public final class GifInventory {
 			// pixels around the box mostly identical: this screen shares the inventory's artwork here
 			if (n > 0 && total / (double) n < 24) matching.add(o);
 		}
-		if (matching.size() < 2) return false;
+		// screens with the same layout here (furnace / smoker / blast furnace, chest / shulker box...) would outvote
+		// the others with their shared arrows and boxes: count each layout once
+		List<com.mojang.blaze3d.platform.NativeImage> distinct = new java.util.ArrayList<>();
+		for (var o : matching) {
+			boolean duplicate = false;
+			for (var d : distinct) {
+				long total = 0;
+				int n = 0;
+				for (int y = ay; y < by; y += 2) {
+					for (int x = ax; x < bx; x += 2) {
+						total += diff(o.getPixel(x, y), d.getPixel(x, y));
+						n++;
+					}
+				}
+				if (n > 0 && total / (double) n < 6) {
+					duplicate = true;
+					break;
+				}
+			}
+			if (!duplicate) distinct.add(o);
+		}
+		matching = distinct;
+		if (matching.size() < 3) return false;
 		int[] values = new int[matching.size()];
 		for (int y = ay; y < by; y++) {
 			for (int x = ax; x < bx; x++) {
