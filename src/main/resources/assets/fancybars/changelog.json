@@ -1,4 +1,7 @@
 [
+  {"version": "2.23.1", "date": "2026-10-31",
+   "added": ["Hide Offhand Slot (GIFs tab)"],
+   "fixed": ["Hide Crafting Grid now really hides the grid, arrow and result slot, and works without Inventory GIFs turned on"]},
   {"version": "2.23.0", "date": "2026-10-31",
    "added": ["Minecraft Font setting (Settings → Appearance): every menu and HUD uses Minecraft's font, or your resource pack's, instead of Geist", "Minecraft Font Shadow for the classic drop shadow"],
    "fixed": []},

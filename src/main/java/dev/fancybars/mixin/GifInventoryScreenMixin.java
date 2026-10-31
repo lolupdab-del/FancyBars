@@ -20,6 +20,11 @@ public abstract class GifInventoryScreenMixin {
 		GifInventory.drawGifs((InventoryScreen) (Object) this, graphics, false);
 	}
 
+	@Inject(method = "extractBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;extractEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIIIIFFFLnet/minecraft/world/entity/LivingEntity;)V"), require = 0)
+	private void fancybars$coverSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+		GifInventory.coverHiddenSlots((InventoryScreen) (Object) this, graphics);
+	}
+
 	@Inject(method = "extractBackground", at = @At("TAIL"), require = 0)
 	private void fancybars$afterBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
 		GifInventory.drawGifs((InventoryScreen) (Object) this, graphics, true);

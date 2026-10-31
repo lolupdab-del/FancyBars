@@ -45,7 +45,15 @@ public final class GifInventory {
 
 	public static void init() {
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-			if (screen instanceof InventoryScreen inventory && enabled()) setupInventory(inventory);
+			if (screen instanceof InventoryScreen inventory) {
+				if (enabled()) setupInventory(inventory);
+				else if (FancyBarsConfig.get().gifsHideRecipeBook && hideCraftingGrid()) {
+					int[] panel = panel(inventory);
+					int bookX = panel[0] + 104;
+					int bookY = inventory.height / 2 - 22;
+					Screens.getWidgets(inventory).removeIf(widget -> widget.getX() == bookX && widget.getY() == bookY);
+				}
+			}
 		});
 	}
 
@@ -53,12 +61,39 @@ public final class GifInventory {
 		return FancyBarsConfig.get().gifsEnabled;
 	}
 
+	/** Works on its own now (it used to need Inventory GIFs switched on). */
 	public static boolean hideCraftingGrid() {
-		return enabled() && FancyBarsConfig.get().gifsHideCraftingGrid;
+		return FancyBarsConfig.get().gifsHideCraftingGrid;
 	}
 
+	public static boolean hideOffhand() {
+		return FancyBarsConfig.get().hideOffhandSlot;
+	}
+
+	/** Crafting result + 2x2 grid are menu slots 0-4, the offhand is 45. */
 	public static boolean isHiddenCraftSlot(Object screen, Slot slot) {
-		return hideCraftingGrid() && screen instanceof InventoryScreen && slot != null && slot.index >= 0 && slot.index <= 4;
+		if (!(screen instanceof InventoryScreen) || slot == null) return false;
+		return hideCraftingGrid() && slot.index >= 0 && slot.index <= 4 || hideOffhand() && slot.index == 45;
+	}
+
+	private static final net.minecraft.resources.Identifier INVENTORY_TEXTURE = net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/inventory.png");
+
+	/**
+	 * The slot boxes and arrow are part of the inventory background picture, so hiding the slots isn't enough:
+	 * paint over them with an empty patch of the same picture (so it matches any resource pack).
+	 */
+	public static void coverHiddenSlots(InventoryScreen screen, GuiGraphicsExtractor graphics) {
+		if (!hideCraftingGrid() && !hideOffhand()) return;
+		int[] p = panel(screen);
+		if (hideCraftingGrid()) {
+			// empty strip of background below the grid (x 96-174, y 58-77), stacked twice over the grid, arrow and result
+			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 96, p[1] + 16, 96, 58, 78, 19, 256, 256);
+			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 96, p[1] + 35, 96, 58, 78, 19, 256, 256);
+			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 96, p[1] + 4, 96, 58, 78, 12, 256, 256);
+		}
+		if (hideOffhand()) {
+			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 76, p[1] + 61, 100, 58, 18, 18, 256, 256);
+		}
 	}
 
 	public static void drawGifs(InventoryScreen screen, GuiGraphicsExtractor graphics, boolean fallback) {
