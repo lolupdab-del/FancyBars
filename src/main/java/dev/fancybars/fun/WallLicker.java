@@ -196,8 +196,8 @@ public final class WallLicker {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
-		Theme.roundedRect(graphics, 0, 0, size[0], size[1], 5, Theme.hudBg(0.55f, a));
-		Theme.boldInBox(graphics, font, text(), 6, 0, size[1], (a << 24) | 0xFFFFFF);
+		Theme.hudPanel(graphics, 0, 0, size[0], size[1], 5, 0.55f, a);
+		Theme.boldInBox(graphics, font, text(), 6, 0, size[1], Theme.hudText(a));
 		pose.popMatrix();
 	}
 }

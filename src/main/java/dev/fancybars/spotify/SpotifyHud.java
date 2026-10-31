@@ -85,16 +85,16 @@ public final class SpotifyHud {
 		pose.translate(x, y);
 		pose.scale(scale, scale);
 		Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudBg(0.7f, a));
-		Theme.roundedOutline(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.customColors() ? Theme.hudAccent(0.4f, a) : (Math.round(a * 0.4f) << 24) | 0x1DB954);
+		if (dev.fancybars.config.FancyBarsConfig.get().hudBorders) Theme.border(graphics, 0, 0, WIDTH, HEIGHT, 6, SpotifyUi.green(0x66), a);
 		SpotifyUi.art(graphics, s.artUrl, 5, 5, 34);
 		int tx = 45;
 		int tw = WIDTH - tx - 18;
 		SpotifyUi.scrolling(graphics, Component.literal(s.title), tx, 8, tw, Theme.hudText(a), true);
-		SpotifyUi.scrolling(graphics, Component.literal(s.artist), tx, 20, tw, (a << 24) | 0xB8C2D8, false);
-		if (s.playing) SpotifyUi.pause(graphics, WIDTH - 10, 12, 8, (a << 24) | 0x1DB954);
-		else SpotifyUi.play(graphics, WIDTH - 9, 12, 8, (a << 24) | 0x1DB954);
+		SpotifyUi.scrolling(graphics, Component.literal(s.artist), tx, 20, tw, Theme.hudTextSoft(a), false);
+		if (s.playing) SpotifyUi.pause(graphics, WIDTH - 10, 12, 8, SpotifyUi.green(a));
+		else SpotifyUi.play(graphics, WIDTH - 9, 12, 8, SpotifyUi.green(a));
 		float fraction = s.durationMs > 0 ? s.progressNow() / (float) s.durationMs : 0;
-		SpotifyUi.progress(graphics, tx, 34, WIDTH - tx - 6, fraction, (a << 24) | 0x1DB954);
+		SpotifyUi.progress(graphics, tx, 34, WIDTH - tx - 6, fraction, SpotifyUi.green(a));
 		pose.popMatrix();
 	}
 }

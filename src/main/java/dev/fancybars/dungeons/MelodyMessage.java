@@ -1,5 +1,6 @@
 package dev.fancybars.dungeons;
 
+import dev.fancybars.util.gui.Theme;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -229,7 +230,7 @@ public final class MelodyMessage {
 		}
 		String label = label(name);
 		String progress = data.clay != null ? "§e" + data.clay + "/4" : "§70/4";
-		graphics.text(font, Component.literal(progress + (label == null ? "" : " " + label)), 5 * CELL + 3, y, 0xFFFFFFFF, true);
+		graphics.text(font, Component.literal(progress + (label == null ? "" : " " + label)), 5 * CELL + 3, y, Theme.hudText(255), true);
 	}
 
 	public static int[] size(boolean sample) {
@@ -256,6 +257,10 @@ public final class MelodyMessage {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
+		if (FancyBarsConfig.get().textHudBackgrounds) {
+			int[] s = size(sample);
+			Theme.hudPanel(graphics, -4, -4, s[0] + 8, s[1] + 7, 4, 0.55f, 255);
+		}
 		Minecraft mc = Minecraft.getInstance();
 		String me = mc.player != null ? mc.player.getGameProfile().name() : "You";
 		int row = 0;

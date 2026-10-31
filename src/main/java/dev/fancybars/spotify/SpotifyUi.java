@@ -16,6 +16,15 @@ import dev.fancybars.util.gui.Theme;
 public final class SpotifyUi {
 	public static final int GREEN = 0xFF1DB954;
 
+	/** Spotify green, or your accent when Custom Colors is on. */
+	public static int green(int alpha) {
+		return alpha << 24 | (Theme.customColors() ? Theme.accent() : GREEN) & 0xFFFFFF;
+	}
+
+	public static int green() {
+		return green(255);
+	}
+
 	private SpotifyUi() {}
 
 	/** Album art drawn pixel-for-pixel on screen (smooth, rounded corners). */

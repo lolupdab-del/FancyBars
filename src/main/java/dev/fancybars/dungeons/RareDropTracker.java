@@ -308,8 +308,7 @@ public final class RareDropTracker {
 		pose.scale(scale, scale);
 		int[] size = size(sample);
 		if (config.rareDropsBackground) {
-			Theme.roundedRect(graphics, 0, 0, size[0], size[1], 4, Theme.hudBg(0.53f, 255));
-			Theme.roundedOutline(graphics, 0, 0, size[0], size[1], 4, Theme.hudAccent(0.27f, 255));
+			Theme.hudPanel(graphics, 0, 0, size[0], size[1], 4, 0.53f, 255);
 		}
 		int ly = PAD;
 		for (Line line : lines(sample)) {

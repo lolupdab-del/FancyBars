@@ -276,6 +276,42 @@ public final class Theme {
 	/**
 	 * Card: filled rounded rectangle with a thin border.
 	 */
+	/** Outline drawn exactly in the given colour (no theme mapping). */
+	public static void rawOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
+		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(Math.max(0, radius), width, height)], x, y, width, height, color);
+	}
+
+	/**
+	 * Border from the Appearance settings (thickness + colour). {@code fallback} is the element's normal border
+	 * colour, used when Custom Border Color is off. {@code alpha} fades the whole border (HUD fade-outs).
+	 */
+	public static void border(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fallback, int alpha) {
+		dev.fancybars.config.FancyBarsConfig c = cfg();
+		int thickness = Math.round(c.borderThickness);
+		if (thickness <= 0) return;
+		int color;
+		if (c.customBorder) color = Math.round(Math.clamp(c.borderOpacity, 0, 1) * alpha) << 24 | c.borderColor & 0xFFFFFF;
+		else {
+			int f = night(fallback);
+			color = Math.round((f >>> 24) * alpha / 255f) << 24 | f & 0xFFFFFF;
+		}
+		for (int i = 0; i < thickness && width - i * 2 > 2 && height - i * 2 > 2; i++) {
+			rawOutline(graphics, x + i, y + i, width - i * 2, height - i * 2, radius - i, color);
+		}
+	}
+
+	/** A HUD box: themed background (HUD opacity) and the Appearance border. */
+	public static void hudPanel(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, float bgAlpha, int alpha) {
+		roundedRect(graphics, x, y, width, height, radius, hudBg(bgAlpha, alpha));
+		if (cfg().hudBorders) border(graphics, x, y, width, height, radius, hudAccent(0.4f, 255), alpha);
+	}
+
+	/** Secondary HUD text (artists, labels). */
+	public static int hudTextSoft(int alpha) {
+		return lerpColor(hudText(alpha), alpha << 24, 0.3f);
+	}
+
 	public static void card(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fill, int border) {
 		roundedRect(graphics, x, y, width, height, radius, fill);
 		roundedOutline(graphics, x, y, width, height, radius, border);
@@ -309,7 +345,7 @@ public final class Theme {
 	public static void panel(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
 		shadow(graphics, x, y, width, height, PANEL_RADIUS, 0, 2);
 		roundedRect(graphics, x, y, width, height, PANEL_RADIUS, PANEL);
-		roundedOutline(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER);
+		border(graphics, x, y, width, height, PANEL_RADIUS, PANEL_BORDER, 255);
 	}
 
 	public static void backdrop(GuiGraphicsExtractor graphics, int width, int height) {

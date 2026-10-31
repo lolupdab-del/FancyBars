@@ -130,6 +130,22 @@ public class FancyBarsConfig {
 	/** How dark the world gets behind menus. */
 	public float backdropDarkness = 0.4f;
 
+	/** Border thickness in pixels for menus and HUDs (0 = no border). */
+	public float borderThickness = 1;
+
+	/** Use {@link #borderColor} for borders instead of the theme's. */
+	public boolean customBorder = false;
+
+	public int borderColor = 0x6FA8FF;
+
+	public float borderOpacity = 0.6f;
+
+	/** Draw the border around HUD elements too (not only menus). */
+	public boolean hudBorders = true;
+
+	/** Give text-only HUDs (secrets, melody, terminal info) a themed background box. */
+	public boolean textHudBackgrounds = false;
+
 	/** Opacity multiplier for every HUD background (1 = normal). */
 	public float hudOpacity = 1;
 

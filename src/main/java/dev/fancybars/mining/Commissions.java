@@ -119,8 +119,7 @@ public final class Commissions {
 		pose.translate(x, y);
 		pose.scale(scale, scale);
 		int h = height(list);
-		Theme.roundedRect(graphics, 0, 0, WIDTH, h, 5, Theme.hudBg(0.6f, a));
-		Theme.roundedOutline(graphics, 0, 0, WIDTH, h, 5, Theme.hudAccent(0.45f, a));
+		Theme.hudPanel(graphics, 0, 0, WIDTH, h, 5, 0.6f, a);
 		Theme.boldInBox(graphics, font, Component.translatable("fancybars.commissions.title"), PAD, PAD - 2, TITLE_H, (a << 24) | (Theme.colorAt(graphics, Theme.ACCENT, PAD) & 0xFFFFFF));
 		int ry = PAD + TITLE_H;
 		for (Commission c : list) {
@@ -132,7 +131,7 @@ public final class Commissions {
 			// progress bar
 			int barY = ry + 11;
 			int barW = WIDTH - PAD * 2;
-			Theme.roundedRect(graphics, PAD, barY, barW, 3, 2, (Math.round(a * 0.25f) << 24) | 0xFFFFFF);
+			Theme.roundedRect(graphics, PAD, barY, barW, 3, 2, Theme.hudText(Math.round(a * 0.25f)));
 			int fill = Math.round(barW * c.progress());
 			if (fill > 0) {
 				int color = c.done() ? 0x55FF77 : Theme.colorAt(graphics, Theme.ACCENT, PAD + fill / 2f) & 0xFFFFFF;

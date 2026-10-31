@@ -613,6 +613,15 @@ public class BarsMenuScreen extends Screen {
 				}));
 				list.add(new SliderItem("panelOpacity", 0.3f, 1, 0.05f, true, () -> config.panelOpacity, value -> config.panelOpacity = value));
 				list.add(new SliderItem("hudOpacity", 0, 1.5f, 0.05f, true, () -> config.hudOpacity, value -> config.hudOpacity = value));
+				list.add(new SliderItem("borderThickness", 0, 4, 1, false, () -> config.borderThickness, value -> config.borderThickness = value));
+				list.add(new ToggleItem("customBorder", () -> config.customBorder, value -> config.customBorder = value));
+				list.add(new SwatchItem("borderColor", () -> new Color(config.borderColor, false), color -> {
+					config.borderColor = color.getRGB() & 0xFFFFFF;
+					config.customBorder = true;
+				}));
+				list.add(new SliderItem("borderOpacity", 0, 1, 0.05f, true, () -> config.borderOpacity, value -> config.borderOpacity = value));
+				list.add(new ToggleItem("hudBorders", () -> config.hudBorders, value -> config.hudBorders = value));
+				list.add(new ToggleItem("textHudBackgrounds", () -> config.textHudBackgrounds, value -> config.textHudBackgrounds = value));
 				list.add(new SliderItem("cornerRoundness", 0, 2, 0.1f, true, () -> config.cornerRoundness, value -> config.cornerRoundness = value));
 				list.add(new SliderItem("backdropDarkness", 0, 1, 0.05f, true, () -> config.backdropDarkness, value -> config.backdropDarkness = value));
 				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.appearance.reset"), () -> {
@@ -624,6 +633,12 @@ public class BarsMenuScreen extends Screen {
 					config.hudOpacity = 1;
 					config.cornerRoundness = 1;
 					config.backdropDarkness = 0.4f;
+					config.borderThickness = 1;
+					config.customBorder = false;
+					config.borderColor = 0x6FA8FF;
+					config.borderOpacity = 0.6f;
+					config.hudBorders = true;
+					config.textHudBackgrounds = false;
 					FancyBarsConfig.save();
 					rebuildNextTick = true;
 				})));

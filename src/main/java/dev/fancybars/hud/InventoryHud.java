@@ -52,13 +52,12 @@ public final class InventoryHud {
 		pose.scale(scale, scale);
 		int a = Math.round(alpha * 255);
 		if (config.invHudBackground) {
-			Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 5, Theme.hudBg(0.55f, a));
-			Theme.roundedOutline(graphics, 0, 0, WIDTH, HEIGHT, 5, Theme.hudAccent(0.35f, a));
+			Theme.hudPanel(graphics, 0, 0, WIDTH, HEIGHT, 5, 0.55f, a);
 		}
 		for (int i = 0; i < 27; i++) {
 			int sx = PAD + (i % 9) * SLOT;
 			int sy = PAD + (i / 9) * SLOT;
-			if (config.invHudSlots) Theme.roundedRect(graphics, sx + 1, sy + 1, SLOT - 2, SLOT - 2, 3, (Math.round(a * 0.18f) << 24) | 0xFFFFFF);
+			if (config.invHudSlots) Theme.roundedRect(graphics, sx + 1, sy + 1, SLOT - 2, SLOT - 2, 3, Theme.hudText(Math.round(a * 0.18f)));
 			if (player == null) continue;
 			ItemStack stack = player.getInventory().getItem(9 + i);
 			if (stack.isEmpty()) continue;

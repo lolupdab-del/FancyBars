@@ -102,7 +102,7 @@ public class SpotifyScreen extends Screen {
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		Theme.panel(graphics, px, py, pw, ph);
 		// header
-		Theme.circle(graphics, px + 12, py + 9, 10, SpotifyUi.GREEN);
+		Theme.circle(graphics, px + 12, py + 9, 10, SpotifyUi.green());
 		Theme.titleInBox(graphics, font, title, px + 28, py + 4, 20, Theme.TEXT);
 
 		if (!Spotify.connected()) {
@@ -124,7 +124,7 @@ public class SpotifyScreen extends Screen {
 		if (!s.active) {
 			Theme.textInBox(graphics, font, Component.literal(Spotify.status().isEmpty() ? "Loading…" : Spotify.status()), infoX, py + 34, 14, Theme.TEXT_MUTED);
 		} else {
-			SpotifyUi.scrolling(graphics, Component.literal(s.title), infoX, py + 36, infoW, 0xFFFFFFFF, true);
+			SpotifyUi.scrolling(graphics, Component.literal(s.title), infoX, py + 36, infoW, Theme.TEXT, true);
 			SpotifyUi.scrolling(graphics, Component.literal(s.artist), infoX, py + 50, infoW, Theme.TEXT_SOFT, false);
 			SpotifyUi.scrolling(graphics, Component.literal(s.device.isEmpty() ? s.album : s.album + "  •  " + s.device), infoX, py + 62, infoW, Theme.TEXT_MUTED, false);
 		}
@@ -132,9 +132,9 @@ public class SpotifyScreen extends Screen {
 		// seek bar
 		float fraction = s.durationMs > 0 ? (seeking ? seekFraction : s.progressNow() / (float) s.durationMs) : 0;
 		boolean overBar = mouseX >= barX && mouseX < barX + barW && mouseY >= barY - 4 && mouseY < barY + 7;
-		SpotifyUi.progress(graphics, barX, barY, barW, fraction, overBar || seeking ? SpotifyUi.GREEN : 0xFFFFFFFF);
+		SpotifyUi.progress(graphics, barX, barY, barW, fraction, overBar || seeking ? SpotifyUi.green() : Theme.night(Theme.TEXT));
 		if (overBar || seeking) {
-			Theme.circle(graphics, barX + Math.round(barW * fraction) - 4, barY - 2, 8, 0xFFFFFFFF);
+			Theme.circle(graphics, barX + Math.round(barW * fraction) - 4, barY - 2, 8, Theme.night(Theme.TEXT));
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 		long shown = seeking ? (long) (seekFraction * s.durationMs) : s.progressNow();
@@ -146,21 +146,21 @@ public class SpotifyScreen extends Screen {
 		int cx = barX + barW / 2;
 		int cy = controlsY + 12;
 		boolean overPlay = Math.hypot(mouseX - cx, mouseY - cy) <= 12;
-		Theme.circle(graphics, cx - 12, cy - 12, 24, overPlay ? 0xFFFFFFFF : 0xFFE8EEFA);
-		if (s.playing) SpotifyUi.pause(graphics, cx, cy, 11, 0xFF0B1430);
-		else SpotifyUi.play(graphics, cx + 1, cy, 11, 0xFF0B1430);
+		Theme.circle(graphics, cx - 12, cy - 12, 24, Theme.night(overPlay ? Theme.TEXT : Theme.TEXT_SOFT));
+		if (s.playing) SpotifyUi.pause(graphics, cx, cy, 11, Theme.hudBg(1, 255));
+		else SpotifyUi.play(graphics, cx + 1, cy, 11, Theme.hudBg(1, 255));
 		boolean overPrev = Math.abs(mouseX - (cx - 34)) <= 9 && Math.abs(mouseY - cy) <= 9;
 		boolean overNext = Math.abs(mouseX - (cx + 34)) <= 9 && Math.abs(mouseY - cy) <= 9;
-		SpotifyUi.skip(graphics, cx - 34, cy, 12, overPrev ? 0xFFFFFFFF : 0xFFB0B8CC, false);
-		SpotifyUi.skip(graphics, cx + 34, cy, 12, overNext ? 0xFFFFFFFF : 0xFFB0B8CC, true);
+		SpotifyUi.skip(graphics, cx - 34, cy, 12, overPrev ? Theme.night(Theme.TEXT) : Theme.night(Theme.TEXT_MUTED), false);
+		SpotifyUi.skip(graphics, cx + 34, cy, 12, overNext ? Theme.night(Theme.TEXT) : Theme.night(Theme.TEXT_MUTED), true);
 		if (overPlay || overPrev || overNext) graphics.requestCursor(CursorTypes.POINTING_HAND);
 
 		// shuffle / repeat state
 		int stateY = controlsY + 48;
 		Theme.textInBox(graphics, font, Component.translatable(s.shuffle ? "fancybars.spotify.on" : "fancybars.spotify.off"), barX + 2, stateY, 10,
-				s.shuffle ? SpotifyUi.GREEN : Theme.TEXT_MUTED);
+				s.shuffle ? SpotifyUi.green() : Theme.TEXT_MUTED);
 		Component rep = Component.translatable("fancybars.spotify.repeat." + s.repeat);
-		Theme.textInBox(graphics, font, rep, barX + barW - Theme.width(font, rep) - 2, stateY, 10, s.repeat.equals("off") ? Theme.TEXT_MUTED : SpotifyUi.GREEN);
+		Theme.textInBox(graphics, font, rep, barX + barW - Theme.width(font, rep) - 2, stateY, 10, s.repeat.equals("off") ? Theme.TEXT_MUTED : SpotifyUi.green());
 
 		// volume
 		SpotifyUi.speaker(graphics, barX, py + ph - 41, Theme.TEXT_SOFT);
