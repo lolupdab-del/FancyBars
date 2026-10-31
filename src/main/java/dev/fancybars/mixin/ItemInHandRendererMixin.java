@@ -9,8 +9,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer;
+import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
+import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -24,22 +27,15 @@ import dev.fancybars.config.FancyBarsConfig;
  * Swing in Place. The transform is applied right after the hand's pose is pushed, around where the hand normally
  * sits, so the item and the bare hand react to the sliders the same way.
  */
-@Mixin(ItemInHandRenderer.class)
+@Mixin(FirstPersonHandsAndItemsRenderer.class)
 public abstract class ItemInHandRendererMixin {
-	private static final String SUBMIT = "submitArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V";
+	private static final String SUBMIT = "submitArmWithItem(Lnet/minecraft/client/renderer/state/level/PlayerRenderState;Lnet/minecraft/client/renderer/state/level/FirstPersonHandsAndItemsRenderState;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V";
 
 	/** "No Re-equip Animation": the hand never dips when the held item changes. */
 	@ModifyVariable(method = SUBMIT, at = @At("HEAD"), argsOnly = true, ordinal = 3, require = 0)
 	private float fancybars$noReequipDip(float equipProgress) {
 		FancyBarsConfig c = FancyBarsConfig.get();
 		return c.viewmodelEnabled && c.viewmodelNoReequip ? 0 : equipProgress;
-	}
-
-	/** ...and the new item is swapped in straight away instead of after the dip. */
-	@org.spongepowered.asm.mixin.injection.Inject(method = "shouldInstantlyReplaceVisibleItem", at = @At("HEAD"), cancellable = true, require = 0)
-	private void fancybars$noReequip(ItemStack oldStack, ItemStack newStack, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
-		FancyBarsConfig c = FancyBarsConfig.get();
-		if (c.viewmodelEnabled && c.viewmodelNoReequip) cir.setReturnValue(true);
 	}
 
 	/** "No Swing": first-person swing animation stays at rest. */
@@ -50,10 +46,11 @@ public abstract class ItemInHandRendererMixin {
 	}
 
 	@Inject(method = SUBMIT, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER, ordinal = 0), require = 0)
-	private void fancybars$viewmodel(AbstractClientPlayer player, float frameInterp, float xRot, InteractionHand hand, float swingProgress, ItemStack stack,
+	private void fancybars$viewmodel(PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState handsState, float frameInterp, float xRot, InteractionHand hand, float swingProgress, ItemStack stack,
 			float equipProgress, PoseStack poseStack, SubmitNodeCollector collector, int light, CallbackInfo ci) {
 		FancyBarsConfig c = FancyBarsConfig.get();
-		if (!c.viewmodelEnabled) return;
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (!c.viewmodelEnabled || player == null) return;
 		HumanoidArm arm = hand == InteractionHand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
 		float side = arm == HumanoidArm.RIGHT ? 1 : -1;
 		boolean empty = stack.isEmpty();
