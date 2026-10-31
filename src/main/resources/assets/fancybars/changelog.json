@@ -1,4 +1,7 @@
 [
+  {"version": "2.22.1", "date": "2026-10-31",
+   "added": [],
+   "fixed": ["Reset Layout moved to the bottom of the Bars tab", "Removed the Done button from Home (close the menu with Esc or the ✕)"]},
   {"version": "2.22.0", "date": "2026-10-31",
    "added": ["Click a search result to jump straight to that setting (it flashes so you can spot it)", "The menu reopens on the tab and scroll position you left it at; it goes back to Home when you log off"],
    "fixed": ["No more outline around elements you hover in Edit GUI"]},

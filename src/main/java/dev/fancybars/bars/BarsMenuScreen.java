@@ -285,6 +285,10 @@ public class BarsMenuScreen extends Screen {
 					if (tab.categories.length > 1 && (list.isEmpty() || !(list.getFirst() instanceof HeaderItem))) items.add(new HeaderItem(c.label(), null));
 					items.addAll(list);
 				}
+				if (tab == Tab.BARS) {
+					items.add(new HeaderItem(Component.translatable("fancybars.menu.layout"), null));
+					items.add(resetLayoutRow());
+				}
 			}
 		}
 	}
@@ -1242,45 +1246,44 @@ public class BarsMenuScreen extends Screen {
 	/** Row of three big buttons at the top of the home page. */
 	private class ActionRowItem extends Item {
 		private final ModernButton edit;
-		private final ModernButton reset;
-		private final ModernButton done;
 
 		ActionRowItem() {
 			height = 26;
 			edit = new ModernButton(10, 26, Component.translatable("fancybars.menu.editGui"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
 			tipFor(edit, Component.translatable("fancybars.menu.editGui.@Tooltip"));
-			reset = new ModernButton(10, 26, Component.translatable("fancybars.menu.resetLayout"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
-					Component.translatable("fancybars.bars.config.resetTitle"),
-					Component.translatable("fancybars.bars.config.reset"),
-					() -> {
-						bars.resetBarPositions();
-						bars.statusBars.values().forEach(bar -> {
-							bar.enabled = true;
-							bar.scale = 1;
-						});
-						bars.updatePositions(false);
-						bars.saveBarConfig();
-					})));
-			done = new ModernButton(10, 26, Component.translatable("gui.done"), BarsMenuScreen.this::onClose);
 			widgets.add(edit);
-			widgets.add(reset);
-			widgets.add(done);
 		}
 
 		@Override
 		void layout(int x, int y, int w) {
-			int bw = (w - 12) / 3;
-			edit.setWidth(bw);
-			reset.setWidth(bw);
-			done.setWidth(w - 12 - bw * 2);
+			edit.setWidth(w);
 			edit.setPosition(x, y);
-			reset.setPosition(x + bw + 6, y);
-			done.setPosition(x + (bw + 6) * 2, y);
 		}
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {}
 	}
+
+	/** Bars tab, at the bottom: put every bar back where it started. */
+	private Item resetLayoutRow() {
+		ModernButton reset = new ModernButton(10, 20, Component.translatable("fancybars.menu.resetLayout"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
+				Component.translatable("fancybars.bars.config.resetTitle"),
+				Component.translatable("fancybars.bars.config.reset"),
+				() -> {
+					bars.resetBarPositions();
+					bars.statusBars.values().forEach(bar -> {
+						bar.enabled = true;
+						bar.scale = 1;
+					});
+					bars.updatePositions(false);
+					bars.saveBarConfig();
+				})));
+		Item row = new ButtonRowItem(reset);
+		row.searchable = true;
+		row.searchText = Component.translatable("fancybars.menu.resetLayout").getString() + " bars positions";
+		return row;
+	}
+
 
 	/** Card with a big title and bullet lines (like an info / changelog box). */
 	private class InfoCardItem extends Item {

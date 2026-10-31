@@ -639,6 +639,7 @@
 	"fancybars.menu.header.icon": "Icon",
 	"fancybars.menu.header.shown": "Shown",
 	"fancybars.menu.icon.@Tooltip": "Show or hide the icon on the left of this bar.",
+	"fancybars.menu.layout": "Layout",
 	"fancybars.menu.next": "Next page",
 	"fancybars.menu.noResults": "Nothing matches that search.",
 	"fancybars.menu.overflowManaColor": "Overflow Mana Color",
