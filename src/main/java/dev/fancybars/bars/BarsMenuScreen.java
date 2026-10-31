@@ -1844,7 +1844,7 @@ public class BarsMenuScreen extends Screen {
 	private class ScreenImageItem extends Item {
 		private final dev.fancybars.gifs.ScreenImages.Image image;
 		private final ModernToggle toggle;
-		private final ModernButton opacity;
+		private final dev.fancybars.util.gui.ModernSlider opacity;
 
 		ScreenImageItem(dev.fancybars.gifs.ScreenImages.Image image) {
 			this.image = image;
@@ -1855,17 +1855,7 @@ public class BarsMenuScreen extends Screen {
 				image.settings().enabled = value;
 				FancyBarsConfig.save();
 			});
-			ModernButton[] holder = new ModernButton[1];
-			holder[0] = new ModernButton(50, 16, Component.literal(Math.round(image.settings().opacity * 100) + "%"), () -> {
-				float[] steps = {0.25f, 0.5f, 0.75f, 1f};
-				float current = image.settings().opacity;
-				float next = steps[0];
-				for (int i = 0; i < steps.length; i++) if (Math.abs(steps[i] - current) < 0.01f) next = steps[(i + 1) % steps.length];
-				image.settings().opacity = next;
-				FancyBarsConfig.save();
-				holder[0].setMessage(Component.literal(Math.round(next * 100) + "%"));
-			});
-			opacity = holder[0];
+			opacity = new dev.fancybars.util.gui.ModernSlider(80, 16, 0.01f, 1, 0.01f, image.settings().opacity, value -> image.settings().opacity = value, FancyBarsConfig::save);
 			tipFor(opacity, Component.translatable("fancybars.screenImages.opacity"));
 			widgets.add(toggle);
 			widgets.add(opacity);
@@ -1889,7 +1879,9 @@ public class BarsMenuScreen extends Screen {
 				dev.fancybars.gifs.ScreenImages.draw(graphics, image, x + 4 + (box - iw) / 2, y + 4 + (box - ih) / 2, iw, ih, 1);
 			}
 			Component name = image.error != null ? Component.translatable("fancybars.gifs.failed") : Component.literal(image.name);
-			Theme.boldInBox(graphics, font, clip(name, w - box - 150), x + box + 12, y, height, image.error != null ? 0xFFFF7070 : Theme.TEXT);
+			Theme.boldInBox(graphics, font, clip(name, w - box - 200), x + box + 12, y, height, image.error != null ? 0xFFFF7070 : Theme.TEXT);
+			Component pct = Component.literal(Math.round(image.settings().opacity * 100) + "%");
+			Theme.textInBox(graphics, font, pct, opacity.getX() - Theme.width(font, pct) - 6, y, height, Theme.TEXT_MUTED);
 		}
 	}
 

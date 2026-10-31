@@ -89,11 +89,14 @@ public class CrosshairEditorScreen extends Screen {
 		y += 2 * 13 + 6;
 
 		// grid size
-		ModernButton sizeButton = new ModernButton(half, 16, Component.translatable("fancybars.crosshair.grid", size, size), () -> {
+		java.util.List<Component> sizeOptions = new java.util.ArrayList<>();
+		for (int s : Crosshair.SIZES) sizeOptions.add(Component.translatable("fancybars.crosshair.grid", s, s));
+		dev.fancybars.util.gui.Dropdown sizeButton = new dev.fancybars.util.gui.Dropdown(half, 16, null, sizeOptions, () -> {
+			for (int i = 0; i < Crosshair.SIZES.length; i++) if (Crosshair.SIZES[i] == config().crosshairSize) return i;
+			return 0;
+		}, i -> {
 			int current = config().crosshairSize;
-			int index = 0;
-			for (int i = 0; i < Crosshair.SIZES.length; i++) if (Crosshair.SIZES[i] == current) index = i;
-			int next = Crosshair.SIZES[(index + 1) % Crosshair.SIZES.length];
+			int next = Crosshair.SIZES[i];
 			config().crosshairPixels = Presets.resize(Crosshair.pixels(), current, next);
 			config().crosshairSize = next;
 			FancyBarsConfig.save();
@@ -184,6 +187,13 @@ public class CrosshairEditorScreen extends Screen {
 			Crosshair.draw(graphics, toolsX + toolsW / 2f, prevY + prevH / 2f, config().crosshairScale, 1);
 		}
 		super.extractRenderState(graphics, mouseX, mouseY, a);
+		dev.fancybars.util.gui.Dropdown.renderOverlay(graphics, mouseX, mouseY);
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+		if (dev.fancybars.util.gui.Dropdown.scrollOverlay(mouseX, mouseY, vertical)) return true;
+		return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
 	}
 
 	private boolean paintAt(double mouseX, double mouseY) {
@@ -197,6 +207,7 @@ public class CrosshairEditorScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
+		if (dev.fancybars.util.gui.Dropdown.clickOverlay(click.x(), click.y())) return true;
 		if (super.mouseClicked(click, doubled)) return true;
 		double mx = click.x();
 		double my = click.y();
@@ -241,6 +252,7 @@ public class CrosshairEditorScreen extends Screen {
 
 	@Override
 	public void onClose() {
+		dev.fancybars.util.gui.Dropdown.close();
 		FancyBarsConfig.save();
 		minecraft.gui.setScreen(parent);
 	}
