@@ -128,7 +128,7 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		int cx = x + W / 2;
 		int cy = controlsY();
 		float r = 10 + hoverPlay * 1.2f;
-		Theme.circle(graphics, Math.round(cx - r), Math.round(cy - r), Math.round(r * 2), Theme.hudText(255));
+		Theme.circle(graphics, (float) cx, (float) cy, r * 2, Theme.hudText(255));
 		if (s.playing) SpotifyUi.pause(graphics, cx, cy, 9, Theme.hudBg(1, 255));
 		else SpotifyUi.play(graphics, cx + 0.8f, cy, 9, Theme.hudBg(1, 255));
 		SpotifyUi.skip(graphics, cx - 28, cy, 10, overSkip(mouseX, mouseY, false) ? Theme.hudText(255) : Theme.hudTextSoft(255), false);
@@ -148,13 +148,9 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 
 	private void smallText(GuiGraphicsExtractor graphics, String text, float x, float y, boolean alignRight) {
 		org.joml.Matrix3x2fStack pose = graphics.pose();
-		Component c = Theme.styled(Component.literal(text));
-		float w = Theme.width(net.minecraft.client.Minecraft.getInstance().font, c) * 0.75f;
-		pose.pushMatrix();
-		pose.translate(alignRight ? x - w : x, y);
-		pose.scale(0.75f, 0.75f);
-		Theme.drawAtCapTop(graphics, net.minecraft.client.Minecraft.getInstance().font, c, 0, 1, Theme.UI_CAP, Theme.hudTextSoft(255));
-		pose.popMatrix();
+		Component c = Theme.small(Component.literal(text));
+		float w = net.minecraft.client.Minecraft.getInstance().font.width(c);
+		Theme.drawAtCapTop(graphics, net.minecraft.client.Minecraft.getInstance().font, c, alignRight ? x - w : x, y + 1, Theme.SMALL_CAP, Theme.hudTextSoft(255));
 	}
 
 	private static boolean inside(double mx, double my, int x, int y, int w, int h) {

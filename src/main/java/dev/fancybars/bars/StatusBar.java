@@ -176,9 +176,7 @@ public class StatusBar implements LayoutElement, Renderable, GuiEventListener, N
 	}
 
 	public static float snapScale(float scale) {
-		float guiScale = Theme.guiScale();
-		float snapped = Math.round(scale * guiScale) / guiScale;
-		return Math.max(1 / guiScale, snapped);
+		return Math.max(0.1f, Math.round(scale * 100) / 100f);
 	}
 
 	public float fill = 0;

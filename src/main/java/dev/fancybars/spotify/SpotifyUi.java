@@ -82,15 +82,15 @@ public final class SpotifyUi {
 	// ---------------------------------------------------------------- Icons
 
 	public static void play(GuiGraphicsExtractor graphics, float cx, float cy, float size, int color) {
-		icon(graphics, "play", cx - size / 2, cy - size / 2, size, color);
+		dev.fancybars.util.gui.SmoothShapes.draw(graphics, dev.fancybars.util.gui.SmoothShapes.Shape.PLAY, cx - size / 2, cy - size / 2, size, color);
 	}
 
 	public static void pause(GuiGraphicsExtractor graphics, float cx, float cy, float size, int color) {
-		icon(graphics, "pause", cx - size / 2, cy - size / 2, size, color);
+		dev.fancybars.util.gui.SmoothShapes.draw(graphics, dev.fancybars.util.gui.SmoothShapes.Shape.PAUSE, cx - size / 2, cy - size / 2, size, color);
 	}
 
 	public static void skip(GuiGraphicsExtractor graphics, float cx, float cy, float size, int color, boolean next) {
-		icon(graphics, next ? "next" : "previous", cx - size / 2, cy - size / 2, size, color);
+		dev.fancybars.util.gui.SmoothShapes.draw(graphics, next ? dev.fancybars.util.gui.SmoothShapes.Shape.NEXT : dev.fancybars.util.gui.SmoothShapes.Shape.PREVIOUS, cx - size / 2, cy - size / 2, size, color);
 	}
 
 	public static void speaker(GuiGraphicsExtractor graphics, float x, float y, int color) {

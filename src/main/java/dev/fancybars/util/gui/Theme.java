@@ -68,6 +68,9 @@ public final class Theme {
 	private static final FontDescription[] BOLD_FONTS = fonts("bold");
 	private static final FontDescription[] TITLE_FONTS = fonts("title");
 	private static final FontDescription[] BAR_FONTS = fonts("bar");
+	private static final FontDescription[] SMALL_FONTS = fonts("small");
+	public static final float SMALL_SIZE = 7.5f;
+	public static final float SMALL_CAP = SMALL_SIZE * CAP_RATIO;
 
 	/** Kept for code that wants "the" UI font; resolves to the variant for the current GUI scale. */
 	public static final FontDescription FONT = UI_FONTS[3];
@@ -123,6 +126,12 @@ public final class Theme {
 
 	public static MutableComponent styled(Component text) {
 		FontDescription font = uiFont();
+		return text.copy().withStyle(style -> style.withFont(font));
+	}
+
+	/** Small text (7.5) rasterised at its real size, so it's as crisp as normal text. */
+	public static MutableComponent small(Component text) {
+		FontDescription font = SMALL_FONTS[guiScale()];
 		return text.copy().withStyle(style -> style.withFont(font));
 	}
 
@@ -320,7 +329,12 @@ public final class Theme {
 	}
 
 	public static void circle(GuiGraphicsExtractor graphics, int x, int y, int size, int color) {
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, CIRCLE, x, y, size, size, colorAt(graphics, color, x + size / 2f));
+		SmoothShapes.draw(graphics, SmoothShapes.Shape.CIRCLE, x, y, size, night(color));
+	}
+
+	/** Perfectly smooth circle centred on {@code cx, cy} with a fractional diameter. */
+	public static void circle(GuiGraphicsExtractor graphics, float cx, float cy, float diameter, int color) {
+		SmoothShapes.draw(graphics, SmoothShapes.Shape.CIRCLE, cx - diameter / 2, cy - diameter / 2, diameter, night(color));
 	}
 
 	/**

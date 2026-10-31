@@ -378,7 +378,8 @@ public class BarEditorScreen extends Screen {
 		if (dev.fancybars.util.gui.Dropdown.scrollOverlay(mouseX, mouseY, vertical)) return true;
 		if (isOverOptions(mouseX, mouseY)) return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
 		StatusBar bar = barAt(mouseX, mouseY);
-		float step = 1f / Theme.guiScale(); // keeps every texture pixel a whole number of screen pixels
+		// 1% per scroll notch (hold Shift for 10%)
+		float step = minecraft.hasShiftDown() ? 0.1f : 0.01f;
 		MovableElement element = bar == null && vertical != 0 ? elementAt(mouseX, mouseY) : null;
 		if (element != null) {
 			// scale around the element's centre
