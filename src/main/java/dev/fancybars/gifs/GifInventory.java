@@ -84,10 +84,12 @@ public final class GifInventory {
 	private static int patchedH;
 	private static boolean patchedOk;
 
+	private static volatile boolean patching;
+
 	/**
-	 * Rebuilds the inventory background from your resource pack with the hidden slots filled in. Each hidden area is
-	 * filled by blending the colours around its edges (a Coons patch), so gradients and artwork flow through it
-	 * instead of a mismatched block.
+	 * Rebuilds the inventory background from your resource pack with the hidden slots removed (see
+	 * {@link InventoryPatcher}). Runs once per pack / setting change on a background thread; until it's ready the
+	 * inventory just shows normally.
 	 */
 	public static void preparePatchedBackground() {
 		FancyBarsConfig c = FancyBarsConfig.get();
@@ -95,264 +97,75 @@ public final class GifInventory {
 		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		try {
 			var resource = mc.getResourceManager().getResource(INVENTORY_TEXTURE);
-			if (resource.isEmpty()) {
-				patchedOk = false;
-				return;
-			}
+			if (resource.isEmpty()) return;
 			String key = resource.get().sourcePackId() + "|" + c.gifsHideCraftingGrid + "|" + c.hideOffhandSlot;
-			if (patchedOk && key.equals(patchedKey)) return;
-			com.mojang.blaze3d.platform.NativeImage image;
-			try (var in = resource.get().open()) {
-				image = com.mojang.blaze3d.platform.NativeImage.read(in);
-			}
-			float scale = image.getWidth() / 256f;
-			// Best: rebuild the real artwork from the pack's other container screens (most themed packs share one
-			// background). Otherwise blend in from the edges.
-			List<com.mojang.blaze3d.platform.NativeImage> others = siblingTextures(mc, image.getWidth(), image.getHeight());
-			try {
-				// the offhand sits next to the player box, so it's matched on its top, bottom and right only;
-				// the crafting area touches the frame on the right, so it's matched on its top, bottom and left
-				// match each area on its open sides only: the offhand has the player box on its left and the inventory
-				// slots below it; the crafting area touches the frame on its right
-				if (c.hideOffhandSlot && !rebuild(image, others, scale, 75, 60, 95, 80, true, false, false, true)) fill(image, scale, 75, 60, 95, 80, false, true);
-				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57, true, true, true, false)) fill(image, scale, 96, 15, 171, 57, true, false);
-			} finally {
-				for (var o : others) o.close();
-			}
-			patchedW = image.getWidth();
-			patchedH = image.getHeight();
-			net.minecraft.client.renderer.texture.DynamicTexture texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "SBCLIENT inventory", image);
-			mc.getTextureManager().register(PATCHED, texture);
-			texture.upload();
-			patchedKey = key;
-			patchedOk = true;
-		} catch (Exception e) {
+			if (key.equals(patchedKey) || patching) return;
+			patching = true;
 			patchedOk = false;
+			int[][] target = {null};
+			int[] size = new int[2];
+			try (var in = resource.get().open(); var image = com.mojang.blaze3d.platform.NativeImage.read(in)) {
+				size[0] = image.getWidth();
+				size[1] = image.getHeight();
+				target[0] = pixels(image);
+			}
+			List<InventoryPatcher.Img> others = new java.util.ArrayList<>();
+			for (String name : SIBLINGS) {
+				var res = mc.getResourceManager().getResource(net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/" + name + ".png"));
+				if (res.isEmpty()) continue;
+				try (var in = res.get().open(); var img = com.mojang.blaze3d.platform.NativeImage.read(in)) {
+					if (img.getWidth() == size[0] && img.getHeight() == size[1]) others.add(new InventoryPatcher.Img(pixels(img), size[0], size[1]));
+				} catch (Exception ignored) {
+				}
+			}
+			boolean craft = c.gifsHideCraftingGrid, offhand = c.hideOffhandSlot;
+			java.util.concurrent.CompletableFuture.runAsync(() -> {
+				float scale = size[0] / 256f;
+				int S = Math.max(1, Math.round(scale));
+				List<InventoryPatcher.Hole> holes = new java.util.ArrayList<>();
+				// open sides = sides that border plain background in the vanilla layout
+				if (offhand) holes.add(new InventoryPatcher.Hole(76 * S, 61 * S, 94 * S, 79 * S, true, true, false, true));
+				if (craft) holes.add(new InventoryPatcher.Hole(96 * S, 16 * S, 172 * S, 54 * S, true, true, true, false));
+				InventoryPatcher.Img img = new InventoryPatcher.Img(target[0], size[0], size[1]);
+				InventoryPatcher.patch(img, others, holes.toArray(InventoryPatcher.Hole[]::new), new int[]{4 * S, 4 * S, 172 * S, 162 * S}, scale);
+				mc.execute(() -> {
+					com.mojang.blaze3d.platform.NativeImage out = new com.mojang.blaze3d.platform.NativeImage(size[0], size[1], false);
+					for (int y = 0; y < size[1]; y++) for (int x = 0; x < size[0]; x++) out.setPixel(x, y, img.px()[y * size[0] + x]);
+					net.minecraft.client.renderer.texture.DynamicTexture texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "SBCLIENT inventory", out);
+					mc.getTextureManager().register(PATCHED, texture);
+					texture.upload();
+					patchedW = size[0];
+					patchedH = size[1];
+					patchedKey = key;
+					patchedOk = true;
+					patching = false;
+				});
+			}, dev.fancybars.FancyBarsMod.VIRTUAL_THREAD_EXECUTOR).exceptionally(e -> {
+				dev.fancybars.FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't remove the inventory slots", e);
+				patching = false;
+				return null;
+			});
+		} catch (Exception e) {
+			patching = false;
 			dev.fancybars.FancyBarsMod.LOGGER.debug("[SBCLIENT] Couldn't patch the inventory background", e);
 		}
+	}
+
+	private static int[] pixels(com.mojang.blaze3d.platform.NativeImage img) {
+		int w = img.getWidth(), h = img.getHeight();
+		int[] px = new int[w * h];
+		for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) px[y * w + x] = img.getPixel(x, y);
+		return px;
 	}
 
 	private static final String[] SIBLINGS = {"generic_54", "shulker_box", "furnace", "blast_furnace", "smoker", "crafting_table", "dispenser",
 			"hopper", "brewing_stand", "enchanting_table", "anvil", "grindstone", "loom", "cartography_table", "smithing", "stonecutter",
 			"beacon", "horse", "villager", "crafter"};
 
-	/** The pack's other container backgrounds, same size as the inventory's. */
-	private static List<com.mojang.blaze3d.platform.NativeImage> siblingTextures(net.minecraft.client.Minecraft mc, int w, int h) {
-		List<com.mojang.blaze3d.platform.NativeImage> out = new java.util.ArrayList<>();
-		for (String name : SIBLINGS) {
-			try {
-				var res = mc.getResourceManager().getResource(net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/" + name + ".png"));
-				if (res.isEmpty()) continue;
-				try (var in = res.get().open()) {
-					com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(in);
-					if (img.getWidth() == w && img.getHeight() == h) out.add(img);
-					else img.close();
-				}
-			} catch (Exception ignored) {
-			}
-		}
-		return out;
-	}
-
-	private static int diff(int a, int b) {
-		int d = 0;
-		for (int k = 0; k < 24; k += 8) d += Math.abs((a >>> k & 0xFF) - (b >>> k & 0xFF));
-		return d;
-	}
-
-	/**
-	 * Rebuilds the hidden box from the other container screens: keeps the screens whose pixels around the box match
-	 * the inventory (same artwork in the same place), then takes, pixel by pixel, the colour most of them agree on
-	 * (UI like slots only covers that spot in a few of them). Returns false when the pack doesn't share its art.
-	 */
-	private static boolean rebuild(com.mojang.blaze3d.platform.NativeImage img, List<com.mojang.blaze3d.platform.NativeImage> others, float scale, int x0, int y0, int x1, int y1,
-			boolean ringTop, boolean ringBottom, boolean ringLeft, boolean ringRight) {
-		int ax = Math.max(1, Math.round(x0 * scale));
-		int ay = Math.max(1, Math.round(y0 * scale));
-		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
-		int by = Math.min(img.getHeight() - 1, Math.round(y1 * scale));
-		int band = Math.max(2, Math.round(3 * scale));
-		// ring of pixels around the box (top, bottom and left; the right side can be the frame)
-		List<int[]> ring = new java.util.ArrayList<>();
-		int rx0 = ringLeft ? ax - band : ax;
-		int rx1 = ringRight ? bx + band : bx;
-		if (ringTop) for (int x = rx0; x < rx1; x++) for (int y = ay - band; y < ay; y++) ring.add(new int[]{x, y});
-		if (ringBottom) for (int x = rx0; x < rx1; x++) for (int y = by; y < by + band; y++) ring.add(new int[]{x, y});
-		if (ringLeft) for (int y = ay; y < by; y++) for (int x = ax - band; x < ax; x++) ring.add(new int[]{x, y});
-		if (ringRight) for (int y = ay; y < by; y++) for (int x = bx; x < bx + band; x++) ring.add(new int[]{x, y});
-		List<com.mojang.blaze3d.platform.NativeImage> matching = new java.util.ArrayList<>();
-		for (var o : others) {
-			long total = 0;
-			int n = 0;
-			for (int[] p : ring) {
-				if (p[0] < 0 || p[1] < 0 || p[0] >= img.getWidth() || p[1] >= img.getHeight()) continue;
-				total += diff(img.getPixel(p[0], p[1]), o.getPixel(p[0], p[1]));
-				n++;
-			}
-			// pixels around the box mostly identical: this screen shares the inventory's artwork here
-			if (n > 0 && total / (double) n < 24) matching.add(o);
-		}
-		// screens with the same layout here (furnace / smoker / blast furnace, chest / shulker box...) would outvote
-		// the others with their shared arrows and boxes: count each layout once
-		List<com.mojang.blaze3d.platform.NativeImage> distinct = new java.util.ArrayList<>();
-		for (var o : matching) {
-			boolean duplicate = false;
-			for (var d : distinct) {
-				long total = 0;
-				int n = 0;
-				for (int y = ay; y < by; y += 2) {
-					for (int x = ax; x < bx; x += 2) {
-						total += diff(o.getPixel(x, y), d.getPixel(x, y));
-						n++;
-					}
-				}
-				if (n > 0 && total / (double) n < 6) {
-					duplicate = true;
-					break;
-				}
-			}
-			if (!duplicate) distinct.add(o);
-		}
-		matching = distinct;
-		if (matching.size() < 2) return false;
-		// smooth estimate of the background (blended in from the edges): UI pieces stand out from it, the art doesn't
-		com.mojang.blaze3d.platform.NativeImage smooth = new com.mojang.blaze3d.platform.NativeImage(img.getWidth(), img.getHeight(), false);
-		int pad = Math.max(2, Math.round(10 * scale));
-		for (int y = Math.max(0, ay - pad); y < Math.min(img.getHeight(), by + pad); y++)
-			for (int x = Math.max(0, ax - pad); x < Math.min(img.getWidth(), bx + pad); x++) smooth.setPixel(x, y, img.getPixel(x, y));
-		fill(smooth, scale, x0, y0, x1, y1, ringLeft, ringRight);
-		int[] values = new int[matching.size()];
-		for (int y = ay; y < by; y++) {
-			for (int x = ax; x < bx; x++) {
-				for (int i = 0; i < values.length; i++) values[i] = matching.get(i).getPixel(x, y);
-				// pick the colour most screens agree on; when they disagree (some have an arrow or box here), lean to
-				// the one that fits the surrounding art
-				int expected = smooth.getPixel(x, y);
-				int best = values[0];
-				float bestScore = -Float.MAX_VALUE;
-				for (int a : values) {
-					int support = 0;
-					for (int b : values) if (diff(a, b) < 24) support++;
-					float score = support - diff(a, expected) / 50f;
-					if (score > bestScore) {
-						bestScore = score;
-						best = a;
-					}
-				}
-				img.setPixel(x, y, best);
-			}
-		}
-		smooth.close();
-		removeDarkMarks(img, ax, ay, bx, by);
-		return true;
-	}
-
-	private static int luma(int c) {
-		return ((c >>> 16 & 0xFF) * 3 + (c >>> 8 & 0xFF) * 6 + (c & 0xFF)) / 10;
-	}
-
-	/**
-	 * Clean-up after rebuilding: thin dark marks (1-2 px lines or specks left by UI that slipped through) are
-	 * replaced by the local median. Bright specks (stars) are kept.
-	 */
-	private static void removeDarkMarks(com.mojang.blaze3d.platform.NativeImage img, int ax, int ay, int bx, int by) {
-		for (int pass = 0; pass < 3; pass++) {
-			int w = bx - ax;
-			int h = by - ay;
-			int[] out = new int[w * h];
-			int[] window = new int[25];
-			for (int y = ay; y < by; y++) {
-				for (int x = ax; x < bx; x++) {
-					int n = 0;
-					for (int dy = -2; dy <= 2; dy++) {
-						for (int dx = -2; dx <= 2; dx++) {
-							int sx = Math.clamp(x + dx, 0, img.getWidth() - 1);
-							int sy = Math.clamp(y + dy, 0, img.getHeight() - 1);
-							window[n++] = img.getPixel(sx, sy);
-						}
-					}
-					int[] sorted = java.util.Arrays.copyOf(window, n);
-					Integer[] boxed = new Integer[n];
-					for (int i = 0; i < n; i++) boxed[i] = sorted[i];
-					java.util.Arrays.sort(boxed, (a, b) -> Integer.compare(luma(a), luma(b)));
-					int median = boxed[n / 2];
-					int here = img.getPixel(x, y);
-					out[(y - ay) * w + (x - ax)] = luma(here) < luma(median) - 9 ? median : here;
-				}
-			}
-			for (int y = ay; y < by; y++) for (int x = ax; x < bx; x++) img.setPixel(x, y, out[(y - ay) * w + (x - ax)]);
-		}
-	}
-
-	/** Average colour (per channel, ARGB) of the box x0..x1, y0..y1 (inclusive, clamped to the image). */
-	private static float[] average(com.mojang.blaze3d.platform.NativeImage img, int x0, int y0, int x1, int y1) {
-		x0 = Math.clamp(x0, 0, img.getWidth() - 1);
-		x1 = Math.clamp(x1, 0, img.getWidth() - 1);
-		y0 = Math.clamp(y0, 0, img.getHeight() - 1);
-		y1 = Math.clamp(y1, 0, img.getHeight() - 1);
-		float[] sum = new float[4];
-		int n = 0;
-		for (int y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) {
-			for (int x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) {
-				int c = img.getPixel(x, y);
-				for (int k = 0; k < 4; k++) sum[k] += c >>> (k * 8) & 0xFF;
-				n++;
-			}
-		}
-		for (int k = 0; k < 4; k++) sum[k] /= Math.max(1, n);
-		return sum;
-	}
-
-	/**
-	 * Fills the box (vanilla 256-px texture units, end exclusive) from its surroundings. The edge colours are
-	 * blurred first (so single stars or slot lines don't get stretched into streaks), then each pixel blends the
-	 * nearest edges by inverse distance. {@code useRight} is off where the box touches the panel's frame.
-	 */
-	private static void fill(com.mojang.blaze3d.platform.NativeImage img, float scale, int x0, int y0, int x1, int y1, boolean useLeft, boolean useRight) {
-		int ax = Math.max(1, Math.round(x0 * scale));
-		int ay = Math.max(1, Math.round(y0 * scale));
-		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
-		int by = Math.min(img.getHeight() - 1, Math.round(y1 * scale));
-		if (bx - ax < 2 || by - ay < 2) return;
-		int w = bx - ax;
-		int h = by - ay;
-		int blur = Math.max(2, Math.round(7 * scale));
-		int band = Math.max(1, Math.round(3 * scale));
-		float[][] top = new float[w][];
-		float[][] bottom = new float[w][];
-		float[][] left = new float[h][];
-		float[][] right = new float[h][];
-		for (int i = 0; i < w; i++) {
-			top[i] = average(img, ax + i - blur, ay - band, ax + i + blur, ay - 1);
-			bottom[i] = average(img, ax + i - blur, by, ax + i + blur, by + band - 1);
-		}
-		for (int j = 0; j < h; j++) {
-			left[j] = useLeft ? average(img, ax - band, ay + j - blur, ax - 1, ay + j + blur) : null;
-			right[j] = useRight ? average(img, bx, ay + j - blur, bx + band - 1, ay + j + blur) : null;
-		}
-		for (int j = 0; j < h; j++) {
-			for (int i = 0; i < w; i++) {
-				float dTop = j + 1f;
-				float dBottom = h - j;
-				float dLeft = i + 1f;
-				float dRight = w - i;
-				float wt = 1 / (dTop * dTop), wb = 1 / (dBottom * dBottom), wl = useLeft ? 1 / (dLeft * dLeft) : 0, wr = useRight ? 1 / (dRight * dRight) : 0;
-				float total = wt + wb + wl + wr;
-				int out = 0;
-				for (int k = 0; k < 4; k++) {
-					float value = top[i][k] * wt + bottom[i][k] * wb + (useLeft ? left[j][k] * wl : 0) + (useRight ? right[j][k] * wr : 0);
-					out |= Math.clamp(Math.round(value / total), 0, 255) << (k * 8);
-				}
-				img.setPixel(ax + i, ay + j, out);
-			}
-		}
-	}
-
-
 	/** Draws the patched background over the normal one (before GIFs and the player, so those stay on top). */
 	public static void coverHiddenSlots(InventoryScreen screen, GuiGraphicsExtractor graphics) {
 		if (!hideCraftingGrid() && !hideOffhand()) return;
-		if (!patchedOk) preparePatchedBackground();
+		preparePatchedBackground();
 		if (!patchedOk) return;
 		int[] p = panel(screen);
 		float s = patchedW / 256f;

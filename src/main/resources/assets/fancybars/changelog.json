@@ -1,4 +1,7 @@
 [
+  {"version": "2.25.0", "date": "2026-10-31",
+   "added": [],
+   "fixed": ["Hide Crafting Grid / Hide Offhand Slot rebuilt from scratch: the hidden areas are filled with matching art borrowed from your resource pack (patch by patch, skipping any UI), so they blend in on vanilla, flat, gradient and detailed packs alike"]},
   {"version": "2.24.7", "date": "2026-10-31",
    "added": [],
    "fixed": ["Removed the last dark marks next to the player model and in the hidden crafting area"]},
