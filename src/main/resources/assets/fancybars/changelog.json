@@ -1,4 +1,7 @@
 [
+  {"version": "2.24.0", "date": "2026-10-31",
+   "added": ["Keep HUDs in Inventory and Chat (HUD tab): SBCLIENT's HUDs stay on screen while chat, your inventory or a chest is open"],
+   "fixed": []},
   {"version": "2.23.1", "date": "2026-10-31",
    "added": ["Hide Offhand Slot (GIFs tab)"],
    "fixed": ["Hide Crafting Grid now really hides the grid, arrow and result slot, and works without Inventory GIFs turned on"]},

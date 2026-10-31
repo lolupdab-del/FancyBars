@@ -50,7 +50,7 @@ public final class SpotifyHud {
 		});
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("spotify"), (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
-			if (config.spotifyEnabled && config.spotifyHud && Spotify.connected() && Spotify.state().active && Minecraft.getInstance().gui.screen() == null) {
+			if (config.spotifyEnabled && config.spotifyHud && Spotify.connected() && Spotify.state().active && dev.fancybars.util.HudVisibility.allowed()) {
 				render(graphics);
 			}
 		});

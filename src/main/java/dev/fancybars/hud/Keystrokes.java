@@ -55,7 +55,7 @@ public final class Keystrokes {
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("keystrokes"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			pollClicks();
-			if (FancyBarsConfig.get().keystrokesEnabled && mc.player != null && mc.gui.screen() == null) render(graphics);
+			if (FancyBarsConfig.get().keystrokesEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed()) render(graphics);
 		});
 	}
 

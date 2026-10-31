@@ -517,6 +517,9 @@ public class FancyBarsConfig {
 
 	// ---------------------------------------------------------------- FPS / TPS display
 
+	/** Keep SBCLIENT's HUDs on screen while chat or an inventory / chest is open. */
+	public boolean hudInScreens = false;
+
 	public boolean perfEnabled = false;
 
 	public boolean perfShowFps = true;

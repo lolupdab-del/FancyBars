@@ -53,7 +53,7 @@ public final class Commissions {
 
 	public static boolean shouldShow() {
 		return FancyBarsConfig.get().commissionsEnabled && SkyblockLocation.isInMiningIsland() && !current.isEmpty()
-				&& Minecraft.getInstance().gui.screen() == null;
+				&& dev.fancybars.util.HudVisibility.allowed();
 	}
 
 	private static List<Commission> readTabList() {

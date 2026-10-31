@@ -602,6 +602,8 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SwatchItem("actionBarColor", () -> new Color(config.actionBarColor, false), color -> config.actionBarColor = color.getRGB() | 0xFF000000));
 			}
 			case HUD -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.hud.general"), null));
+				list.add(new ToggleItem("hudInScreens", () -> config.hudInScreens, value -> config.hudInScreens = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.perf.title"), null));
 				list.add(new ToggleItem("perfEnabled", () -> config.perfEnabled, value -> config.perfEnabled = value));
 				list.add(new ToggleItem("perfShowFps", () -> config.perfShowFps, value -> config.perfShowFps = value));
