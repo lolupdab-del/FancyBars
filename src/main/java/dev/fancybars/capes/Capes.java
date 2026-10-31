@@ -147,6 +147,16 @@ public final class Capes {
 	private static void load(String id) {
 		FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> {
 			try {
+				if (id.equals(CUSTOM) && FancyBarsConfig.get().capeCustomMode == 1) {
+					java.awt.image.BufferedImage src = CapeComposer.readSource(customFile());
+					if (src == null) {
+						REQUESTED.remove(id);
+						return;
+					}
+					java.awt.image.BufferedImage composed = CapeComposer.compose(src);
+					Minecraft.getInstance().execute(() -> uploadImage(id, CapeComposer.toNative(composed), Long.toHexString(System.nanoTime())));
+					return;
+				}
 				byte[] bytes = id.equals(CUSTOM) ? readCustom() : download(id);
 				if (bytes == null) {
 					REQUESTED.remove(id);
@@ -201,6 +211,13 @@ public final class Capes {
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.warn("[SBCLIENT] Cape {} isn't a valid PNG", id, e);
 		}
+	}
+
+	private static void uploadImage(String id, NativeImage image, String suffix) {
+		Identifier texture = FancyBarsMod.id("capes/" + id + "_" + suffix);
+		Minecraft.getInstance().getTextureManager().register(texture, new DynamicTexture(() -> "SBCLIENT cape " + id, image));
+		Loaded old = LOADED.put(id, new Loaded(texture, image.getWidth(), image.getHeight()));
+		if (old != null && !old.texture().equals(texture)) Minecraft.getInstance().getTextureManager().release(old.texture());
 	}
 
 	/** Forget the custom cape so a new file in the folder gets picked up. */

@@ -557,6 +557,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("capeEnabled", () -> config.capeEnabled, value -> config.capeEnabled = value));
 				list.add(new CapeGridItem());
 				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.capeEditor.open"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.capes.CapeEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.capes.openFolder"), dev.fancybars.capes.Capes::openCustomFolder),
 						new ModernButton(10, 20, Component.translatable("fancybars.capes.reloadCustom"), () -> {
 							dev.fancybars.capes.Capes.reloadCustom();

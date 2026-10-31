@@ -460,6 +460,28 @@ public class FancyBarsConfig {
 	/** Cape id from {@code Capes.ALL}, "custom" or "none". */
 	public String cape = "migrator";
 
+	/** Custom cape: 0 = the PNG is a full cape texture, 1 = place the picture on the cape (editor). */
+	public int capeCustomMode = 1;
+
+	/** Picture offset on the cape, -1..1 (half a panel each way). */
+	public float capeImageX = 0;
+
+	public float capeImageY = 0;
+
+	/** Picture size; 1 = fits the cape exactly. */
+	public float capeImageScale = 1;
+
+	/** 0 / 90 / 180 / 270. */
+	public int capeImageRotation = 0;
+
+	public boolean capeImageFlip = false;
+
+	public boolean capeImageInside = false;
+
+	public boolean capeImageSmooth = true;
+
+	public int capeBackground = 0x101014;
+
 	// ---------------------------------------------------------------- Wall Licker
 
 	public boolean wallLickerEnabled = true;
