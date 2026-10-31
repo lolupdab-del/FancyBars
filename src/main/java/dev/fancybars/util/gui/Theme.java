@@ -92,16 +92,25 @@ public final class Theme {
 		return Math.clamp(scale, 1, 6);
 	}
 
+	/** "Minecraft Font" setting: every menu and HUD uses Minecraft's own font instead of Geist. */
+	public static boolean minecraftFont() {
+		return dev.fancybars.config.FancyBarsConfig.get().minecraftFont;
+	}
+
+	private static FontDescription pick(FontDescription[] fonts) {
+		return minecraftFont() ? net.minecraft.network.chat.Style.EMPTY.getFont() : fonts[guiScale()];
+	}
+
 	public static FontDescription uiFont() {
-		return UI_FONTS[guiScale()];
+		return pick(UI_FONTS);
 	}
 
 	public static FontDescription boldFont() {
-		return BOLD_FONTS[guiScale()];
+		return pick(BOLD_FONTS);
 	}
 
 	public static FontDescription titleFont() {
-		return TITLE_FONTS[guiScale()];
+		return pick(TITLE_FONTS);
 	}
 
 	public static FontDescription barFont() {
@@ -133,13 +142,13 @@ public final class Theme {
 
 	/** Small text (7.5) rasterised at its real size, so it's as crisp as normal text. */
 	public static MutableComponent small(Component text) {
-		FontDescription font = SMALL_FONTS[guiScale()];
+		FontDescription font = pick(SMALL_FONTS);
 		return text.copy().withStyle(style -> style.withFont(font));
 	}
 
 	/** Geist Mono, for numbers and values. */
 	public static MutableComponent mono(Component text) {
-		FontDescription font = MONO_FONTS[guiScale()];
+		FontDescription font = pick(MONO_FONTS);
 		return text.copy().withStyle(style -> style.withFont(font));
 	}
 
@@ -181,24 +190,26 @@ public final class Theme {
 
 	public static void drawAtCapTop(GuiGraphicsExtractor graphics, Font font, Component styledText, float x, float capTop, float capHeight, int color, boolean shadow) {
 		float scale = guiScale();
-		float originY = capTop + capHeight - BASELINE;
+		// Minecraft's font: capitals are 7px tall from the y they're drawn at, so centre them on the same line
+		boolean mc = minecraftFont();
+		float originY = mc ? capTop + capHeight / 2f - 3.5f : capTop + capHeight - BASELINE;
 		float sx = Math.round(x * scale) / scale;
 		float sy = Math.round(originY * scale) / scale;
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(sx, sy);
-		graphics.text(font, styledText, 0, 0, night(color), shadow);
+		graphics.text(font, styledText, 0, 0, night(color), shadow || mc && dev.fancybars.config.FancyBarsConfig.get().minecraftFontShadow);
 		pose.popMatrix();
 	}
 
 	/** A pre-split line of (already styled) text vertically centred in a box. */
 	public static void drawSeqInBox(GuiGraphicsExtractor graphics, Font font, net.minecraft.util.FormattedCharSequence line, float x, float boxY, float boxHeight, int color) {
 		float scale = guiScale();
-		float originY = boxY + (boxHeight - UI_CAP) / 2f + UI_CAP - BASELINE;
+		float originY = minecraftFont() ? boxY + boxHeight / 2f - 3.5f : boxY + (boxHeight - UI_CAP) / 2f + UI_CAP - BASELINE;
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(Math.round(x * scale) / scale, Math.round(originY * scale) / scale);
-		graphics.text(font, line, 0, 0, color, false);
+		graphics.text(font, line, 0, 0, color, minecraftFont() && cfg().minecraftFontShadow);
 		pose.popMatrix();
 	}
 

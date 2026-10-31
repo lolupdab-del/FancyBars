@@ -799,6 +799,11 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
 				list.add(new HeaderItem(Component.translatable("fancybars.appearance.title"), Component.translatable("fancybars.appearance.hint")));
 				list.add(new ToggleItem("shikiMode", () -> config.shikiMode, value -> config.shikiMode = value));
+				list.add(new ToggleItem("minecraftFont", () -> config.minecraftFont, value -> {
+					config.minecraftFont = value;
+					rebuildNextTick = true;
+				}));
+				list.add(new ToggleItem("minecraftFontShadow", () -> config.minecraftFontShadow, value -> config.minecraftFontShadow = value));
 				list.add(new ToggleItem("customColors", () -> config.customColors, value -> config.customColors = value));
 				list.add(new PresetItem());
 				list.add(new SwatchItem("themeAccent", () -> new Color(config.themeAccent, false), color -> {

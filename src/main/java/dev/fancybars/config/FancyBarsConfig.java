@@ -116,6 +116,12 @@ public class FancyBarsConfig {
 	// ---------------------------------------------------------------- Appearance (whole mod)
 
 	/** Use your own colours for every menu and HUD instead of night blue / SHIKIMODE pink. */
+	/** Use Minecraft's own font for every menu and HUD instead of the smooth Geist font. */
+	public boolean minecraftFont = false;
+
+	/** Minecraft-style drop shadow on text when using Minecraft's font. */
+	public boolean minecraftFontShadow = true;
+
 	public boolean customColors = false;
 
 	public int themeAccent = 0x7C8CFF;
