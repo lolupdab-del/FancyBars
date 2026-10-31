@@ -114,7 +114,7 @@ public final class GifInventory {
 				// the crafting area touches the frame on the right, so it's matched on its top, bottom and left
 				// match each area on its open sides only: the offhand has the player box on its left and the inventory
 				// slots below it; the crafting area touches the frame on its right
-				if (c.hideOffhandSlot && !rebuild(image, others, scale, 76, 60, 95, 80, true, false, false, true)) fill(image, scale, 76, 60, 95, 80, false, true);
+				if (c.hideOffhandSlot && !rebuild(image, others, scale, 75, 60, 95, 80, true, false, false, true)) fill(image, scale, 75, 60, 95, 80, false, true);
 				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57, true, true, true, false)) fill(image, scale, 96, 15, 171, 57, true, false);
 			} finally {
 				for (var o : others) o.close();
@@ -256,7 +256,7 @@ public final class GifInventory {
 	 * replaced by the local median. Bright specks (stars) are kept.
 	 */
 	private static void removeDarkMarks(com.mojang.blaze3d.platform.NativeImage img, int ax, int ay, int bx, int by) {
-		for (int pass = 0; pass < 2; pass++) {
+		for (int pass = 0; pass < 3; pass++) {
 			int w = bx - ax;
 			int h = by - ay;
 			int[] out = new int[w * h];
@@ -277,7 +277,7 @@ public final class GifInventory {
 					java.util.Arrays.sort(boxed, (a, b) -> Integer.compare(luma(a), luma(b)));
 					int median = boxed[n / 2];
 					int here = img.getPixel(x, y);
-					out[(y - ay) * w + (x - ax)] = luma(here) < luma(median) - 18 ? median : here;
+					out[(y - ay) * w + (x - ax)] = luma(here) < luma(median) - 9 ? median : here;
 				}
 			}
 			for (int y = ay; y < by; y++) for (int x = ax; x < bx; x++) img.setPixel(x, y, out[(y - ay) * w + (x - ax)]);

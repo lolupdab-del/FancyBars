@@ -1,4 +1,7 @@
 [
+  {"version": "2.24.7", "date": "2026-10-31",
+   "added": [],
+   "fixed": ["Removed the last dark marks next to the player model and in the hidden crafting area"]},
   {"version": "2.24.6", "date": "2026-10-31",
    "added": [],
    "fixed": ["Removed the grey patch by the hidden offhand slot and the thin dark lines left where the crafting grid is hidden"]},
