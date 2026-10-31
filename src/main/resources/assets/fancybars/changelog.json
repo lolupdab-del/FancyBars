@@ -1,4 +1,7 @@
 [
+  {"version": "2.26.0", "date": "2026-10-31",
+   "added": ["Bundled ResourcePackCached by Furq: Hypixel's server resource pack stays loaded, so rejoining no longer reloads it"],
+   "fixed": []},
   {"version": "2.25.0", "date": "2026-10-31",
    "added": [],
    "fixed": ["Hide Crafting Grid / Hide Offhand Slot rebuilt from scratch: the hidden areas are filled with matching art borrowed from your resource pack (patch by patch, skipping any UI), so they blend in on vanilla, flat, gradient and detailed packs alike"]},
