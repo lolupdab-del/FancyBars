@@ -12,7 +12,10 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
 
-/** Smooth rounded slider for a value between {@code min} and {@code max}, snapped to {@code step}. */
+/**
+ * Smooth rounded slider for a value between {@code min} and {@code max}. Values move in steps of at most 1% of the
+ * range, and the knob follows the mouse exactly while dragging and glides when the value changes.
+ */
 public class ModernSlider extends AbstractWidget {
 	private final float min;
 	private final float max;
@@ -20,6 +23,9 @@ public class ModernSlider extends AbstractWidget {
 	private final Consumer<Float> onChange;
 	private final Runnable onRelease;
 	private float value;
+	private float shown = -1;
+	private boolean dragging;
+	private float dragT;
 	private float hover;
 	private long lastFrame = Util.getMillis();
 
@@ -27,10 +33,14 @@ public class ModernSlider extends AbstractWidget {
 		super(0, 0, width, height, Component.empty());
 		this.min = min;
 		this.max = max;
-		this.step = step;
+		this.step = step <= 0 ? (max - min) / 100f : Math.min(step, (max - min) / 100f);
 		this.value = Math.clamp(initial, min, max);
 		this.onChange = onChange;
 		this.onRelease = onRelease;
+	}
+
+	public void setValue(float v) {
+		this.value = Math.clamp(v, min, max);
 	}
 
 	public float getValue() {
@@ -39,8 +49,11 @@ public class ModernSlider extends AbstractWidget {
 
 	private void setFromMouse(double mouseX) {
 		float t = (float) Math.clamp((mouseX - getX() - 4) / (getWidth() - 8), 0, 1);
+		dragT = t;
+		dragging = true;
 		float raw = min + (max - min) * t;
-		float snapped = Math.clamp(Math.round(raw / step) * step, min, max);
+		float snapped = Math.clamp(min + Math.round((raw - min) / step) * step, min, max);
+		snapped = Math.round(snapped * 10000) / 10000f;
 		if (snapped != value) {
 			value = snapped;
 			onChange.accept(value);
@@ -60,6 +73,7 @@ public class ModernSlider extends AbstractWidget {
 	@Override
 	public void onRelease(MouseButtonEvent click) {
 		super.onRelease(click);
+		dragging = false;
 		onRelease.run();
 	}
 
@@ -67,19 +81,31 @@ public class ModernSlider extends AbstractWidget {
 	protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
 		boolean hovered = isHoveredOrFocused();
 		hover = Theme.approach(hover, hovered ? 1 : 0, 8, lastFrame);
-		lastFrame = Util.getMillis();
-		float t = (value - min) / (max - min);
+		float target = dragging ? dragT : (value - min) / (max - min);
+		if (shown < 0 || !Theme.animationsEnabled()) shown = target;
+		else {
+			float dt = Math.min(0.1f, (Util.getMillis() - lastFrame) / 1000f);
+			shown += (target - shown) * Math.min(1, dt * 22);
+		}
+		float t = shown;
 		int trackY = getY() + getHeight() / 2 - 2;
 		int trackX = getX() + 4;
 		int trackW = getWidth() - 8;
 		Theme.roundedRect(graphics, trackX, trackY, trackW, 4, 2, Theme.lerpColor(0xFF573D48, 0xFF684A57, hover));
-		int fill = Math.round(trackW * t);
+		float fillF = trackW * t;
+		int fill = Math.round(fillF);
 		if (fill > 0) Theme.roundedRect(graphics, trackX, trackY, Math.max(4, fill), 4, 2, Theme.ACCENT);
 		int knob = 10;
-		int knobX = trackX + fill - knob / 2;
+		// sub-pixel knob position so it glides instead of jumping a pixel at a time
+		float knobXf = trackX + fillF - knob / 2f;
+		int knobX = Math.round(knobXf);
+		graphics.pose().pushMatrix();
+		graphics.pose().translate(knobXf - knobX, 0);
 		Theme.glow(graphics, knobX, getY() + (getHeight() - knob) / 2, knob, knob, knob / 2, 0.2f + hover * 0.3f);
 		Theme.circle(graphics, knobX, getY() + (getHeight() - knob) / 2, knob, 0xFFFFFFFF);
+		graphics.pose().popMatrix();
 		if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+		lastFrame = Util.getMillis();
 	}
 
 	@Override

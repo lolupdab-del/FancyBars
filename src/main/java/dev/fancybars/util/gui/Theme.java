@@ -288,16 +288,23 @@ public final class Theme {
 	 */
 	public static void border(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fallback, int alpha) {
 		dev.fancybars.config.FancyBarsConfig c = cfg();
-		int thickness = Math.round(c.borderThickness);
-		if (thickness <= 0) return;
+		float thickness = Math.max(0, c.borderThickness);
+		if (thickness <= 0.01f) return;
 		int color;
-		if (c.customBorder) color = Math.round(Math.clamp(c.borderOpacity, 0, 1) * alpha) << 24 | c.borderColor & 0xFFFFFF;
+		if (c.chromaBorder) {
+			float baseAlpha = c.customBorder ? Math.clamp(c.borderOpacity, 0, 1) : 0.8f;
+			color = Math.round(baseAlpha * alpha) << 24 | rgb(chromaHue(0.5f), 0.85f, 0.62f);
+		} else if (c.customBorder) color = Math.round(Math.clamp(c.borderOpacity, 0, 1) * alpha) << 24 | c.borderColor & 0xFFFFFF;
 		else {
 			int f = night(fallback);
 			color = Math.round((f >>> 24) * alpha / 255f) << 24 | f & 0xFFFFFF;
 		}
-		for (int i = 0; i < thickness && width - i * 2 > 2 && height - i * 2 > 2; i++) {
-			rawOutline(graphics, x + i, y + i, width - i * 2, height - i * 2, radius - i, color);
+		int rings = (int) Math.ceil(thickness);
+		for (int i = 0; i < rings && width - i * 2 > 2 && height - i * 2 > 2; i++) {
+			// the last ring is faded by the fractional part so thickness changes smoothly
+			float part = Math.min(1, thickness - i);
+			int ringColor = part >= 1 ? color : Math.round((color >>> 24) * part) << 24 | color & 0xFFFFFF;
+			rawOutline(graphics, x + i, y + i, width - i * 2, height - i * 2, radius - i, ringColor);
 		}
 	}
 
@@ -325,14 +332,17 @@ public final class Theme {
 	 * Soft blurred drop shadow.
 	 */
 	public static void shadow(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int size, int offsetY) {
+		float strength = Math.clamp(cfg().shadowStrength, 0, 1);
+		if (strength <= 0.01f) return;
 		int pad = 16;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - pad, y - pad + offsetY, width + pad * 2, height + pad * 2, 0x99000000);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - pad, y - pad + offsetY, width + pad * 2, height + pad * 2, Math.round(0x99 * strength) << 24);
 	}
 
 	/**
 	 * Soft light-blue glow around a rectangle, strength 0..1.
 	 */
 	public static void glow(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, float strength) {
+		strength *= cfg().glowStrength;
 		if (strength <= 0.01f) return;
 		int pad = 14;
 		int alpha = Math.round(0xAA * Math.clamp(strength, 0, 1));
@@ -413,7 +423,25 @@ public final class Theme {
 	}
 
 	public static boolean customColors() {
-		return cfg().customColors;
+		return cfg().customColors || cfg().chromaAccent;
+	}
+
+	/** Hue (0..1) of the rainbow effect right now. */
+	public static float chromaHue(float offset) {
+		float h = (float) ((Util.getMillis() / 1000.0 * cfg().chromaSpeed * 0.1 + offset) % 1.0);
+		return Math.round(h * 500) / 500f;
+	}
+
+	/** Accent the theme is built from (your accent, or the rainbow). */
+	public static int effectiveAccent() {
+		dev.fancybars.config.FancyBarsConfig c = cfg();
+		if (!c.chromaAccent) return c.themeAccent;
+		float[] base = hsl(c.themeAccent);
+		return rgb(chromaHue(0), Math.max(0.6f, base[1]), Math.clamp(base[2], 0.45f, 0.7f));
+	}
+
+	public static boolean animationsEnabled() {
+		return cfg().menuAnimations;
 	}
 
 	/** RGB → {h, s, l} (0..1). */
@@ -463,7 +491,8 @@ public final class Theme {
 
 	private static void rebuildCustom() {
 		dev.fancybars.config.FancyBarsConfig c = cfg();
-		long key = ((long) c.themeAccent << 40) ^ ((long) c.themeBackground << 20) ^ c.themeText;
+		int accentNow = effectiveAccent();
+		long key = ((long) accentNow << 40) ^ ((long) c.themeBackground << 20) ^ c.themeText;
 		if (key == customKey) return;
 		customKey = key;
 		CUSTOM.clear();
@@ -474,9 +503,9 @@ public final class Theme {
 			int k = e.getKey();
 			int v = e.getValue();
 			int out;
-			if (ACCENT_KEYS.contains(k)) out = retint(v, accentRef, c.themeAccent);
+			if (ACCENT_KEYS.contains(k)) out = retint(v, accentRef, accentNow);
 			else if (TEXT_KEYS.contains(k)) out = retint(v, textRef, c.themeText);
-			else if (k == 0x2A0B1B) out = rgb(hsl(c.themeAccent)[0], 0.6f, 0.08f); // text on accent buttons
+			else if (k == 0x2A0B1B) out = rgb(hsl(accentNow)[0], 0.6f, 0.08f); // text on accent buttons
 			else out = retint(v, surfaceRef, c.themeBackground);
 			CUSTOM.put(k, out);
 		}
@@ -606,8 +635,9 @@ public final class Theme {
 	 * Moves {@code current} towards {@code target} at a frame-rate independent speed.
 	 */
 	public static float approach(float current, float target, float speedPerSecond, long lastFrameMillis) {
+		if (!cfg().menuAnimations) return target;
 		float dt = Math.min(0.1f, (Util.getMillis() - lastFrameMillis) / 1000f);
-		float step = speedPerSecond * dt;
+		float step = speedPerSecond * dt * Math.max(0.1f, cfg().animationSpeed);
 		if (current < target) return Math.min(target, current + step);
 		return Math.max(target, current - step);
 	}
@@ -616,12 +646,14 @@ public final class Theme {
 	 * Slide-in offset for screens opening, in GUI pixels (fractional so the motion is smooth).
 	 */
 	public static float openOffset(long openedAt) {
-		float t = (Util.getMillis() - openedAt) / 260f;
+		if (!cfg().menuAnimations) return 0;
+		float t = (Util.getMillis() - openedAt) / (260f / Math.max(0.1f, cfg().animationSpeed));
 		return (1 - easeOutCubic(t)) * 12;
 	}
 
 	public static float openAlpha(long openedAt) {
-		return easeOutCubic((Util.getMillis() - openedAt) / 200f);
+		if (!cfg().menuAnimations) return 1;
+		return easeOutCubic((Util.getMillis() - openedAt) / (200f / Math.max(0.1f, cfg().animationSpeed)));
 	}
 
 	public static void pushOffset(GuiGraphicsExtractor graphics, float dy) {

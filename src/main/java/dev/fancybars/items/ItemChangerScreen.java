@@ -297,8 +297,8 @@ public class ItemChangerScreen extends Screen {
 			String[] trim = config().customArmorTrims.get(uuid);
 			List<String> materials = Customization.trimIds(true);
 			List<String> patterns = Customization.trimIds(false);
-			button(rightX, ry, half, "fancybars.items.trimMaterial", () -> cycleTrim(uuid, materials, patterns, true));
-			button(rightX + half + 4, ry, rightW - half - 4, "fancybars.items.trimPattern", () -> cycleTrim(uuid, materials, patterns, false));
+			addRenderableWidget(trimDropdown(rightX, ry, half, uuid, materials, patterns, true));
+			addRenderableWidget(trimDropdown(rightX + half + 4, ry, rightW - half - 4, uuid, materials, patterns, false));
 			ry += 18;
 			button(rightX, ry, half, "fancybars.items.clearTrim", () -> {
 				config().customArmorTrims.remove(uuid);
@@ -306,16 +306,17 @@ public class ItemChangerScreen extends Screen {
 			});
 			// worn look
 			String look = config().customArmorModel.getOrDefault(uuid, "");
-			ModernButton lookButton = new ModernButton(rightW - half - 4, 16, Component.translatable("fancybars.items.armorLook",
-					look.isEmpty() ? Component.translatable("fancybars.items.default") : Component.literal(Customization.prettyId(Identifier.parse(look).getPath()))), () -> {
+			List<Component> lookOptions = new java.util.ArrayList<>();
+			for (String l : ARMOR_LOOKS) lookOptions.add(l.isEmpty() ? Component.translatable("fancybars.items.default") : Component.literal(Customization.prettyId(Identifier.parse(l).getPath())));
+			dev.fancybars.util.gui.Dropdown lookButton = new dev.fancybars.util.gui.Dropdown(rightW - half - 4, 16, Component.translatable("fancybars.items.look"), lookOptions, () -> {
 				String current = config().customArmorModel.getOrDefault(uuid, "");
-				int index = 0;
-				for (int i = 0; i < ARMOR_LOOKS.length; i++) if (ARMOR_LOOKS[i].equals(current)) index = i;
-				String next = ARMOR_LOOKS[(index + 1) % ARMOR_LOOKS.length];
+				for (int i = 0; i < ARMOR_LOOKS.length; i++) if (ARMOR_LOOKS[i].equals(current)) return i;
+				return 0;
+			}, i -> {
+				String next = ARMOR_LOOKS[i];
 				if (next.isEmpty()) config().customArmorModel.remove(uuid);
 				else config().customArmorModel.put(uuid, next);
 				refresh();
-				reopen(selectedSlot, tab);
 			});
 			lookButton.setPosition(rightX + half + 4, ry);
 			addRenderableWidget(lookButton);
@@ -340,6 +341,27 @@ public class ItemChangerScreen extends Screen {
 				refresh();
 			});
 		}
+	}
+
+	private dev.fancybars.util.gui.Dropdown trimDropdown(int x, int y, int w, String uuid, List<String> materials, List<String> patterns, boolean material) {
+		List<String> ids = material ? materials : patterns;
+		List<Component> options = new java.util.ArrayList<>();
+		options.add(Component.translatable("fancybars.items.none"));
+		for (String id : ids) options.add(Component.literal(Customization.prettyId(Identifier.parse(id).getPath())));
+		dev.fancybars.util.gui.Dropdown d = new dev.fancybars.util.gui.Dropdown(w, 16, Component.translatable(material ? "fancybars.items.material" : "fancybars.items.pattern"), options, () -> {
+			String[] trim = config().customArmorTrims.get(uuid);
+			return trim == null ? 0 : ids.indexOf(trim[material ? 0 : 1]) + 1;
+		}, i -> {
+			if (i == 0) config().customArmorTrims.remove(uuid);
+			else if (!materials.isEmpty() && !patterns.isEmpty()) {
+				String[] trim = config().customArmorTrims.getOrDefault(uuid, new String[]{materials.getFirst(), patterns.getFirst()}).clone();
+				trim[material ? 0 : 1] = ids.get(i - 1);
+				config().customArmorTrims.put(uuid, trim);
+			}
+			refresh();
+		});
+		d.setPosition(x, y);
+		return d;
 	}
 
 	private void cycleTrim(String uuid, List<String> materials, List<String> patterns, boolean material) {
@@ -503,6 +525,13 @@ public class ItemChangerScreen extends Screen {
 			else renderArmorTab(graphics, mouseX, mouseY);
 		}
 		super.extractRenderState(graphics, mouseX, mouseY, a);
+		dev.fancybars.util.gui.Dropdown.renderOverlay(graphics, mouseX, mouseY);
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+		if (dev.fancybars.util.gui.Dropdown.scrollOverlay(mouseX, mouseY, vertical)) return true;
+		return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
 	}
 
 	private void label(GuiGraphicsExtractor graphics, String key, int y, Object... args) {
@@ -613,6 +642,7 @@ public class ItemChangerScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
+		if (dev.fancybars.util.gui.Dropdown.clickOverlay(click.x(), click.y())) return true;
 		if (super.mouseClicked(click, doubled)) return true;
 		double mx = click.x();
 		double my = click.y();
@@ -681,6 +711,7 @@ public class ItemChangerScreen extends Screen {
 
 	@Override
 	public void onClose() {
+		dev.fancybars.util.gui.Dropdown.close();
 		FancyBarsConfig.save();
 		minecraft.gui.setScreen(parent);
 	}

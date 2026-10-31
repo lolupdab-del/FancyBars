@@ -180,6 +180,7 @@ public class BarEditorScreen extends Screen {
 		}
 
 		super.extractRenderState(graphics, mouseX, mouseY, a);
+		dev.fancybars.util.gui.Dropdown.renderOverlay(graphics, mouseX, mouseY);
 	}
 
 	private static boolean isOver(float[] r, double mouseX, double mouseY) {
@@ -251,6 +252,7 @@ public class BarEditorScreen extends Screen {
 
 	@Override
 	public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
+		if (dev.fancybars.util.gui.Dropdown.clickOverlay(click.x(), click.y())) return true;
 		if (super.mouseClicked(click, doubled)) return true;
 		if (isOverOptions(click.x(), click.y())) return true;
 
@@ -373,6 +375,7 @@ public class BarEditorScreen extends Screen {
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+		if (dev.fancybars.util.gui.Dropdown.scrollOverlay(mouseX, mouseY, vertical)) return true;
 		if (isOverOptions(mouseX, mouseY)) return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
 		StatusBar bar = barAt(mouseX, mouseY);
 		float step = 1f / Theme.guiScale(); // keeps every texture pixel a whole number of screen pixels
@@ -571,9 +574,9 @@ public class BarEditorScreen extends Screen {
 		int w = 150;
 		int rowH = 16;
 
-		optionWidgets.add(cycle(w, rowH, "fancybars.bars.config.icon", () -> bar.getIconPosition().toString(), () -> bar.setIconPosition(EnumUtils.cycle(bar.getIconPosition()))));
-		optionWidgets.add(cycle(w, rowH, "fancybars.bars.config.text", () -> bar.getTextPosition().toString(), () -> bar.setTextPosition(EnumUtils.cycle(bar.getTextPosition()))));
-		optionWidgets.add(cycle(w, rowH, "fancybars.bars.config.direction", () -> bar.getDirection().toString(), () -> bar.setDirection(EnumUtils.cycle(bar.getDirection()))));
+		optionWidgets.add(enumDropdown(w, rowH, "fancybars.bars.config.icon", bar.getIconPosition(), bar::getIconPosition, bar::setIconPosition));
+		optionWidgets.add(enumDropdown(w, rowH, "fancybars.bars.config.text", bar.getTextPosition(), bar::getTextPosition, bar::setTextPosition));
+		optionWidgets.add(enumDropdown(w, rowH, "fancybars.bars.config.direction", bar.getDirection(), bar::getDirection, bar::setDirection));
 		if (bar.hasMax()) optionWidgets.add(new ModernToggle(w, rowH, Component.translatable("fancybars.bars.config.showMax"), bar.showMax, value -> bar.showMax = value));
 		if (bar.hasOverflow()) optionWidgets.add(new ModernToggle(w, rowH, Component.translatable("fancybars.bars.config.showOverflow"), bar.showOverflow, value -> bar.showOverflow = value));
 		optionWidgets.add(new ModernButton(w, rowH, Component.translatable("fancybars.editor.resetScale"), () -> {
@@ -603,6 +606,13 @@ public class BarEditorScreen extends Screen {
 			y += rowH + 3;
 			addRenderableWidget(widget);
 		}
+	}
+
+	private static <E extends Enum<E>> dev.fancybars.util.gui.Dropdown enumDropdown(int w, int h, String key, E sample, java.util.function.Supplier<E> getter, java.util.function.Consumer<E> setter) {
+		E[] values = sample.getDeclaringClass().getEnumConstants();
+		java.util.List<Component> options = new java.util.ArrayList<>();
+		for (E v : values) options.add(Component.literal(v.toString()));
+		return new dev.fancybars.util.gui.Dropdown(w, h, Component.translatable(key), options, () -> getter.get().ordinal(), i -> setter.accept(values[i]));
 	}
 
 	private ModernButton cycle(int w, int h, String key, java.util.function.Supplier<String> value, Runnable cycle) {
@@ -636,6 +646,7 @@ public class BarEditorScreen extends Screen {
 	@Override
 	public void removed() {
 		super.removed();
+		dev.fancybars.util.gui.Dropdown.close();
 		bars.updatePositions(false);
 		bars.saveBarConfig();
 	}

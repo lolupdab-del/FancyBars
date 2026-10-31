@@ -130,6 +130,29 @@ public class FancyBarsConfig {
 	/** How dark the world gets behind menus. */
 	public float backdropDarkness = 0.4f;
 
+	/** Rainbow accent: the whole theme cycles through colours. */
+	public boolean chromaAccent = false;
+
+	/** Rainbow border around menus and HUDs. */
+	public boolean chromaBorder = false;
+
+	/** Rainbow speed (1 = about one full cycle every 10 seconds). */
+	public float chromaSpeed = 1;
+
+	/** Smooth hover/open animations in menus. */
+	public boolean menuAnimations = true;
+
+	public float animationSpeed = 1;
+
+	/** Strength of the soft glow on buttons and switches. */
+	public float glowStrength = 1;
+
+	/** Strength of drop shadows under panels. */
+	public float shadowStrength = 1;
+
+	/** Seconds before a setting's description pops up. */
+	public float tooltipDelay = 0.35f;
+
 	/** Border thickness in pixels for menus and HUDs (0 = no border). */
 	public float borderThickness = 1;
 
@@ -620,6 +643,8 @@ public class FancyBarsConfig {
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.chromaSpeed <= 0) instance.chromaSpeed = 1;
+			if (instance.animationSpeed <= 0) instance.animationSpeed = 1;
 			if (instance.cornerRoundness < 0) instance.cornerRoundness = 1;
 			if (instance.termScale <= 0) instance.termScale = 1;
 			if (instance.commandAliases == null) instance.commandAliases = new java.util.ArrayList<>();
