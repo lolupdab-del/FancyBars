@@ -154,7 +154,10 @@ public class FancyBarsConfig {
 	public float tooltipDelay = 0.35f;
 
 	/** Border thickness in pixels for menus and HUDs (0 = no border). */
-	public float borderThickness = 1;
+	public float borderThickness = 0.6f;
+
+	/** Bumped when a redesign changes defaults that saved configs should pick up. */
+	public int designVersion = 0;
 
 	/** Use {@link #borderColor} for borders instead of the theme's. */
 	public boolean customBorder = false;
@@ -665,6 +668,11 @@ public class FancyBarsConfig {
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.designVersion < 2) {
+				// Linear redesign: hairline borders
+				instance.borderThickness = 0.6f;
+				instance.designVersion = 2;
+			}
 			if (instance.chromaSpeed <= 0) instance.chromaSpeed = 1;
 			if (instance.animationSpeed <= 0) instance.animationSpeed = 1;
 			if (instance.cornerRoundness < 0) instance.cornerRoundness = 1;

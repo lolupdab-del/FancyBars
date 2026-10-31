@@ -265,12 +265,13 @@ public final class Theme {
 	 * Smooth anti-aliased rounded rectangle.
 	 */
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
+		roundedRect(graphics, (float) x, (float) y, (float) width, (float) height, radius, color);
+	}
+
+	/** Smooth rounded rectangle at fractional GUI coordinates, drawn on exact screen pixels. */
+	public static void roundedRect(GuiGraphicsExtractor graphics, float x, float y, float width, float height, float radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		if (radius(radius) <= 1 || Math.min(width, height) < 4) {
-			graphics.fill(x, y, x + width, y + height, night(color));
-			return;
-		}
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, RECTS[radiusIndex(radius, width, height)], x, y, width, height, night(color));
+		Ring.fillRounded(graphics, x, y, width, height, Math.min(radius * cfg().cornerRoundness, Math.min(width, height) / 2f), night(color));
 	}
 
 	/**
@@ -278,14 +279,6 @@ public final class Theme {
 	 */
 	public static void roundedGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int top, int bottom) {
 		roundedRect(graphics, x, y, width, height, radius, bottom);
-		int r = RADII[radiusIndex(radius, width, height)];
-		// sheen overlay (kept inside the straight part so it never pokes out of the corners)
-		int sheenColor = night(top);
-		if (r * 2 < width) {
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + r, y, width - r * 2, height, sheenColor);
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x, y + r, r, height - r, sheenColor);
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + width - r, y + r, r, height - r, sheenColor);
-		}
 	}
 
 	/**
@@ -293,7 +286,7 @@ public final class Theme {
 	 */
 	public static void roundedOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(radius, width, height)], x, y, width, height, night(color));
+		Ring.outlinePx(graphics, x, y, width, height, Math.min(radius * cfg().cornerRoundness, Math.min(width, height) / 2f), Ring.hairline(), night(color));
 	}
 
 	/**
@@ -302,7 +295,7 @@ public final class Theme {
 	/** Outline drawn exactly in the given colour (no theme mapping). */
 	public static void rawOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(Math.max(0, radius), width, height)], x, y, width, height, color);
+		Ring.outlinePx(graphics, x, y, width, height, Math.max(0, radius), Ring.hairline(), color);
 	}
 
 	/**
@@ -322,8 +315,7 @@ public final class Theme {
 			int f = night(fallback);
 			color = Math.round((f >>> 24) * alpha / 255f) << 24 | f & 0xFFFFFF;
 		}
-		int r = radius(radius) <= 1 || Math.min(width, height) < 4 ? 0 : RADII[radiusIndex(radius, width, height)];
-		Ring.draw(graphics, x, y, width, height, r, thickness, color);
+		Ring.draw(graphics, x, y, width, height, Math.round(Math.min(radius * c.cornerRoundness, Math.min(width, height) / 2f)), thickness, color);
 	}
 
 	/** A HUD box: themed background (HUD opacity) and the Appearance border. */
@@ -342,7 +334,21 @@ public final class Theme {
 		return lerpColor(hudText(alpha), alpha << 24, 0.3f);
 	}
 
-	public static void card(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fill, int border) {
+	/** Hairline divider (about 0.6 GUI px, crisp on the screen pixel grid). */
+	public static void hline(GuiGraphicsExtractor graphics, float x1, float x2, float y, int color) {
+		Ring.hline(graphics, x1, x2, y, night(color));
+	}
+
+	public static void vline(GuiGraphicsExtractor graphics, float x, float y1, float y2, int color) {
+		Ring.vline(graphics, x, y1, y2, night(color));
+	}
+
+	/** Rectangle snapped to screen pixels, fractional GUI coordinates allowed. */
+	public static void fillF(GuiGraphicsExtractor graphics, float x, float y, float w, float h, int color) {
+		Ring.fill(graphics, x, y, w, h, night(color));
+	}
+
+		public static void card(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fill, int border) {
 		roundedRect(graphics, x, y, width, height, radius, fill);
 		roundedOutline(graphics, x, y, width, height, radius, border);
 	}

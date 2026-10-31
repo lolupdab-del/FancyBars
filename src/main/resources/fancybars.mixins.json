@@ -22,7 +22,8 @@
 		"LivingEntitySwingMixin",
 		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin",
-		"ModelManagerAccessor"
+		"ModelManagerAccessor",
+		"SmoothTextMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
