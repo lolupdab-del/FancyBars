@@ -106,9 +106,15 @@ public final class GifInventory {
 				image = com.mojang.blaze3d.platform.NativeImage.read(in);
 			}
 			float scale = image.getWidth() / 256f;
-			// offhand first, so the crafting fill's left edge samples the cleaned area
-			if (c.hideOffhandSlot) fill(image, scale, 75, 60, 95, 80, true);
-			if (c.gifsHideCraftingGrid) fill(image, scale, 96, 15, 171, 57, false);
+			// Best: rebuild the real artwork from the pack's other container screens (most themed packs share one
+			// background). Otherwise blend in from the edges.
+			List<com.mojang.blaze3d.platform.NativeImage> others = siblingTextures(mc, image.getWidth(), image.getHeight());
+			try {
+				if (c.hideOffhandSlot && !rebuild(image, others, scale, 75, 60, 95, 80)) fill(image, scale, 75, 60, 95, 80, true);
+				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57)) fill(image, scale, 96, 15, 171, 57, false);
+			} finally {
+				for (var o : others) o.close();
+			}
 			patchedW = image.getWidth();
 			patchedH = image.getHeight();
 			net.minecraft.client.renderer.texture.DynamicTexture texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "SBCLIENT inventory", image);
@@ -120,6 +126,84 @@ public final class GifInventory {
 			patchedOk = false;
 			dev.fancybars.FancyBarsMod.LOGGER.debug("[SBCLIENT] Couldn't patch the inventory background", e);
 		}
+	}
+
+	private static final String[] SIBLINGS = {"generic_54", "shulker_box", "furnace", "blast_furnace", "smoker", "crafting_table", "dispenser",
+			"hopper", "brewing_stand", "enchanting_table", "anvil", "grindstone", "loom", "cartography_table", "smithing", "stonecutter",
+			"beacon", "horse", "villager", "crafter"};
+
+	/** The pack's other container backgrounds, same size as the inventory's. */
+	private static List<com.mojang.blaze3d.platform.NativeImage> siblingTextures(net.minecraft.client.Minecraft mc, int w, int h) {
+		List<com.mojang.blaze3d.platform.NativeImage> out = new java.util.ArrayList<>();
+		for (String name : SIBLINGS) {
+			try {
+				var res = mc.getResourceManager().getResource(net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/" + name + ".png"));
+				if (res.isEmpty()) continue;
+				try (var in = res.get().open()) {
+					com.mojang.blaze3d.platform.NativeImage img = com.mojang.blaze3d.platform.NativeImage.read(in);
+					if (img.getWidth() == w && img.getHeight() == h) out.add(img);
+					else img.close();
+				}
+			} catch (Exception ignored) {
+			}
+		}
+		return out;
+	}
+
+	private static int diff(int a, int b) {
+		int d = 0;
+		for (int k = 0; k < 24; k += 8) d += Math.abs((a >>> k & 0xFF) - (b >>> k & 0xFF));
+		return d;
+	}
+
+	/**
+	 * Rebuilds the hidden box from the other container screens: keeps the screens whose pixels around the box match
+	 * the inventory (same artwork in the same place), then takes, pixel by pixel, the colour most of them agree on
+	 * (UI like slots only covers that spot in a few of them). Returns false when the pack doesn't share its art.
+	 */
+	private static boolean rebuild(com.mojang.blaze3d.platform.NativeImage img, List<com.mojang.blaze3d.platform.NativeImage> others, float scale, int x0, int y0, int x1, int y1) {
+		int ax = Math.max(1, Math.round(x0 * scale));
+		int ay = Math.max(1, Math.round(y0 * scale));
+		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
+		int by = Math.min(img.getHeight() - 1, Math.round(y1 * scale));
+		int band = Math.max(2, Math.round(3 * scale));
+		// ring of pixels around the box (top, bottom and left; the right side can be the frame)
+		List<int[]> ring = new java.util.ArrayList<>();
+		for (int x = ax - band; x < bx; x++) for (int y = ay - band; y < ay; y++) ring.add(new int[]{x, y});
+		for (int x = ax - band; x < bx; x++) for (int y = by; y < by + band; y++) ring.add(new int[]{x, y});
+		for (int y = ay; y < by; y++) for (int x = ax - band; x < ax; x++) ring.add(new int[]{x, y});
+		List<com.mojang.blaze3d.platform.NativeImage> matching = new java.util.ArrayList<>();
+		for (var o : others) {
+			long total = 0;
+			int n = 0;
+			for (int[] p : ring) {
+				if (p[0] < 0 || p[1] < 0 || p[0] >= img.getWidth() || p[1] >= img.getHeight()) continue;
+				total += diff(img.getPixel(p[0], p[1]), o.getPixel(p[0], p[1]));
+				n++;
+			}
+			// pixels around the box mostly identical: this screen shares the inventory's artwork here
+			if (n > 0 && total / (double) n < 24) matching.add(o);
+		}
+		if (matching.size() < 2) return false;
+		int[] values = new int[matching.size()];
+		for (int y = ay; y < by; y++) {
+			for (int x = ax; x < bx; x++) {
+				for (int i = 0; i < values.length; i++) values[i] = matching.get(i).getPixel(x, y);
+				// the colour closest to all the others (a per-pixel medoid) = what most screens show here
+				int best = values[0];
+				long bestScore = Long.MAX_VALUE;
+				for (int a : values) {
+					long score = 0;
+					for (int b : values) score += diff(a, b);
+					if (score < bestScore) {
+						bestScore = score;
+						best = a;
+					}
+				}
+				img.setPixel(x, y, best);
+			}
+		}
+		return true;
 	}
 
 	/** Average colour (per channel, ARGB) of the box x0..x1, y0..y1 (inclusive, clamped to the image). */
