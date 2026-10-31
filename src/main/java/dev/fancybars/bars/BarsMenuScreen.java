@@ -326,7 +326,7 @@ public class BarsMenuScreen extends Screen {
 			this.entry = entry;
 			this.always = always;
 			this.height = HEAD;
-			this.searchable = true;
+			this.searchable = false; // update notes never show up in search
 			this.searchText = "changelog update what's new " + entry.version() + " " + String.join(" ", entry.added()) + " " + String.join(" ", entry.fixed());
 		}
 
@@ -494,6 +494,7 @@ public class BarsMenuScreen extends Screen {
 					for (dev.fancybars.gifs.GifStore.Gif gif : gifs) list.add(new GifItem(gif));
 				}
 				list.add(new HeaderItem(Component.translatable("fancybars.category.screenImages"), null));
+				list.add(new ToggleItem("screenImagesInScreens", () -> config.screenImagesInScreens, value -> config.screenImagesInScreens = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.gifs.openFolder"), dev.fancybars.gifs.ScreenImages::openFolder),

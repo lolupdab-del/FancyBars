@@ -1,4 +1,7 @@
 [
+  {"version": "2.27.0", "date": "2026-10-31",
+   "added": ["Screen images: Show in Inventory and Chat toggle (GIFs tab)"],
+   "fixed": ["Past updates no longer show up in search results", "The Spotify player in your inventory only shows while something is playing (it stays a minute after you pause from it, so you can resume)"]},
   {"version": "2.26.0", "date": "2026-10-31",
    "added": ["Bundled ResourcePackCached by Furq: Hypixel's server resource pack stays loaded, so rejoining no longer reloads it"],
    "fixed": []},

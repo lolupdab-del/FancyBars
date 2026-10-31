@@ -411,6 +411,8 @@
 	"fancybars.config.rareDropsHud.@Tooltip": "Show your rare drop counts on screen while you're in the Dungeon Hub. Move and scale it in the editor.",
 	"fancybars.config.riftHealthHP": "Rift Health: HP instead of hearts",
 	"fancybars.config.riftHealthHP.@Tooltip": "In the rift, if enabled, the health status bar will display HP (20, 19, 18, ...) instead of Hearts (10, 9.5, 9, ...)",
+	"fancybars.config.screenImagesInScreens": "Show in Inventory and Chat",
+	"fancybars.config.screenImagesInScreens.@Tooltip": "Keep your screen images visible while chat or an inventory or chest is open.",
 	"fancybars.config.secretsEnabled": "Secrets Display",
 	"fancybars.config.secretsEnabled.@Tooltip": "Show how many secrets you've found in the current dungeon room (from the action bar). Move and scale it in the editor.",
 	"fancybars.config.secretsHideActionBar": "Hide From Action Bar",

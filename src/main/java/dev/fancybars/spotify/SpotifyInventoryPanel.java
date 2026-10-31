@@ -22,6 +22,16 @@ import dev.fancybars.util.gui.Theme;
  * volume slider. Everything is drawn with smooth sprites and pixel-exact album art.
  */
 public final class SpotifyInventoryPanel extends AbstractWidget {
+	private static long pausedHereAt = -1;
+	private static SpotifyInventoryPanel current;
+
+	/** Only shown while something is playing (or for a minute after you pause it from here). */
+	private static boolean shouldShow() {
+		Spotify.State s = Spotify.state();
+		if (!s.active) return false;
+		return s.playing || pausedHereAt > 0 && net.minecraft.util.Util.getMillis() - pausedHereAt < 60_000;
+	}
+
 	public static final int W = 132;
 	public static final int H = 96;
 	private final ContainerScreenAccessor screen;
@@ -43,8 +53,13 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (!config.spotifyEnabled || !config.spotifyInventory || !Spotify.connected()) return;
 			if (screen instanceof InventoryScreen inventory) {
-				Screens.getWidgets(inventory).add(new SpotifyInventoryPanel(inventory, (ContainerScreenAccessor) inventory));
+				current = new SpotifyInventoryPanel(inventory, (ContainerScreenAccessor) inventory);
+				current.visible = shouldShow();
+				Screens.getWidgets(inventory).add(current);
 			}
+		});
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			if (current != null && mc.gui.screen() instanceof InventoryScreen) current.visible = shouldShow();
 		});
 	}
 
@@ -170,7 +185,11 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 	public void onClick(MouseButtonEvent click, boolean doubled) {
 		double mx = click.x();
 		double my = click.y();
-		if (overPlay(mx, my)) Spotify.togglePlay();
+		if (overPlay(mx, my)) {
+			// pausing from here keeps the player up for a while so you can press play again
+			if (Spotify.state().playing) pausedHereAt = net.minecraft.util.Util.getMillis();
+			Spotify.togglePlay();
+		}
 		else if (overSkip(mx, my, true)) Spotify.next();
 		else if (overSkip(mx, my, false)) Spotify.previous();
 		else if (inside(mx, my, barX() - 2, barY() - 4, barW() + 4, 10) && Spotify.state().durationMs > 0) {

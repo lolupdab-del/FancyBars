@@ -520,6 +520,9 @@ public class FancyBarsConfig {
 	/** Keep SBCLIENT's HUDs on screen while chat or an inventory / chest is open. */
 	public boolean hudInScreens = false;
 
+	/** Keep screen images visible while chat or an inventory / chest is open. */
+	public boolean screenImagesInScreens = false;
+
 	public boolean perfEnabled = false;
 
 	public boolean perfShowFps = true;
