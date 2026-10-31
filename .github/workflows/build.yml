@@ -15,6 +15,17 @@ jobs:
           distribution: temurin
           java-version: 25
       - uses: gradle/actions/setup-gradle@v4
+      - name: Look up versions
+        if: always()
+        run: |
+          {
+            echo "== loader"; curl -s https://meta.fabricmc.net/v2/versions/loader | head -c 400; echo
+            echo "== game"; curl -s https://meta.fabricmc.net/v2/versions/game | head -c 600; echo
+            echo "== fabric-api"; curl -s https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml | grep -o '<version>[^<]*26.3[^<]*</version>' | tail -5
+            echo "== hm-api"; curl -s https://maven.azureaaron.net/releases/net/azureaaron/hm-api/maven-metadata.xml | grep -o '<version>[^<]*</version>' | tail -8
+            echo "== modmenu"; curl -s "https://api.modrinth.com/v2/project/modmenu/version?game_versions=%5B%2226.3%22%5D" | grep -o '"version_number":"[^"]*"' | head -5
+            echo "== loom"; curl -s https://maven.fabricmc.net/net/fabricmc/fabric-loom/maven-metadata.xml | grep -o '<version>[^<]*</version>' | tail -5
+          } > versions.txt 2>&1
       - name: Build
         run: chmod +x gradlew && ./gradlew build --stacktrace 2>&1 | tee build-log.txt; exit ${PIPESTATUS[0]}
       # Dumps signatures of the Minecraft classes listed in .github/javap.txt (for checking mixin targets)
@@ -39,16 +50,19 @@ jobs:
           path: build/libs/*.jar
       # Publishes the jar (or the failure log) to the "jar" branch so it can be downloaded easily
       - name: Publish to jar branch
-        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: always() && github.event_name == 'push'
         run: |
           mkdir -p /tmp/out
           cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
           cp build-log.txt /tmp/out/ 2>/dev/null || true
           cp javap-out.txt /tmp/out/ 2>/dev/null || true
+          cp versions.txt /tmp/out/ 2>/dev/null || true
+          BRANCH="${GITHUB_REF_NAME}"
+          TARGET=jar; [ "$BRANCH" != "main" ] && TARGET="jar-${BRANCH}"
           cd /tmp/out
-          git init -q -b jar
+          git init -q -b "$TARGET"
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
           git commit -q -m "Build of ${GITHUB_SHA}"
-          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" jar
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" "$TARGET"
