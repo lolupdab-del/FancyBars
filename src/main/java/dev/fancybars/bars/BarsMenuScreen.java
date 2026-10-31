@@ -100,7 +100,30 @@ public class BarsMenuScreen extends Screen {
 		this.parent = parent;
 	}
 
+	/** Where the menu was last left (tab, search and scroll), kept until you log off. */
+	private static float rememberedScroll = 0;
+	/** A setting to scroll to and highlight after jumping there from search. */
+	private static @Nullable String pendingJump;
+	private @Nullable Item highlight;
+	private @Nullable Tab hoverJump;
+	private long highlightUntil;
+	private final java.util.Map<Item, Category> searchOrigin = new java.util.IdentityHashMap<>();
+
+	/** Opens the menu where it was last left. */
+	public static BarsMenuScreen openLast(@Nullable Screen parent) {
+		return new BarsMenuScreen(parent);
+	}
+
+	/** Back to Home (called when you log off). */
+	public static void resetMemory() {
+		category = Category.HOME;
+		tab = Tab.HOME;
+		search = "";
+		rememberedScroll = 0;
+	}
+
 	public static BarsMenuScreen openAt(@Nullable Screen parent, Category start) {
+		rememberedScroll = 0;
 		category = start;
 		tab = Tab.of(start);
 		search = "";
@@ -116,7 +139,10 @@ public class BarsMenuScreen extends Screen {
 	@Override
 	protected void init() {
 		super.init();
-		if (openedAt < 0) openedAt = Util.getMillis();
+		if (openedAt < 0) {
+			openedAt = Util.getMillis();
+			scroll = scrollTarget = rememberedScroll;
+		}
 		bars.updatePositions(false);
 		widgetTips.clear();
 		dev.fancybars.gifs.GifStore.ensureLoaded();
@@ -177,6 +203,31 @@ public class BarsMenuScreen extends Screen {
 			}
 		}
 		layoutContent();
+
+		// arrived here from a search result: scroll to that setting and flash it
+		if (pendingJump != null) {
+			String target = pendingJump;
+			pendingJump = null;
+			for (Item item : items) {
+				if (item.searchable && item.searchText.equals(target)) {
+					scrollTarget = scroll = Math.clamp(item.y - contentY - 30 + scroll, 0, maxScroll());
+					layoutContent();
+					highlight = item;
+					highlightUntil = Util.getMillis() + 1600;
+					break;
+				}
+			}
+		}
+	}
+
+	/** Leaves search and opens the page that holds {@code item}, scrolled to it. */
+	private void jumpTo(Item item, Category c) {
+		tab = Tab.of(c);
+		category = c;
+		search = "";
+		pendingJump = item.searchText;
+		scroll = scrollTarget = 0;
+		rebuildNextTick = true;
 	}
 
 	private void switchCategory(Tab t) {
@@ -213,9 +264,13 @@ public class BarsMenuScreen extends Screen {
 		String query = search.trim().toLowerCase(Locale.ROOT);
 		if (!query.isEmpty()) {
 			List<Item> matches = new ArrayList<>();
+			searchOrigin.clear();
 			for (Category c : Category.values()) {
-				for (Item item : itemsFor(c)) {
-					if (item.searchable && item.searchText.toLowerCase(Locale.ROOT).contains(query)) matches.add(item);
+				for (Item item : c == Category.HOME ? homeItems() : itemsFor(c)) {
+					if (item.searchable && item.searchText.toLowerCase(Locale.ROOT).contains(query)) {
+						matches.add(item);
+						searchOrigin.put(item, c);
+					}
 				}
 			}
 			items.add(new HeaderItem(Component.translatable("fancybars.menu.results", search), matches.isEmpty() ? Component.translatable("fancybars.menu.noResults") : null));
@@ -878,11 +933,30 @@ public class BarsMenuScreen extends Screen {
 		for (Item item : items) {
 			if (item.y + item.height < contentY || item.y > contentY + contentH) continue;
 			item.render(graphics, contentX, item.y, contentW - 6, mouseX, contentMouseY);
+			if (item == highlight) {
+				// flash the setting you jumped to from search
+				float left = (highlightUntil - Util.getMillis()) / 1600f;
+				if (left > 0) {
+					float pulse = Math.min(1, left * 2.5f);
+					Theme.roundedRect(graphics, contentX, item.y, contentW - 6, item.height, 3, Theme.withAlpha(Theme.ACCENT, 0.16f * pulse));
+					Theme.roundedOutline(graphics, contentX, item.y, contentW - 6, item.height, 3, Theme.withAlpha(Theme.ACCENT, pulse));
+				} else highlight = null;
+			}
+			if (!search.isBlank() && searchOrigin.containsKey(item) && item.isHovered(contentX, contentW - 6, mouseX, contentMouseY)) {
+				// a search result can be clicked to go to it (hint shown in the footer)
+				hoverJump = Tab.of(searchOrigin.get(item));
+				graphics.requestCursor(CursorTypes.POINTING_HAND);
+			}
 		}
 		for (AbstractWidget widget : contentWidgets) {
 			if (widget.visible) widget.extractRenderState(graphics, mouseX, contentMouseY, a);
 		}
 		graphics.disableScissor();
+		if (hoverJump != null) {
+			Component hint = Component.translatable("fancybars.menu.goTo", hoverJump.label());
+			Theme.textInBox(graphics, font, hint, x0 + totalWidth - 10 - Theme.width(font, hint), y0 + totalHeight - FOOTER_HEIGHT, FOOTER_HEIGHT, Theme.ACCENT_LIGHT);
+			hoverJump = null;
+		}
 		if (mouseInContent) {
 			for (AbstractWidget widget : contentWidgets) {
 				if (widget.visible && widget.isMouseOver(mouseX, my) && widgetTips.containsKey(widget)) tip(widget, widgetTips.get(widget));
@@ -953,6 +1027,16 @@ public class BarsMenuScreen extends Screen {
 			for (Item item : items) {
 				if (item.mouseClicked(click.x(), click.y())) return true;
 			}
+			// clicking a search result (anywhere but its controls) takes you to where that setting lives
+			if (!search.isBlank()) {
+				for (Item item : items) {
+					Category origin = searchOrigin.get(item);
+					if (origin != null && itemHit(item, click.x(), click.y())) {
+						jumpTo(item, origin);
+						return true;
+					}
+				}
+			}
 			return false;
 		}
 		// Don't let scrolled-away content widgets catch clicks outside the content area
@@ -997,6 +1081,7 @@ public class BarsMenuScreen extends Screen {
 
 	@Override
 	public void onClose() {
+		rememberedScroll = scrollTarget;
 		dev.fancybars.util.gui.Dropdown.close();
 		minecraft.gui.setScreen(parent);
 	}

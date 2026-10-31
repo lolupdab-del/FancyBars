@@ -52,6 +52,8 @@ public class FancyBarsMod implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		// the menu remembers where you were until you log off
+		net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> BarsMenuScreen.resetMemory());
 		try {
 			Files.createDirectories(CONFIG_DIR);
 		} catch (Exception e) {
@@ -98,7 +100,7 @@ public class FancyBarsMod implements ClientModInitializer {
 			dev.fancybars.commands.Commands.register(dispatcher);
 			for (String name : new String[]{"sbclient", "sbc", "shikiclient", NAMESPACE}) {
 				dispatcher.register(ClientCommands.literal(name)
-						.executes(_ -> queueOpenScreen(BarsMenuScreen.openAt(null, BarsMenuScreen.Category.HOME)))
+						.executes(_ -> queueOpenScreen(BarsMenuScreen.openLast(null)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
 						.then(ClientCommands.literal("items").executes(_ -> queueOpenScreen(new dev.fancybars.items.ItemChangerScreen(null))))

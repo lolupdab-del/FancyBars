@@ -633,6 +633,7 @@
 	"fancybars.menu.barColor": "Bar Color",
 	"fancybars.menu.editGui": "Edit GUI",
 	"fancybars.menu.editGui.@Tooltip": "Move bars anywhere, scroll over a bar to scale it, and drag its edges to make it longer or shorter.",
+	"fancybars.menu.goTo": "Click to open in %s ↗",
 	"fancybars.menu.header.bar": "Bar",
 	"fancybars.menu.header.colors": "Colors",
 	"fancybars.menu.header.icon": "Icon",
