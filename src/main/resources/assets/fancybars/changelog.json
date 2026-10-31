@@ -1,4 +1,7 @@
 [
+  {"version": "2.19.1", "date": "2026-10-31",
+   "added": ["Hide Secrets in the Action Bar section hides the dungeon secrets counter on its own, even with the secrets display off"],
+   "fixed": ["The secrets option in the Action Bar section is now called Hide Secrets with the right description", "Enable Bars, Rift, mana and Intelligence Display options moved from Settings to the Bars tab"]},
   {"version": "2.19.0", "date": "2026-10-31",
    "added": ["Menu sections grouped into nine broad tabs: Home, Bars, HUD, Dungeons, Items, Player, Chat, Spotify and Settings", "What's New page with the full history of past updates and fixes"],
    "fixed": ["Tab names are centred exactly over their underline", "Hovering things no longer flashes pink before settling", "All SBCLIENT text is measured with the same engine that draws it, so everything centres properly"]},

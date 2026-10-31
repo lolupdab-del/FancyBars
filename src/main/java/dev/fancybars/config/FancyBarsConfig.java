@@ -96,6 +96,9 @@ public class FancyBarsConfig {
 	/** Remove the "X/Y Secrets" text from the action bar while the display is on. */
 	public boolean secretsHideActionBar = true;
 
+	/** Action Bar section: always hide the "X/Y Secrets" counter, whether or not the secrets display is on. */
+	public boolean actionBarHideSecrets = false;
+
 	/** Top-left position as a fraction of the screen; negative = default spot. */
 	public float secretsX = -1;
 

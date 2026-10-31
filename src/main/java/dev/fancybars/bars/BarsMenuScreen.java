@@ -370,6 +370,13 @@ public class BarsMenuScreen extends Screen {
 					StatusBar bar = bars.statusBars.get(type);
 					if (bar != null) list.add(new BarItem(bar));
 				}
+				list.add(new HeaderItem(Component.translatable("fancybars.bars.options"), null));
+				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
+				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
+				list.add(new ToggleItem("riftHealthHP", () -> config.riftHealthHP, value -> config.riftHealthHP = value));
+				list.add(new ToggleItem("showEstimatedTilde", () -> config.showEstimatedTilde, value -> config.showEstimatedTilde = value));
+				list.add(new ToggleItem("hideMana", () -> config.hideMana, value -> config.hideMana = value));
+				list.add(new CycleItem());
 			}
 			case STYLE -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.style"), null));
@@ -520,7 +527,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("actionBarHideMana", () -> config.actionBarHideMana, value -> config.actionBarHideMana = value));
 				list.add(new ToggleItem("hideMana", () -> config.hideMana, value -> config.hideMana = value));
 				list.add(new ToggleItem("actionBarHideSkillXp", () -> config.actionBarHideSkillXp, value -> config.actionBarHideSkillXp = value));
-				list.add(new ToggleItem("secretsHideActionBar", () -> config.secretsHideActionBar, value -> config.secretsHideActionBar = value));
+				list.add(new ToggleItem("actionBarHideSecrets", () -> config.actionBarHideSecrets, value -> config.actionBarHideSecrets = value));
 				list.add(new ToggleItem("actionBarHideVitality", () -> config.actionBarHideVitality, value -> config.actionBarHideVitality = value));
 				list.add(new ToggleItem("actionBarHideRiftTime", () -> config.actionBarHideRiftTime, value -> config.actionBarHideRiftTime = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.actionBar.look"), null));
@@ -783,13 +790,6 @@ public class BarsMenuScreen extends Screen {
 					FancyBarsConfig.save();
 					rebuildNextTick = true;
 				})));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
-				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
-				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
-				list.add(new ToggleItem("riftHealthHP", () -> config.riftHealthHP, value -> config.riftHealthHP = value));
-				list.add(new ToggleItem("showEstimatedTilde", () -> config.showEstimatedTilde, value -> config.showEstimatedTilde = value));
-				list.add(new ToggleItem("hideMana", () -> config.hideMana, value -> config.hideMana = value));
-				list.add(new CycleItem());
 			}
 			case VANILLA_MANA -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.vanillaMana"), null));

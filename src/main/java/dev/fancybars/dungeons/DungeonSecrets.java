@@ -87,7 +87,8 @@ public final class DungeonSecrets {
 	}
 
 	public static boolean hideFromActionBar() {
-		return FancyBarsConfig.get().secretsEnabled && FancyBarsConfig.get().secretsHideActionBar && inDungeon();
+		FancyBarsConfig c = FancyBarsConfig.get();
+		return ((c.secretsEnabled && c.secretsHideActionBar) || c.actionBarHideSecrets) && inDungeon();
 	}
 
 	// ---------------------------------------------------------------- Layout / drawing
