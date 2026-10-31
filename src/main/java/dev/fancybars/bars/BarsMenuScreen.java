@@ -771,6 +771,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.wallLicker"), null));
 				list.add(new ToggleItem("wallLickerEnabled", () -> config.wallLickerEnabled, value -> config.wallLickerEnabled = value));
 				list.add(new ToggleItem("wallLickerSound", () -> config.wallLickerSound, value -> config.wallLickerSound = value));
+				list.add(new ToggleItem("wallLickerIgnoreDungeonbreaker", () -> config.wallLickerIgnoreDungeonbreaker, value -> config.wallLickerIgnoreDungeonbreaker = value));
 				list.add(new SliderItem("wallLickerVolume", 0.01f, 1, 0.01f, true, () -> config.wallLickerVolume / 100f,
 						value -> config.wallLickerVolume = Math.round(value * 100)));
 				list.add(new InfoCardItem(Component.translatable("fancybars.wallLicker.statsTitle"), List.of(

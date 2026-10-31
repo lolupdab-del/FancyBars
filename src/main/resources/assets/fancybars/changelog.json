@@ -1,4 +1,7 @@
 [
+  {"version": "2.27.1", "date": "2026-10-31",
+   "added": ["Wall Licker: Ignore While Holding Dungeonbreaker toggle"],
+   "fixed": ["Wall Licker no longer counts walking up stairs or slabs; you have to be stuck against a real wall", "Wall Licker stops counting once the boss fight starts"]},
   {"version": "2.27.0", "date": "2026-10-31",
    "added": ["Screen images: Show in Inventory and Chat toggle (GIFs tab)"],
    "fixed": ["Past updates no longer show up in search results", "The Spotify player in your inventory only shows while something is playing (it stays a minute after you pause from it, so you can resume)"]},

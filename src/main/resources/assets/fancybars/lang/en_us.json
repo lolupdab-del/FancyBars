@@ -500,6 +500,8 @@
 	"fancybars.config.viewmodelZ.@Tooltip": "Move towards or away from you.",
 	"fancybars.config.wallLickerEnabled": "Wall Licker",
 	"fancybars.config.wallLickerEnabled.@Tooltip": "Count every time you walk face-first into a wall inside a dungeon. On screen \"Licks\" is this run; the all-time total is below.",
+	"fancybars.config.wallLickerIgnoreDungeonbreaker": "Ignore While Holding Dungeonbreaker",
+	"fancybars.config.wallLickerIgnoreDungeonbreaker.@Tooltip": "Don't count licks while you're holding the Dungeonbreaker (mining into walls isn't licking).",
 	"fancybars.config.wallLickerSound": "Play Sound",
 	"fancybars.config.wallLickerSound.@Tooltip": "Play your sound file every lick.",
 	"fancybars.config.wallLickerVolume": "Volume",

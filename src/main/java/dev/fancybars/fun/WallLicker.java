@@ -46,6 +46,10 @@ public final class WallLicker {
 	private static final long COOLDOWN_MS = 350;
 
 	private static boolean wasLicking;
+	/** Ticks spent pressed against a real wall without moving (a lick needs a few). */
+	private static int stuckTicks;
+	/** A boss has started talking this run: licks stop counting until you leave. */
+	private static boolean inBoss;
 	private static long lastLick;
 
 	private WallLicker() {}
@@ -57,6 +61,13 @@ public final class WallLicker {
 			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't create {}", SOUND_DIR, e);
 		}
 		ClientTickEvents.END_CLIENT_TICK.register(WallLicker::tick);
+		// the boss fight starts when a boss speaks ("[BOSS] Maxor: ..."); The Watcher also speaks during the clear, so he doesn't count
+		net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
+			if (overlay) return;
+			String text = net.minecraft.ChatFormatting.stripFormatting(message.getString());
+			if (text != null && text.startsWith("[BOSS] ") && !text.startsWith("[BOSS] The Watcher")) inBoss = true;
+		});
+		dev.fancybars.util.SkyblockLocation.onLocationChange(() -> inBoss = false);
 		// every dungeon run is a new server: the run counter starts over when you join one and when you leave it
 		dev.fancybars.util.SkyblockLocation.onLocationChange(() -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
@@ -77,7 +88,14 @@ public final class WallLicker {
 			wasLicking = false;
 			return;
 		}
-		boolean licking = player.horizontalCollision && mc.options.keyUp.isDown() && facingWall(player, mc.level);
+		FancyBarsConfig cfg = FancyBarsConfig.get();
+		boolean blocked = inBoss || cfg.wallLickerIgnoreDungeonbreaker && holdingDungeonbreaker(player);
+		// pressed into a real wall (solid at chest AND head height, so stairs and slabs don't count) and not moving
+		double moved = Math.hypot(player.getX() - player.xo, player.getZ() - player.zo);
+		boolean pressing = !blocked && player.horizontalCollision && mc.options.keyUp.isDown() && player.onGround()
+				&& Math.abs(player.getY() - player.yo) < 1.0E-3 && moved < 0.02 && facingWall(player, mc.level);
+		stuckTicks = pressing ? stuckTicks + 1 : 0;
+		boolean licking = stuckTicks >= 4;
 		long now = Util.getMillis();
 		if (licking && !wasLicking && now - lastLick > COOLDOWN_MS) {
 			lastLick = now;
@@ -90,18 +108,27 @@ public final class WallLicker {
 		wasLicking = licking;
 	}
 
-	/** Is there a solid block right in front of where you're looking (at leg or head height)? */
+	private static boolean holdingDungeonbreaker(LocalPlayer player) {
+		net.minecraft.world.item.ItemStack stack = player.getMainHandItem();
+		if (stack.isEmpty()) return false;
+		net.minecraft.world.item.component.CustomData data = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+		if (data != null && "DUNGEONBREAKER".equals(((dev.fancybars.mixin.CustomDataAccessor) (Object) data).getTag().getStringOr("id", ""))) return true;
+		return stack.getHoverName().getString().contains("Dungeonbreaker");
+	}
+
+	/** Is there a solid wall right in front of where you're looking? */
 	private static boolean facingWall(LocalPlayer player, Level level) {
 		Vec3 look = player.getLookAngle();
 		Vec3 flat = new Vec3(look.x, 0, look.z);
 		if (flat.lengthSqr() < 1.0E-4) return false;
 		flat = flat.normalize();
 		double reach = player.getBbWidth() / 2 + 0.25;
-		for (double dy : new double[]{0.1, 1.0, player.getEyeHeight() - 0.1}) {
+		// a wall: solid at chest height and at head height (a step, stair or slab is only solid low down)
+		for (double dy : new double[]{1.0, player.getEyeHeight() - 0.1}) {
 			BlockPos pos = BlockPos.containing(player.getX() + flat.x * reach, player.getY() + dy, player.getZ() + flat.z * reach);
-			if (!level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()) return true;
+			if (level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()) return false;
 		}
-		return false;
+		return true;
 	}
 
 	// ---------------------------------------------------------------- Sound

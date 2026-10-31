@@ -546,6 +546,9 @@ public class FancyBarsConfig {
 
 	public float perfScale = 1;
 
+	/** Don't count licks while holding the Dungeonbreaker. */
+	public boolean wallLickerIgnoreDungeonbreaker = true;
+
 	public float wallLickerX = -1;
 
 	public float wallLickerY = -1;
