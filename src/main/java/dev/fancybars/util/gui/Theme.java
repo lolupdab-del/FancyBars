@@ -643,6 +643,12 @@ public final class Theme {
 
 	public static int lerpColor(int from, int to, float t) {
 		t = Math.clamp(t, 0, 1);
+		// Theme colours are stored in their base palette and mapped when drawn; a blend of two of them isn't a
+		// palette entry any more, so map both ends first (otherwise hover animations flash the old pink palette)
+		if (t <= 0) return from;
+		if (t >= 1) return to;
+		from = night(from);
+		to = night(to);
 		int a = (int) (((from >>> 24) & 0xFF) + (((to >>> 24) & 0xFF) - ((from >>> 24) & 0xFF)) * t);
 		int r = (int) (((from >> 16) & 0xFF) + (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * t);
 		int g = (int) (((from >> 8) & 0xFF) + (((to >> 8) & 0xFF) - ((from >> 8) & 0xFF)) * t);

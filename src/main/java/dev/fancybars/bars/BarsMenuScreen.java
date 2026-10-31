@@ -46,6 +46,7 @@ public class BarsMenuScreen extends Screen {
 	private static final int SWATCH = 12;
 
 	private static Category category = Category.HOME;
+	private static Tab tab = Tab.HOME;
 	private static String search = "";
 
 	private final @Nullable Screen parent;
@@ -101,6 +102,7 @@ public class BarsMenuScreen extends Screen {
 
 	public static BarsMenuScreen openAt(@Nullable Screen parent, Category start) {
 		category = start;
+		tab = Tab.of(start);
 		search = "";
 		return new BarsMenuScreen(parent);
 	}
@@ -147,8 +149,8 @@ public class BarsMenuScreen extends Screen {
 		// Category tabs across the top, wrapping onto a second row when needed
 		int tx = x0 + 6;
 		int ty = y0 + HEADER_HEIGHT;
-		for (Category c : Category.values()) {
-			int tw = Theme.width(font, c.label()) + 12;
+		for (Tab c : Tab.values()) {
+			int tw = Theme.width(font, c.label()) + 16;
 			if (tx + tw > x0 + totalWidth - 6) {
 				tx = x0 + 6;
 				ty += TAB_HEIGHT;
@@ -177,8 +179,9 @@ public class BarsMenuScreen extends Screen {
 		layoutContent();
 	}
 
-	private void switchCategory(Category c) {
-		category = c;
+	private void switchCategory(Tab t) {
+		tab = t;
+		category = t.categories[0];
 		search = "";
 		scroll = scrollTarget = 0;
 		rebuildNextTick = true;
@@ -218,7 +221,131 @@ public class BarsMenuScreen extends Screen {
 			items.add(new HeaderItem(Component.translatable("fancybars.menu.results", search), matches.isEmpty() ? Component.translatable("fancybars.menu.noResults") : null));
 			items.addAll(matches);
 		} else {
-			items.addAll(itemsFor(category));
+			if (tab == Tab.HOME) {
+				items.addAll(homeItems());
+			} else {
+				for (Category c : tab.categories) {
+					List<Item> list = itemsFor(c);
+					// grouped tabs: every part gets its own section label
+					if (tab.categories.length > 1 && (list.isEmpty() || !(list.getFirst() instanceof HeaderItem))) items.add(new HeaderItem(c.label(), null));
+					items.addAll(list);
+				}
+			}
+		}
+	}
+
+	/** Home: quick actions, what's new in this version, then every past update (click one to open it). */
+	private List<Item> homeItems() {
+		List<Item> list = new ArrayList<>();
+		list.add(new ActionRowItem());
+		List<dev.fancybars.util.Changelog.Entry> log = dev.fancybars.util.Changelog.entries();
+		if (!log.isEmpty()) {
+			list.add(new HeaderItem(Component.translatable("fancybars.home.whatsNew", log.getFirst().version()), null));
+			list.add(new ChangelogItem(log.getFirst(), true));
+			if (log.size() > 1) list.add(new HeaderItem(Component.translatable("fancybars.home.pastUpdates"), Component.translatable("fancybars.home.pastUpdatesHint")));
+			for (int i = 1; i < log.size(); i++) list.add(new ChangelogItem(log.get(i), false));
+		}
+		return list;
+	}
+
+	private static final java.util.Set<String> OPEN_VERSIONS = new java.util.HashSet<>();
+
+	/** One version of the changelog: a row with the version and date, expanding to its added / fixed lists. */
+	private class ChangelogItem extends Item {
+		private final dev.fancybars.util.Changelog.Entry entry;
+		private final boolean always;
+		private final List<net.minecraft.util.FormattedCharSequence> lines = new ArrayList<>();
+		private final List<Boolean> bullet = new ArrayList<>();
+		private final List<Integer> lineColors = new ArrayList<>();
+		private int wrapWidth = -1;
+		private int lastX;
+		private int lastW;
+		private static final int HEAD = 24;
+		private static final int LINE = 11;
+
+		ChangelogItem(dev.fancybars.util.Changelog.Entry entry, boolean always) {
+			this.entry = entry;
+			this.always = always;
+			this.height = HEAD;
+			this.searchable = true;
+			this.searchText = "changelog update what's new " + entry.version() + " " + String.join(" ", entry.added()) + " " + String.join(" ", entry.fixed());
+		}
+
+		private boolean open() {
+			return always || OPEN_VERSIONS.contains(entry.version());
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			lastX = x;
+			lastW = w;
+			if (w != wrapWidth) {
+				wrapWidth = w;
+				lines.clear();
+				bullet.clear();
+				lineColors.clear();
+				addSection("fancybars.home.added", entry.added(), w);
+				addSection("fancybars.home.fixed", entry.fixed(), w);
+			}
+			height = open() ? HEAD + lines.size() * LINE + 8 : HEAD;
+		}
+
+		private void addSection(String key, List<String> points, int w) {
+			if (points == null || points.isEmpty()) return;
+			lines.add(Theme.bold(Component.translatable(key)).getVisualOrderText());
+			bullet.add(false);
+			lineColors.add(Theme.TEXT_MUTED);
+			for (String p : points) {
+				boolean first = true;
+				for (net.minecraft.util.FormattedCharSequence line : font.split(Theme.styled(Component.literal(p)), w - 34)) {
+					lines.add(line);
+					bullet.add(first);
+					lineColors.add(Theme.TEXT_SOFT);
+					first = false;
+				}
+			}
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = !always && mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + HEAD;
+			row(graphics, x, y, w, height, hovered);
+			Component version = Theme.mono(Component.literal("v" + entry.version()));
+			Theme.drawAtCapTop(graphics, font, version, x + 8, y + (HEAD - Theme.MONO_CAP) / 2f, Theme.MONO_CAP, Theme.colorAt(graphics, Theme.ACCENT, x));
+			int count = (entry.added() == null ? 0 : entry.added().size()) + (entry.fixed() == null ? 0 : entry.fixed().size());
+			Component summary = Component.translatable("fancybars.home.changes", count);
+			Theme.textInBox(graphics, font, summary, x + 70, y, HEAD, Theme.TEXT);
+			Theme.monoInBox(graphics, font, Component.literal(entry.date()), x + w - (always ? 8 : 22), y, HEAD, Theme.TEXT_DISABLED);
+			if (!always) {
+				// chevron
+				float cx = x + w - 11;
+				float cy = y + HEAD / 2f;
+				boolean isOpen = open();
+				for (int i = 0; i < 3; i++) {
+					float dy = isOpen ? 1 - i : i - 1;
+					Theme.fillF(graphics, cx - i - 0.5f, cy + dy * 0.9f, i * 2 + 1, 0.9f, Theme.TEXT_MUTED);
+				}
+				if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+			}
+			if (open()) {
+				int ly = y + HEAD;
+				for (int i = 0; i < lines.size(); i++) {
+					boolean isBullet = bullet.get(i);
+					boolean isHeading = lineColors.get(i) == Theme.TEXT_MUTED;
+					int tx = isHeading ? x + 8 : x + 22;
+					if (isBullet) Theme.roundedRect(graphics, x + 14, ly + LINE / 2f - 1.25f, 2.5f, 2.5f, 1.25f, Theme.ACCENT);
+					Theme.drawSeqInBox(graphics, font, lines.get(i), tx, ly, LINE, lineColors.get(i));
+					ly += LINE;
+				}
+			}
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (always || mouseX < lastX || mouseX >= lastX + lastW || mouseY < y || mouseY >= y + HEAD) return false;
+			if (!OPEN_VERSIONS.remove(entry.version())) OPEN_VERSIONS.add(entry.version());
+			layoutContent();
+			return true;
 		}
 	}
 
@@ -715,7 +842,7 @@ public class BarsMenuScreen extends Screen {
 		hx += font.width(brand) + 9;
 		Theme.vline(graphics, hx, y0 + 9, y0 + HEADER_HEIGHT - 9, Theme.PANEL_BORDER);
 		hx += 9;
-		Component page = search.isBlank() ? category.label() : Component.translatable("fancybars.menu.searchResults");
+		Component page = search.isBlank() ? tab.label() : Component.translatable("fancybars.menu.searchResults");
 		Theme.textInBox(graphics, font, page, hx, y0, HEADER_HEIGHT, Theme.TEXT);
 
 		// Footer
@@ -896,25 +1023,55 @@ public class BarsMenuScreen extends Screen {
 		}
 	}
 
+	/** The broad sections shown as tabs; each one holds one or more pages of settings. */
+	public enum Tab {
+		HOME("fancybars.category.home", Category.HOME),
+		BARS("fancybars.category.bars", Category.BARS, Category.STYLE, Category.VANILLA_MANA),
+		HUD("fancybars.category.hud", Category.HUD, Category.ACTION_BAR, Category.MINING),
+		DUNGEONS("fancybars.category.dungeons", Category.DUNGEONS),
+		ITEMS("fancybars.category.items", Category.ITEMS, Category.GIFS),
+		PLAYER("fancybars.category.player", Category.PLAYER),
+		CHAT("fancybars.category.chat", Category.CHAT, Category.COMMANDS),
+		SPOTIFY("fancybars.category.spotify", Category.SPOTIFY),
+		SETTINGS("fancybars.tab.settings", Category.GENERAL);
+
+		private final String key;
+		final Category[] categories;
+
+		Tab(String key, Category... categories) {
+			this.key = key;
+			this.categories = categories;
+		}
+
+		public Component label() {
+			return Component.translatable(key);
+		}
+
+		static Tab of(Category c) {
+			for (Tab t : values()) for (Category x : t.categories) if (x == c) return t;
+			return HOME;
+		}
+	}
+
 	private class SidebarItem extends AbstractWidget {
-		private final Category target;
+		private final Tab target;
 		private float hover = 0;
 		private long last = Util.getMillis();
 
-		SidebarItem(Category target, int w, int h) {
+		SidebarItem(Tab target, int w, int h) {
 			super(0, 0, w, h, target.label());
 			this.target = target;
 		}
 
 		@Override
 		protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-			boolean selected = search.isBlank() && category == target;
+			boolean selected = search.isBlank() && tab == target;
 			hover = Theme.approach(hover, isHovered() ? 1 : 0, 8, last);
 			last = Util.getMillis();
 			// Linear tabs: no background, accent underline on the open one
 			if (selected) Theme.fillF(graphics, getX() + 3, getY() + getHeight() - 1.25f, getWidth() - 6, 1.25f, Theme.ACCENT);
 			int textColor = selected ? Theme.TEXT : Theme.lerpColor(Theme.TEXT_MUTED, Theme.TEXT_SOFT, hover);
-			Theme.textInBox(graphics, font, getMessage(), getX() + 6, getY(), getHeight() - 1, textColor);
+			Theme.centeredInBox(graphics, font, getMessage(), getX() + getWidth() / 2f, getY(), getHeight() - 1, textColor);
 			if (isHovered()) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 

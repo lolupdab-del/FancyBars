@@ -138,6 +138,57 @@ public final class SmoothText {
 		return true;
 	}
 
+	private static final Map<String, Float> WIDTHS = new LinkedHashMap<>(512, 0.75f, true) {
+		@Override
+		protected boolean removeEldestEntry(Map.Entry<String, Float> eldest) {
+			return size() > 4000;
+		}
+	};
+
+	/**
+	 * Width in GUI units of text in SBCLIENT's fonts, measured exactly the way it is drawn.
+	 * Returns -1 when the text isn't (only) in SBCLIENT's fonts.
+	 */
+	public static float width(FormattedCharSequence text) {
+		if (failed) return -1;
+		List<Segment> segments = new ArrayList<>();
+		String[] kind = new String[1];
+		StringBuilder current = new StringBuilder();
+		Style[] currentStyle = new Style[1];
+		boolean[] mixed = new boolean[1];
+		text.accept((index, style, codePoint) -> {
+			String k = kindOf(style);
+			if (kind[0] == null && k != null) kind[0] = k;
+			if (k == null) mixed[0] = true;
+			if (currentStyle[0] != null && currentStyle[0].isBold() != style.isBold()) {
+				segments.add(segment(current.toString(), currentStyle[0]));
+				current.setLength(0);
+			}
+			currentStyle[0] = style;
+			current.appendCodePoint(codePoint);
+			return true;
+		});
+		if (kind[0] == null || mixed[0]) return -1;
+		if (current.length() > 0) segments.add(segment(current.toString(), currentStyle[0]));
+		Kind k = KINDS.get(kind[0]);
+		StringBuilder key = new StringBuilder(kind[0]);
+		for (Segment seg : segments) key.append(seg.bold() ? '\u0001' : '\u0002').append(seg.text());
+		String cacheKey = key.toString();
+		Float cached = WIDTHS.get(cacheKey);
+		if (cached != null) return cached;
+		Font base = baseFont(k.file());
+		if (base == null) return -1;
+		Font regular = base.deriveFont(100f);
+		Font boldBase = k.file().contains("medium") ? baseFont("geist-semibold.ttf") : base;
+		Font bold = (boldBase == null ? base : boldBase).deriveFont(100f);
+		FontRenderContext frc = new FontRenderContext(null, RenderingHints.VALUE_TEXT_ANTIALIAS_ON, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		double total = 0;
+		for (Segment seg : segments) if (!seg.text().isEmpty()) total += (seg.bold() ? bold : regular).getStringBounds(seg.text(), frc).getWidth();
+		float w = (float) (total * (k.size() / EM_RATIO) / 100.0);
+		WIDTHS.put(cacheKey, w);
+		return w;
+	}
+
 	private static boolean sameLook(Style a, Style b) {
 		return java.util.Objects.equals(a.getColor(), b.getColor()) && a.isBold() == b.isBold() && java.util.Objects.equals(kindOf(a), kindOf(b));
 	}

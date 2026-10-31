@@ -23,7 +23,8 @@
 		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor",
-		"SmoothTextMixin"
+		"SmoothTextMixin",
+		"SmoothTextWidthMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
