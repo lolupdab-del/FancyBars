@@ -112,8 +112,10 @@ public final class GifInventory {
 			try {
 				// the offhand sits next to the player box, so it's matched on its top, bottom and right only;
 				// the crafting area touches the frame on the right, so it's matched on its top, bottom and left
-				if (c.hideOffhandSlot && !rebuild(image, others, scale, 76, 60, 95, 80, false, true)) fill(image, scale, 76, 60, 95, 80, true);
-				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57, true, false)) fill(image, scale, 96, 15, 171, 57, false);
+				// match each area on its open sides only: the offhand has the player box on its left and the inventory
+				// slots below it; the crafting area touches the frame on its right
+				if (c.hideOffhandSlot && !rebuild(image, others, scale, 76, 60, 95, 80, true, false, false, true)) fill(image, scale, 76, 60, 95, 80, false, true);
+				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57, true, true, true, false)) fill(image, scale, 96, 15, 171, 57, true, false);
 			} finally {
 				for (var o : others) o.close();
 			}
@@ -164,7 +166,7 @@ public final class GifInventory {
 	 * (UI like slots only covers that spot in a few of them). Returns false when the pack doesn't share its art.
 	 */
 	private static boolean rebuild(com.mojang.blaze3d.platform.NativeImage img, List<com.mojang.blaze3d.platform.NativeImage> others, float scale, int x0, int y0, int x1, int y1,
-			boolean ringLeft, boolean ringRight) {
+			boolean ringTop, boolean ringBottom, boolean ringLeft, boolean ringRight) {
 		int ax = Math.max(1, Math.round(x0 * scale));
 		int ay = Math.max(1, Math.round(y0 * scale));
 		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
@@ -174,8 +176,8 @@ public final class GifInventory {
 		List<int[]> ring = new java.util.ArrayList<>();
 		int rx0 = ringLeft ? ax - band : ax;
 		int rx1 = ringRight ? bx + band : bx;
-		for (int x = rx0; x < rx1; x++) for (int y = ay - band; y < ay; y++) ring.add(new int[]{x, y});
-		for (int x = rx0; x < rx1; x++) for (int y = by; y < by + band; y++) ring.add(new int[]{x, y});
+		if (ringTop) for (int x = rx0; x < rx1; x++) for (int y = ay - band; y < ay; y++) ring.add(new int[]{x, y});
+		if (ringBottom) for (int x = rx0; x < rx1; x++) for (int y = by; y < by + band; y++) ring.add(new int[]{x, y});
 		if (ringLeft) for (int y = ay; y < by; y++) for (int x = ax - band; x < ax; x++) ring.add(new int[]{x, y});
 		if (ringRight) for (int y = ay; y < by; y++) for (int x = bx; x < bx + band; x++) ring.add(new int[]{x, y});
 		List<com.mojang.blaze3d.platform.NativeImage> matching = new java.util.ArrayList<>();
@@ -218,7 +220,7 @@ public final class GifInventory {
 		int pad = Math.max(2, Math.round(10 * scale));
 		for (int y = Math.max(0, ay - pad); y < Math.min(img.getHeight(), by + pad); y++)
 			for (int x = Math.max(0, ax - pad); x < Math.min(img.getWidth(), bx + pad); x++) smooth.setPixel(x, y, img.getPixel(x, y));
-		fill(smooth, scale, x0, y0, x1, y1, ringRight);
+		fill(smooth, scale, x0, y0, x1, y1, ringLeft, ringRight);
 		int[] values = new int[matching.size()];
 		for (int y = ay; y < by; y++) {
 			for (int x = ax; x < bx; x++) {
@@ -241,7 +243,45 @@ public final class GifInventory {
 			}
 		}
 		smooth.close();
+		removeDarkMarks(img, ax, ay, bx, by);
 		return true;
+	}
+
+	private static int luma(int c) {
+		return ((c >>> 16 & 0xFF) * 3 + (c >>> 8 & 0xFF) * 6 + (c & 0xFF)) / 10;
+	}
+
+	/**
+	 * Clean-up after rebuilding: thin dark marks (1-2 px lines or specks left by UI that slipped through) are
+	 * replaced by the local median. Bright specks (stars) are kept.
+	 */
+	private static void removeDarkMarks(com.mojang.blaze3d.platform.NativeImage img, int ax, int ay, int bx, int by) {
+		for (int pass = 0; pass < 2; pass++) {
+			int w = bx - ax;
+			int h = by - ay;
+			int[] out = new int[w * h];
+			int[] window = new int[25];
+			for (int y = ay; y < by; y++) {
+				for (int x = ax; x < bx; x++) {
+					int n = 0;
+					for (int dy = -2; dy <= 2; dy++) {
+						for (int dx = -2; dx <= 2; dx++) {
+							int sx = Math.clamp(x + dx, 0, img.getWidth() - 1);
+							int sy = Math.clamp(y + dy, 0, img.getHeight() - 1);
+							window[n++] = img.getPixel(sx, sy);
+						}
+					}
+					int[] sorted = java.util.Arrays.copyOf(window, n);
+					Integer[] boxed = new Integer[n];
+					for (int i = 0; i < n; i++) boxed[i] = sorted[i];
+					java.util.Arrays.sort(boxed, (a, b) -> Integer.compare(luma(a), luma(b)));
+					int median = boxed[n / 2];
+					int here = img.getPixel(x, y);
+					out[(y - ay) * w + (x - ax)] = luma(here) < luma(median) - 18 ? median : here;
+				}
+			}
+			for (int y = ay; y < by; y++) for (int x = ax; x < bx; x++) img.setPixel(x, y, out[(y - ay) * w + (x - ax)]);
+		}
 	}
 
 	/** Average colour (per channel, ARGB) of the box x0..x1, y0..y1 (inclusive, clamped to the image). */
@@ -268,7 +308,7 @@ public final class GifInventory {
 	 * blurred first (so single stars or slot lines don't get stretched into streaks), then each pixel blends the
 	 * nearest edges by inverse distance. {@code useRight} is off where the box touches the panel's frame.
 	 */
-	private static void fill(com.mojang.blaze3d.platform.NativeImage img, float scale, int x0, int y0, int x1, int y1, boolean useRight) {
+	private static void fill(com.mojang.blaze3d.platform.NativeImage img, float scale, int x0, int y0, int x1, int y1, boolean useLeft, boolean useRight) {
 		int ax = Math.max(1, Math.round(x0 * scale));
 		int ay = Math.max(1, Math.round(y0 * scale));
 		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
@@ -287,7 +327,7 @@ public final class GifInventory {
 			bottom[i] = average(img, ax + i - blur, by, ax + i + blur, by + band - 1);
 		}
 		for (int j = 0; j < h; j++) {
-			left[j] = average(img, ax - band, ay + j - blur, ax - 1, ay + j + blur);
+			left[j] = useLeft ? average(img, ax - band, ay + j - blur, ax - 1, ay + j + blur) : null;
 			right[j] = useRight ? average(img, bx, ay + j - blur, bx + band - 1, ay + j + blur) : null;
 		}
 		for (int j = 0; j < h; j++) {
@@ -296,11 +336,11 @@ public final class GifInventory {
 				float dBottom = h - j;
 				float dLeft = i + 1f;
 				float dRight = w - i;
-				float wt = 1 / (dTop * dTop), wb = 1 / (dBottom * dBottom), wl = 1 / (dLeft * dLeft), wr = useRight ? 1 / (dRight * dRight) : 0;
+				float wt = 1 / (dTop * dTop), wb = 1 / (dBottom * dBottom), wl = useLeft ? 1 / (dLeft * dLeft) : 0, wr = useRight ? 1 / (dRight * dRight) : 0;
 				float total = wt + wb + wl + wr;
 				int out = 0;
 				for (int k = 0; k < 4; k++) {
-					float value = top[i][k] * wt + bottom[i][k] * wb + left[j][k] * wl + (useRight ? right[j][k] * wr : 0);
+					float value = top[i][k] * wt + bottom[i][k] * wb + (useLeft ? left[j][k] * wl : 0) + (useRight ? right[j][k] * wr : 0);
 					out |= Math.clamp(Math.round(value / total), 0, 255) << (k * 8);
 				}
 				img.setPixel(ax + i, ay + j, out);

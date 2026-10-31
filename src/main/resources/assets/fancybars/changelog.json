@@ -1,4 +1,7 @@
 [
+  {"version": "2.24.6", "date": "2026-10-31",
+   "added": [],
+   "fixed": ["Removed the grey patch by the hidden offhand slot and the thin dark lines left where the crafting grid is hidden"]},
   {"version": "2.24.5", "date": "2026-10-31",
    "added": [],
    "fixed": ["Hidden offhand slot now shows your pack's real background art too", "Removed the last faint shapes where the crafting grid is hidden"]},
