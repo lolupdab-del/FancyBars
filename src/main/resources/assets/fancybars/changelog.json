@@ -1,4 +1,7 @@
 [
+  {"version": "2.24.1", "date": "2026-10-31",
+   "added": [],
+   "fixed": ["Hidden crafting grid / offhand slot blend into your resource pack's inventory art instead of leaving mismatched blocks", "GIFs are no longer covered by the hidden-slot patches"]},
   {"version": "2.24.0", "date": "2026-10-31",
    "added": ["Keep HUDs in Inventory and Chat (HUD tab): SBCLIENT's HUDs stay on screen while chat, your inventory or a chest is open"],
    "fixed": []},

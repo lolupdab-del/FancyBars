@@ -17,12 +17,9 @@ import dev.fancybars.gifs.GifInventory;
 public abstract class GifInventoryScreenMixin {
 	@Inject(method = "extractBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;extractEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIIIIFFFLnet/minecraft/world/entity/LivingEntity;)V"), require = 0)
 	private void fancybars$beforePlayer(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-		GifInventory.drawGifs((InventoryScreen) (Object) this, graphics, false);
-	}
-
-	@Inject(method = "extractBackground", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/InventoryScreen;extractEntityInInventoryFollowsMouse(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IIIIIFFFLnet/minecraft/world/entity/LivingEntity;)V"), require = 0)
-	private void fancybars$coverSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+		// hidden slots are painted out first, so GIFs and the player draw on top of the cleaned background
 		GifInventory.coverHiddenSlots((InventoryScreen) (Object) this, graphics);
+		GifInventory.drawGifs((InventoryScreen) (Object) this, graphics, false);
 	}
 
 	@Inject(method = "extractBackground", at = @At("TAIL"), require = 0)

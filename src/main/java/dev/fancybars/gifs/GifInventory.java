@@ -46,6 +46,7 @@ public final class GifInventory {
 	public static void init() {
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
 			if (screen instanceof InventoryScreen inventory) {
+				preparePatchedBackground();
 				if (enabled()) setupInventory(inventory);
 				else if (FancyBarsConfig.get().gifsHideRecipeBook && hideCraftingGrid()) {
 					int[] panel = panel(inventory);
@@ -77,24 +78,107 @@ public final class GifInventory {
 	}
 
 	private static final net.minecraft.resources.Identifier INVENTORY_TEXTURE = net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/inventory.png");
+	private static final net.minecraft.resources.Identifier PATCHED = dev.fancybars.FancyBarsMod.id("gifs/inventory_patched");
+	private static String patchedKey = "";
+	private static int patchedW;
+	private static int patchedH;
+	private static boolean patchedOk;
 
 	/**
-	 * The slot boxes and arrow are part of the inventory background picture, so hiding the slots isn't enough:
-	 * paint over them with an empty patch of the same picture (so it matches any resource pack).
+	 * Rebuilds the inventory background from your resource pack with the hidden slots filled in. Each hidden area is
+	 * filled by blending the colours around its edges (a Coons patch), so gradients and artwork flow through it
+	 * instead of a mismatched block.
 	 */
-	public static void coverHiddenSlots(InventoryScreen screen, GuiGraphicsExtractor graphics) {
-		if (!hideCraftingGrid() && !hideOffhand()) return;
-		int[] p = panel(screen);
-		if (hideCraftingGrid()) {
-			// empty strip of background below the grid (x 96-174, y 58-77), stacked twice over the grid, arrow and result
-			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 96, p[1] + 16, 96, 58, 78, 19, 256, 256);
-			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 96, p[1] + 35, 96, 58, 78, 19, 256, 256);
-			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 96, p[1] + 4, 96, 58, 78, 12, 256, 256);
-		}
-		if (hideOffhand()) {
-			graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, INVENTORY_TEXTURE, p[0] + 76, p[1] + 61, 100, 58, 18, 18, 256, 256);
+	public static void preparePatchedBackground() {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		if (!c.gifsHideCraftingGrid && !c.hideOffhandSlot) return;
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+		try {
+			var resource = mc.getResourceManager().getResource(INVENTORY_TEXTURE);
+			if (resource.isEmpty()) {
+				patchedOk = false;
+				return;
+			}
+			String key = resource.get().sourcePackId() + "|" + c.gifsHideCraftingGrid + "|" + c.hideOffhandSlot;
+			if (patchedOk && key.equals(patchedKey)) return;
+			com.mojang.blaze3d.platform.NativeImage image;
+			try (var in = resource.get().open()) {
+				image = com.mojang.blaze3d.platform.NativeImage.read(in);
+			}
+			float scale = image.getWidth() / 256f;
+			if (c.gifsHideCraftingGrid) fill(image, scale, 96, 15, 172, 57);
+			if (c.hideOffhandSlot) fill(image, scale, 75, 60, 95, 80);
+			patchedW = image.getWidth();
+			patchedH = image.getHeight();
+			net.minecraft.client.renderer.texture.DynamicTexture texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "SBCLIENT inventory", image);
+			mc.getTextureManager().register(PATCHED, texture);
+			texture.upload();
+			patchedKey = key;
+			patchedOk = true;
+		} catch (Exception e) {
+			patchedOk = false;
+			dev.fancybars.FancyBarsMod.LOGGER.debug("[SBCLIENT] Couldn't patch the inventory background", e);
 		}
 	}
+
+	/** Fills the box (in vanilla 256-px texture units, end exclusive) from its surrounding pixels. */
+	private static void fill(com.mojang.blaze3d.platform.NativeImage img, float scale, int x0, int y0, int x1, int y1) {
+		int ax = Math.max(1, Math.round(x0 * scale));
+		int ay = Math.max(1, Math.round(y0 * scale));
+		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
+		int by = Math.min(img.getHeight() - 1, Math.round(y1 * scale));
+		if (bx - ax < 2 || by - ay < 2) return;
+		int w = bx - ax;
+		int h = by - ay;
+		int[] top = new int[w];
+		int[] bottom = new int[w];
+		int[] left = new int[h];
+		int[] right = new int[h];
+		for (int i = 0; i < w; i++) {
+			top[i] = img.getPixel(ax + i, ay - 1);
+			bottom[i] = img.getPixel(ax + i, by);
+		}
+		for (int j = 0; j < h; j++) {
+			left[j] = img.getPixel(ax - 1, ay + j);
+			right[j] = img.getPixel(bx, ay + j);
+		}
+		int c00 = img.getPixel(ax - 1, ay - 1);
+		int c10 = img.getPixel(bx, ay - 1);
+		int c01 = img.getPixel(ax - 1, by);
+		int c11 = img.getPixel(bx, by);
+		for (int j = 0; j < h; j++) {
+			float v = (j + 1f) / (h + 1f);
+			for (int i = 0; i < w; i++) {
+				float u = (i + 1f) / (w + 1f);
+				int out = 0;
+				for (int shift = 0; shift <= 24; shift += 8) {
+					float l = left[j] >>> shift & 0xFF, r = right[j] >>> shift & 0xFF, t = top[i] >>> shift & 0xFF, b = bottom[i] >>> shift & 0xFF;
+					float k00 = c00 >>> shift & 0xFF, k10 = c10 >>> shift & 0xFF, k01 = c01 >>> shift & 0xFF, k11 = c11 >>> shift & 0xFF;
+					// Coons patch: edge blends minus the corner blend
+					float value = (1 - u) * l + u * r + (1 - v) * t + v * b
+							- ((1 - u) * (1 - v) * k00 + u * (1 - v) * k10 + (1 - u) * v * k01 + u * v * k11);
+					out |= Math.clamp(Math.round(value), 0, 255) << shift;
+				}
+				img.setPixel(ax + i, ay + j, out);
+			}
+		}
+	}
+
+	/** Draws the patched background over the normal one (before GIFs and the player, so those stay on top). */
+	public static void coverHiddenSlots(InventoryScreen screen, GuiGraphicsExtractor graphics) {
+		if (!hideCraftingGrid() && !hideOffhand()) return;
+		if (!patchedOk) preparePatchedBackground();
+		if (!patchedOk) return;
+		int[] p = panel(screen);
+		float s = patchedW / 256f;
+		org.joml.Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(p[0], p[1]);
+		pose.scale(1 / s, 1 / s);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PATCHED, 0, 0, 0, 0, Math.round(p[2] * s), Math.round(p[3] * s), patchedW, patchedH);
+		pose.popMatrix();
+	}
+
 
 	public static void drawGifs(InventoryScreen screen, GuiGraphicsExtractor graphics, boolean fallback) {
 		if (!enabled()) return;
