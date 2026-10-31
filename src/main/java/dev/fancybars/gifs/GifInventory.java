@@ -110,8 +110,10 @@ public final class GifInventory {
 			// background). Otherwise blend in from the edges.
 			List<com.mojang.blaze3d.platform.NativeImage> others = siblingTextures(mc, image.getWidth(), image.getHeight());
 			try {
-				if (c.hideOffhandSlot && !rebuild(image, others, scale, 75, 60, 95, 80)) fill(image, scale, 75, 60, 95, 80, true);
-				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57)) fill(image, scale, 96, 15, 171, 57, false);
+				// the offhand sits next to the player box, so it's matched on its top, bottom and right only;
+				// the crafting area touches the frame on the right, so it's matched on its top, bottom and left
+				if (c.hideOffhandSlot && !rebuild(image, others, scale, 76, 60, 95, 80, false, true)) fill(image, scale, 76, 60, 95, 80, true);
+				if (c.gifsHideCraftingGrid && !rebuild(image, others, scale, 96, 15, 171, 57, true, false)) fill(image, scale, 96, 15, 171, 57, false);
 			} finally {
 				for (var o : others) o.close();
 			}
@@ -161,7 +163,8 @@ public final class GifInventory {
 	 * the inventory (same artwork in the same place), then takes, pixel by pixel, the colour most of them agree on
 	 * (UI like slots only covers that spot in a few of them). Returns false when the pack doesn't share its art.
 	 */
-	private static boolean rebuild(com.mojang.blaze3d.platform.NativeImage img, List<com.mojang.blaze3d.platform.NativeImage> others, float scale, int x0, int y0, int x1, int y1) {
+	private static boolean rebuild(com.mojang.blaze3d.platform.NativeImage img, List<com.mojang.blaze3d.platform.NativeImage> others, float scale, int x0, int y0, int x1, int y1,
+			boolean ringLeft, boolean ringRight) {
 		int ax = Math.max(1, Math.round(x0 * scale));
 		int ay = Math.max(1, Math.round(y0 * scale));
 		int bx = Math.min(img.getWidth() - 1, Math.round(x1 * scale));
@@ -169,9 +172,12 @@ public final class GifInventory {
 		int band = Math.max(2, Math.round(3 * scale));
 		// ring of pixels around the box (top, bottom and left; the right side can be the frame)
 		List<int[]> ring = new java.util.ArrayList<>();
-		for (int x = ax - band; x < bx; x++) for (int y = ay - band; y < ay; y++) ring.add(new int[]{x, y});
-		for (int x = ax - band; x < bx; x++) for (int y = by; y < by + band; y++) ring.add(new int[]{x, y});
-		for (int y = ay; y < by; y++) for (int x = ax - band; x < ax; x++) ring.add(new int[]{x, y});
+		int rx0 = ringLeft ? ax - band : ax;
+		int rx1 = ringRight ? bx + band : bx;
+		for (int x = rx0; x < rx1; x++) for (int y = ay - band; y < ay; y++) ring.add(new int[]{x, y});
+		for (int x = rx0; x < rx1; x++) for (int y = by; y < by + band; y++) ring.add(new int[]{x, y});
+		if (ringLeft) for (int y = ay; y < by; y++) for (int x = ax - band; x < ax; x++) ring.add(new int[]{x, y});
+		if (ringRight) for (int y = ay; y < by; y++) for (int x = bx; x < bx + band; x++) ring.add(new int[]{x, y});
 		List<com.mojang.blaze3d.platform.NativeImage> matching = new java.util.ArrayList<>();
 		for (var o : others) {
 			long total = 0;
@@ -206,18 +212,27 @@ public final class GifInventory {
 			if (!duplicate) distinct.add(o);
 		}
 		matching = distinct;
-		if (matching.size() < 3) return false;
+		if (matching.size() < 2) return false;
+		// smooth estimate of the background (blended in from the edges): UI pieces stand out from it, the art doesn't
+		com.mojang.blaze3d.platform.NativeImage smooth = new com.mojang.blaze3d.platform.NativeImage(img.getWidth(), img.getHeight(), false);
+		int pad = Math.max(2, Math.round(10 * scale));
+		for (int y = Math.max(0, ay - pad); y < Math.min(img.getHeight(), by + pad); y++)
+			for (int x = Math.max(0, ax - pad); x < Math.min(img.getWidth(), bx + pad); x++) smooth.setPixel(x, y, img.getPixel(x, y));
+		fill(smooth, scale, x0, y0, x1, y1, ringRight);
 		int[] values = new int[matching.size()];
 		for (int y = ay; y < by; y++) {
 			for (int x = ax; x < bx; x++) {
 				for (int i = 0; i < values.length; i++) values[i] = matching.get(i).getPixel(x, y);
-				// the colour closest to all the others (a per-pixel medoid) = what most screens show here
+				// pick the colour most screens agree on; when they disagree (some have an arrow or box here), lean to
+				// the one that fits the surrounding art
+				int expected = smooth.getPixel(x, y);
 				int best = values[0];
-				long bestScore = Long.MAX_VALUE;
+				float bestScore = -Float.MAX_VALUE;
 				for (int a : values) {
-					long score = 0;
-					for (int b : values) score += diff(a, b);
-					if (score < bestScore) {
+					int support = 0;
+					for (int b : values) if (diff(a, b) < 24) support++;
+					float score = support - diff(a, expected) / 50f;
+					if (score > bestScore) {
 						bestScore = score;
 						best = a;
 					}
@@ -225,6 +240,7 @@ public final class GifInventory {
 				img.setPixel(x, y, best);
 			}
 		}
+		smooth.close();
 		return true;
 	}
 
