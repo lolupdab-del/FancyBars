@@ -67,7 +67,7 @@ public final class WallLicker {
 		});
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("wall_licker"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
-			if (FancyBarsConfig.get().wallLickerEnabled && mc.player != null && mc.gui.screen() == null && dev.fancybars.util.SkyblockLocation.isInDungeons()) render(graphics);
+			if (FancyBarsConfig.get().wallLickerEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed() && dev.fancybars.util.SkyblockLocation.isInDungeons()) render(graphics);
 		});
 	}
 
@@ -196,7 +196,7 @@ public final class WallLicker {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
-		Theme.hudPanel(graphics, 0, 0, size[0], size[1], 5, 0.55f, a);
+		Theme.hudPanel(graphics, 0, 0, size[0], size[1], 5, 0.88f, a);
 		Theme.boldInBox(graphics, font, text(), 6, 0, size[1], Theme.hudText(a));
 		pose.popMatrix();
 	}

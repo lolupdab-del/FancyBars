@@ -23,7 +23,10 @@
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor",
 		"FirstPersonHandsMixin",
-		"GameModeDropProtectionMixin"
+		"GameModeDropProtectionMixin",
+		"SmoothTextMixin",
+		"SmoothTextWidthMixin",
+		"TimePacketMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

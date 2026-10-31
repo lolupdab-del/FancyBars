@@ -139,8 +139,6 @@ public class BarEditorScreen extends Screen {
 			if (!bar.enabled) continue;
 			boolean active = bar == hovered || bar == optionsBar;
 			if (!active) continue;
-			Theme.glow(graphics, bar.getX() - 2, bar.getY() - 2, bar.getWidth() + 4, bar.getHeight() + 4, 4, 0.7f);
-			Theme.roundedOutline(graphics, bar.getX() - 3, bar.getY() - 3, bar.getWidth() + 6, bar.getHeight() + 6, 4, Theme.ACCENT);
 			int handleHeight = Math.max(7, bar.getHeight() + 2);
 			int handleY = bar.getY() + (bar.getHeight() - handleHeight) / 2;
 			Theme.roundedGradient(graphics, bar.getX() - 6, handleY, 4, handleHeight, 2, Theme.ACCENT_LIGHT, Theme.ACCENT_DEEP);
@@ -205,14 +203,12 @@ public class BarEditorScreen extends Screen {
 		int y = Math.round(r[1]) - 3;
 		int w = Math.round(r[2]) + 8;
 		int h = Math.round(r[3]) + 6;
-		Theme.glow(graphics, x, y, w, h, 4, 0.6f);
-		Theme.roundedOutline(graphics, x, y, w, h, 4, Theme.ACCENT);
 		Component label = Component.translatable(hoveredElement.enabled() ? "fancybars.editor.elementLabel" : "fancybars.editor.elementLabelHidden",
 				hoveredElement.name(), Math.round(hoveredElement.scale() * 100));
 		int lw = Theme.width(font, label) + 12;
 		int lx = Math.clamp(x + w / 2 - lw / 2, 2, width - lw - 2);
 		int ly = y - 18 < 48 ? y + h + 4 : y - 18;
-		Theme.card(graphics, lx, ly, lw, 14, 7, Theme.PANEL, 0x88FF8FC8);
+		Theme.card(graphics, lx, ly, lw, 14, 4, 0xFF000000 | Theme.PANEL, Theme.PANEL_BORDER);
 		Theme.textInBox(graphics, font, label, lx + 6, ly, 14, Theme.TEXT);
 		graphics.requestCursor(draggingElement != null ? CursorTypes.RESIZE_ALL : CursorTypes.POINTING_HAND);
 	}

@@ -102,7 +102,7 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		graphics.nextStratum();
 		Theme.shadow(graphics, x, y, W, H, 8, 0, 2);
 		Theme.roundedRect(graphics, x, y, W, H, 8, Theme.hudBg(0.94f, 255));
-		if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, x, y, W, H, 8, SpotifyUi.green(0x66), 255);
+		if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, x, y, W, H, 8, Theme.hudLine(), 255);
 
 		// art + text
 		SpotifyUi.art(graphics, s.artUrl, x + PAD, y + PAD, ART);

@@ -240,7 +240,7 @@ public final class TerminalsStatus {
 		String[] lines = lines();
 		if (FancyBarsConfig.get().textHudBackgrounds) {
 			int[] s = size();
-			Theme.hudPanel(graphics, -4, -4, s[0] + 8, s[1] + 7, 4, 0.55f, 255);
+			Theme.hudPanel(graphics, -4, -4, s[0] + 8, s[1] + 7, 4, 0.88f, 255);
 		}
 		for (int i = 0; i < lines.length; i++) graphics.text(font, Component.literal(lines[i]), 0, i * 9, Theme.hudText(255), true);
 		pose.popMatrix();

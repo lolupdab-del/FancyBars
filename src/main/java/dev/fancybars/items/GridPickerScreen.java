@@ -28,6 +28,8 @@ public class GridPickerScreen<T> extends Screen {
 	private final List<Entry<T>> filtered = new ArrayList<>();
 	private String query = "";
 	private float scroll;
+	private boolean draggingBar;
+	private double dragOffset;
 	private int px;
 	private int py;
 	private int pw;
@@ -108,12 +110,52 @@ public class GridPickerScreen<T> extends Screen {
 		graphics.disableScissor();
 		int max = maxScroll();
 		if (max > 0) {
-			int trackH = rows * CELL;
-			int thumbH = Math.max(12, trackH * rows / (rows + max));
-			int thumbY = gridY + Math.round((trackH - thumbH) * (scroll / max));
-			Theme.roundedRect(graphics, gridX + cols * CELL + 3, thumbY, 3, thumbH, 1, Theme.ACCENT);
+			int trackX = barX();
+			boolean overBar = draggingBar || (mouseX >= trackX - 3 && mouseX < trackX + 8 && mouseY >= gridY && mouseY < gridY + rows * CELL);
+			Theme.roundedRect(graphics, trackX, gridY, 5, rows * CELL, 2, overBar ? 0x40FFFFFF : 0x20FFFFFF);
+			Theme.roundedRect(graphics, trackX, thumbY(), 5, thumbH(), 2, overBar ? Theme.ACCENT_LIGHT : Theme.ACCENT);
+			if (overBar) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 		super.extractRenderState(graphics, mouseX, mouseY, a);
+	}
+
+	private int barX() {
+		return gridX + cols * CELL + 3;
+	}
+
+	private int thumbH() {
+		int max = maxScroll();
+		return Math.max(14, rows * CELL * rows / (rows + max));
+	}
+
+	private int thumbY() {
+		int max = maxScroll();
+		return gridY + (max == 0 ? 0 : Math.round((rows * CELL - thumbH()) * (scroll / max)));
+	}
+
+	private void scrollToMouse(double mouseY) {
+		int max = maxScroll();
+		float t = (float) ((mouseY - dragOffset - gridY) / Math.max(1, rows * CELL - thumbH()));
+		scroll = Math.clamp(t * max, 0, max);
+	}
+
+	@Override
+	public boolean mouseDragged(MouseButtonEvent click, double dx, double dy) {
+		if (draggingBar) {
+			scrollToMouse(click.y());
+			return true;
+		}
+		return super.mouseDragged(click, dx, dy);
+	}
+
+	@Override
+	public boolean mouseReleased(MouseButtonEvent click) {
+		if (draggingBar) {
+			draggingBar = false;
+			scroll = Math.round(scroll);
+			return true;
+		}
+		return super.mouseReleased(click);
 	}
 
 	@Override
@@ -127,6 +169,14 @@ public class GridPickerScreen<T> extends Screen {
 		if (super.mouseClicked(click, doubled)) return true;
 		double mx = click.x();
 		double my = click.y();
+		if (maxScroll() > 0 && mx >= barX() - 3 && mx < barX() + 8 && my >= gridY && my < gridY + rows * CELL) {
+			int ty = thumbY();
+			// grab the thumb where it was clicked, or jump so the thumb centres on the click
+			dragOffset = my >= ty && my < ty + thumbH() ? my - ty : thumbH() / 2.0;
+			draggingBar = true;
+			scrollToMouse(my);
+			return true;
+		}
 		if (mx >= gridX && mx < gridX + cols * CELL && my >= gridY && my < gridY + rows * CELL) {
 			int idx = (Math.round(scroll) + (int) ((my - gridY) / CELL)) * cols + (int) ((mx - gridX) / CELL);
 			if (idx < filtered.size()) {

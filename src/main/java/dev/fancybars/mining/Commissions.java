@@ -53,7 +53,7 @@ public final class Commissions {
 
 	public static boolean shouldShow() {
 		return FancyBarsConfig.get().commissionsEnabled && SkyblockLocation.isInMiningIsland() && !current.isEmpty()
-				&& Minecraft.getInstance().gui.screen() == null;
+				&& dev.fancybars.util.HudVisibility.allowed();
 	}
 
 	private static List<Commission> readTabList() {
@@ -119,8 +119,8 @@ public final class Commissions {
 		pose.translate(x, y);
 		pose.scale(scale, scale);
 		int h = height(list);
-		Theme.hudPanel(graphics, 0, 0, WIDTH, h, 5, 0.6f, a);
-		Theme.boldInBox(graphics, font, Component.translatable("fancybars.commissions.title"), PAD, PAD - 2, TITLE_H, (a << 24) | (Theme.colorAt(graphics, Theme.ACCENT, PAD) & 0xFFFFFF));
+		Theme.hudPanel(graphics, 0, 0, WIDTH, h, 5, 0.88f, a);
+		Theme.boldInBox(graphics, font, Component.translatable("fancybars.commissions.title"), PAD, PAD - 2, TITLE_H, (a << 24) | (Theme.night(Theme.TEXT_MUTED) & 0xFFFFFF));
 		int ry = PAD + TITLE_H;
 		for (Commission c : list) {
 			Component name = Component.literal(c.name());
@@ -131,11 +131,11 @@ public final class Commissions {
 			// progress bar
 			int barY = ry + 11;
 			int barW = WIDTH - PAD * 2;
-			Theme.roundedRect(graphics, PAD, barY, barW, 3, 2, Theme.hudText(Math.round(a * 0.25f)));
+			Theme.roundedRect(graphics, PAD, barY, barW, 2, 1, Theme.hudText(Math.round(a * 0.15f)));
 			int fill = Math.round(barW * c.progress());
 			if (fill > 0) {
 				int color = c.done() ? 0x55FF77 : Theme.colorAt(graphics, Theme.ACCENT, PAD + fill / 2f) & 0xFFFFFF;
-				Theme.roundedRect(graphics, PAD, barY, Math.max(3, fill), 3, 2, (a << 24) | color);
+				Theme.roundedRect(graphics, PAD, barY, Math.max(2, fill), 2, 1, (a << 24) | color);
 			}
 			ry += ROW_H;
 		}

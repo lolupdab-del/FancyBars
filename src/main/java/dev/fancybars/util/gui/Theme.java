@@ -16,7 +16,7 @@ import dev.fancybars.FancyBarsMod;
 
 /**
  * Fancy Bars UI theme. Everything is drawn from high-resolution anti-aliased textures (rounded rectangles,
- * outlines, circles, shadows) and the Inter TrueType font, so nothing is aligned to the chunky GUI pixel grid.
+ * outlines, circles, shadows) and the Geist TrueType font, so nothing is aligned to the chunky GUI pixel grid.
  */
 public final class Theme {
 	// Surfaces (dark navy-grey, like modern mod menus)
@@ -52,14 +52,14 @@ public final class Theme {
 	public static final int RADIUS = 4;
 	public static final int PANEL_RADIUS = 6;
 
-	/** Inter cap height as a fraction of the TrueType "size" (stb scales so ascent - descent = size). */
-	private static final float CAP_RATIO = 0.6013f;
+	/** Geist cap height as a fraction of the TrueType "size" (stb scales so ascent - descent = size). */
+	private static final float CAP_RATIO = 0.5462f;
 	/** Minecraft puts the text baseline 7 GUI px below the y you draw at. */
 	private static final float BASELINE = 7f;
 
-	public static final float UI_SIZE = 10f;
-	public static final float TITLE_SIZE = 16f;
-	public static final float BAR_SIZE = 9.5f;
+	public static final float UI_SIZE = 11f;
+	public static final float TITLE_SIZE = 17.5f;
+	public static final float BAR_SIZE = 10.5f;
 	public static final float UI_CAP = UI_SIZE * CAP_RATIO;
 	public static final float TITLE_CAP = TITLE_SIZE * CAP_RATIO;
 	public static final float BAR_CAP = BAR_SIZE * CAP_RATIO;
@@ -69,7 +69,9 @@ public final class Theme {
 	private static final FontDescription[] TITLE_FONTS = fonts("title");
 	private static final FontDescription[] BAR_FONTS = fonts("bar");
 	private static final FontDescription[] SMALL_FONTS = fonts("small");
-	public static final float SMALL_SIZE = 7.5f;
+	private static final FontDescription[] MONO_FONTS = fonts("mono");
+	public static final float MONO_CAP = 10f * CAP_RATIO;
+	public static final float SMALL_SIZE = 8.25f;
 	public static final float SMALL_CAP = SMALL_SIZE * CAP_RATIO;
 
 	/** Kept for code that wants "the" UI font; resolves to the variant for the current GUI scale. */
@@ -90,16 +92,25 @@ public final class Theme {
 		return Math.clamp(scale, 1, 6);
 	}
 
+	/** "Minecraft Font" setting: every menu and HUD uses Minecraft's own font instead of Geist. */
+	public static boolean minecraftFont() {
+		return dev.fancybars.config.FancyBarsConfig.get().minecraftFont;
+	}
+
+	private static FontDescription pick(FontDescription[] fonts) {
+		return minecraftFont() ? net.minecraft.network.chat.Style.EMPTY.getFont() : fonts[guiScale()];
+	}
+
 	public static FontDescription uiFont() {
-		return UI_FONTS[guiScale()];
+		return pick(UI_FONTS);
 	}
 
 	public static FontDescription boldFont() {
-		return BOLD_FONTS[guiScale()];
+		return pick(BOLD_FONTS);
 	}
 
 	public static FontDescription titleFont() {
-		return TITLE_FONTS[guiScale()];
+		return pick(TITLE_FONTS);
 	}
 
 	public static FontDescription barFont() {
@@ -131,8 +142,20 @@ public final class Theme {
 
 	/** Small text (7.5) rasterised at its real size, so it's as crisp as normal text. */
 	public static MutableComponent small(Component text) {
-		FontDescription font = SMALL_FONTS[guiScale()];
+		FontDescription font = pick(SMALL_FONTS);
 		return text.copy().withStyle(style -> style.withFont(font));
+	}
+
+	/** Geist Mono, for numbers and values. */
+	public static MutableComponent mono(Component text) {
+		FontDescription font = pick(MONO_FONTS);
+		return text.copy().withStyle(style -> style.withFont(font));
+	}
+
+	/** Mono text drawn right-aligned so its right edge is at {@code right}, vertically centred in a box. */
+	public static void monoInBox(GuiGraphicsExtractor graphics, Font font, Component text, float right, float boxY, float boxHeight, int color) {
+		Component c = mono(text);
+		drawAtCapTop(graphics, font, c, right - font.width(c), boxY + (boxHeight - MONO_CAP) / 2f, MONO_CAP, color);
 	}
 
 	public static MutableComponent bold(Component text) {
@@ -167,24 +190,26 @@ public final class Theme {
 
 	public static void drawAtCapTop(GuiGraphicsExtractor graphics, Font font, Component styledText, float x, float capTop, float capHeight, int color, boolean shadow) {
 		float scale = guiScale();
-		float originY = capTop + capHeight - BASELINE;
+		// Minecraft's font: capitals are 7px tall from the y they're drawn at, so centre them on the same line
+		boolean mc = minecraftFont();
+		float originY = mc ? capTop + capHeight / 2f - 3.5f : capTop + capHeight - BASELINE;
 		float sx = Math.round(x * scale) / scale;
 		float sy = Math.round(originY * scale) / scale;
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(sx, sy);
-		graphics.text(font, styledText, 0, 0, night(color), shadow);
+		graphics.text(font, styledText, 0, 0, night(color), shadow || mc && dev.fancybars.config.FancyBarsConfig.get().minecraftFontShadow);
 		pose.popMatrix();
 	}
 
 	/** A pre-split line of (already styled) text vertically centred in a box. */
 	public static void drawSeqInBox(GuiGraphicsExtractor graphics, Font font, net.minecraft.util.FormattedCharSequence line, float x, float boxY, float boxHeight, int color) {
 		float scale = guiScale();
-		float originY = boxY + (boxHeight - UI_CAP) / 2f + UI_CAP - BASELINE;
+		float originY = minecraftFont() ? boxY + boxHeight / 2f - 3.5f : boxY + (boxHeight - UI_CAP) / 2f + UI_CAP - BASELINE;
 		Matrix3x2fStack pose = graphics.pose();
 		pose.pushMatrix();
 		pose.translate(Math.round(x * scale) / scale, Math.round(originY * scale) / scale);
-		graphics.text(font, line, 0, 0, color, false);
+		graphics.text(font, line, 0, 0, color, minecraftFont() && cfg().minecraftFontShadow);
 		pose.popMatrix();
 	}
 
@@ -251,12 +276,13 @@ public final class Theme {
 	 * Smooth anti-aliased rounded rectangle.
 	 */
 	public static void roundedRect(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
+		roundedRect(graphics, (float) x, (float) y, (float) width, (float) height, radius, color);
+	}
+
+	/** Smooth rounded rectangle at fractional GUI coordinates, drawn on exact screen pixels. */
+	public static void roundedRect(GuiGraphicsExtractor graphics, float x, float y, float width, float height, float radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		if (radius(radius) <= 1 || Math.min(width, height) < 4) {
-			graphics.fill(x, y, x + width, y + height, night(color));
-			return;
-		}
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, RECTS[radiusIndex(radius, width, height)], x, y, width, height, night(color));
+		Ring.fillRounded(graphics, x, y, width, height, Math.min(radius * cfg().cornerRoundness, Math.min(width, height) / 2f), night(color));
 	}
 
 	/**
@@ -264,14 +290,6 @@ public final class Theme {
 	 */
 	public static void roundedGradient(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int top, int bottom) {
 		roundedRect(graphics, x, y, width, height, radius, bottom);
-		int r = RADII[radiusIndex(radius, width, height)];
-		// sheen overlay (kept inside the straight part so it never pokes out of the corners)
-		int sheenColor = night(top);
-		if (r * 2 < width) {
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + r, y, width - r * 2, height, sheenColor);
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x, y + r, r, height - r, sheenColor);
-			graphics.blitSprite(RenderPipelines.GUI_TEXTURED, SHEEN, x + width - r, y + r, r, height - r, sheenColor);
-		}
 	}
 
 	/**
@@ -279,7 +297,7 @@ public final class Theme {
 	 */
 	public static void roundedOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(radius, width, height)], x, y, width, height, night(color));
+		Ring.outlinePx(graphics, x, y, width, height, Math.min(radius * cfg().cornerRoundness, Math.min(width, height) / 2f), Ring.hairline(), night(color));
 	}
 
 	/**
@@ -288,7 +306,7 @@ public final class Theme {
 	/** Outline drawn exactly in the given colour (no theme mapping). */
 	public static void rawOutline(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int color) {
 		if (width <= 0 || height <= 0 || (color >>> 24) == 0) return;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, OUTLINES[radiusIndex(Math.max(0, radius), width, height)], x, y, width, height, color);
+		Ring.outlinePx(graphics, x, y, width, height, Math.max(0, radius), Ring.hairline(), color);
 	}
 
 	/**
@@ -308,14 +326,18 @@ public final class Theme {
 			int f = night(fallback);
 			color = Math.round((f >>> 24) * alpha / 255f) << 24 | f & 0xFFFFFF;
 		}
-		int r = radius(radius) <= 1 || Math.min(width, height) < 4 ? 0 : RADII[radiusIndex(radius, width, height)];
-		Ring.draw(graphics, x, y, width, height, r, thickness, color);
+		Ring.draw(graphics, x, y, width, height, Math.round(Math.min(radius * c.cornerRoundness, Math.min(width, height) / 2f)), thickness, color);
 	}
 
 	/** A HUD box: themed background (HUD opacity) and the Appearance border. */
 	public static void hudPanel(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, float bgAlpha, int alpha) {
 		roundedRect(graphics, x, y, width, height, radius, hudBg(bgAlpha, alpha));
-		if (cfg().hudBorders) border(graphics, x, y, width, height, radius, hudAccent(0.4f, 255), alpha);
+		if (cfg().hudBorders) border(graphics, x, y, width, height, radius, hudLine(), alpha);
+	}
+
+	/** Hairline border colour for HUD boxes (neutral grey, or your accent dimmed with Custom Colors). */
+	public static int hudLine() {
+		return customColors() ? hudAccent(0.4f, 255) : 0xFF26282E;
 	}
 
 	/** Secondary HUD text (artists, labels). */
@@ -323,7 +345,21 @@ public final class Theme {
 		return lerpColor(hudText(alpha), alpha << 24, 0.3f);
 	}
 
-	public static void card(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fill, int border) {
+	/** Hairline divider (about 0.6 GUI px, crisp on the screen pixel grid). */
+	public static void hline(GuiGraphicsExtractor graphics, float x1, float x2, float y, int color) {
+		Ring.hline(graphics, x1, x2, y, night(color));
+	}
+
+	public static void vline(GuiGraphicsExtractor graphics, float x, float y1, float y2, int color) {
+		Ring.vline(graphics, x, y1, y2, night(color));
+	}
+
+	/** Rectangle snapped to screen pixels, fractional GUI coordinates allowed. */
+	public static void fillF(GuiGraphicsExtractor graphics, float x, float y, float w, float h, int color) {
+		Ring.fill(graphics, x, y, w, h, night(color));
+	}
+
+		public static void card(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, int fill, int border) {
 		roundedRect(graphics, x, y, width, height, radius, fill);
 		roundedOutline(graphics, x, y, width, height, radius, border);
 	}
@@ -379,41 +415,41 @@ public final class Theme {
 	public static final int BRAND_BLUE = 0xFF7CC8FF;
 
 	static {
-		NIGHT.put(0x271A1F, 0x0C102F);
-		NIGHT.put(0x2D1E24, 0x0E1335);
-		NIGHT.put(0x24181D, 0x0B0F2C);
-		NIGHT.put(0x49313B, 0x171E53);
-		NIGHT.put(0x332229, 0x10153C);
-		NIGHT.put(0x4F3641, 0x1A2159);
-		NIGHT.put(0x3F2A33, 0x141A48);
-		NIGHT.put(0x39282F, 0x121942);
-		NIGHT.put(0x47323A, 0x171F51);
-		NIGHT.put(0x2B1F24, 0x0E1333);
-		NIGHT.put(0x5A3A48, 0x1B2464);
-		NIGHT.put(0x422D36, 0x151C4B);
-		NIGHT.put(0x312128, 0x101439);
-		NIGHT.put(0x3A272F, 0x121843);
-		NIGHT.put(0x573D48, 0x1D2661);
-		NIGHT.put(0x684A57, 0x232E73);
-		NIGHT.put(0x36232B, 0x10163F);
-		NIGHT.put(0x22161B, 0x0A0E2A);
-		NIGHT.put(0x201318, 0x080C28);
-		NIGHT.put(0x6B4E5A, 0x253076);
-		NIGHT.put(0x1C1216, 0x080B23);
-		NIGHT.put(0xFF8FC8, 0x6FA8FF);
-		NIGHT.put(0xFFC4E1, 0xB8D4FF);
-		NIGHT.put(0xD6448F, 0x2F64D6);
-		NIGHT.put(0xFFAED6, 0x93BCFF);
-		NIGHT.put(0xAF3D78, 0x2F4FAF);
-		NIGHT.put(0xC47CA6, 0x5F7FD0);
-		NIGHT.put(0x52233A, 0x16244A);
-		NIGHT.put(0x6C2B4C, 0x1F3670);
-		NIGHT.put(0xF7EEF2, 0xE8EEFA);
-		NIGHT.put(0xEED8E2, 0xD4DCF0);
-		NIGHT.put(0xC2A2B0, 0x98A6C8);
-		NIGHT.put(0x79606A, 0x56607E);
-		NIGHT.put(0x2A0B1B, 0x081430);
-		NIGHT.put(0xC9CCE0, 0xC9D3EC);
+		NIGHT.put(0x271A1F, 0x0E0F12);
+		NIGHT.put(0x2D1E24, 0x121418);
+		NIGHT.put(0x24181D, 0x0C0D10);
+		NIGHT.put(0x49313B, 0x26282E);
+		NIGHT.put(0x332229, 0x121418);
+		NIGHT.put(0x4F3641, 0x1F2126);
+		NIGHT.put(0x3F2A33, 0x17191E);
+		NIGHT.put(0x39282F, 0x15171B);
+		NIGHT.put(0x47323A, 0x1C1E23);
+		NIGHT.put(0x2B1F24, 0x111216);
+		NIGHT.put(0x5A3A48, 0x1D2030);
+		NIGHT.put(0x422D36, 0x1F2126);
+		NIGHT.put(0x312128, 0x14161A);
+		NIGHT.put(0x3A272F, 0x17191D);
+		NIGHT.put(0x573D48, 0x26282E);
+		NIGHT.put(0x684A57, 0x33363E);
+		NIGHT.put(0x36232B, 0x15171B);
+		NIGHT.put(0x22161B, 0x0C0D10);
+		NIGHT.put(0x201318, 0x0A0B0E);
+		NIGHT.put(0x6B4E5A, 0x3A3D46);
+		NIGHT.put(0x1C1216, 0x08090B);
+		NIGHT.put(0xFF8FC8, 0x7C8CFF);
+		NIGHT.put(0xFFC4E1, 0xC5CCFF);
+		NIGHT.put(0xD6448F, 0x5560E0);
+		NIGHT.put(0xFFAED6, 0xA3ADFF);
+		NIGHT.put(0xAF3D78, 0x4A55B8);
+		NIGHT.put(0xC47CA6, 0x3A3F55);
+		NIGHT.put(0x52233A, 0x1A1D33);
+		NIGHT.put(0x6C2B4C, 0x262A4A);
+		NIGHT.put(0xF7EEF2, 0xECECF1);
+		NIGHT.put(0xEED8E2, 0xC8CCD6);
+		NIGHT.put(0xC2A2B0, 0x8A8F9C);
+		NIGHT.put(0x79606A, 0x4B4F59);
+		NIGHT.put(0x2A0B1B, 0x0E0F12);
+		NIGHT.put(0xC9CCE0, 0xC8CCD6);
 	}
 
 	public static boolean shikiMode() {
@@ -533,7 +569,7 @@ public final class Theme {
 	/** HUD panel background: the element's base opacity times the HUD Opacity setting. */
 	public static int hudBg(float baseAlpha, int alpha) {
 		dev.fancybars.config.FancyBarsConfig c = cfg();
-		int bg = c.customColors ? c.themeBackground : 0x101014;
+		int bg = customColors() ? c.themeBackground : 0x0E0F12;
 		int a = Math.round(Math.clamp(alpha * baseAlpha * c.hudOpacity, 0, 255));
 		return a << 24 | bg & 0xFFFFFF;
 	}
@@ -592,15 +628,11 @@ public final class Theme {
 			}
 			return custom;
 		}
-		// night blue: S and B in the two theme blues, CLIENT fading from pale to deep blue
-		MutableComponent text = Component.empty()
-				.append(Component.literal("S").withColor(0xB8D4FF))
-				.append(Component.literal("B").withColor(0x6FA8FF));
-		String rest = "CLIENT";
-		for (int i = 0; i < rest.length(); i++) {
-			text.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(lerpColor(0xFFD4E4FF, 0xFF4F86F0, i / (float) (rest.length() - 1)) & 0xFFFFFF));
-		}
-		return text;
+		// default: pink S, blue B, CLIENT in the text colour
+		return Component.empty()
+				.append(Component.literal("S").withColor(0xFF8FC8))
+				.append(Component.literal("B").withColor(0x6FA8FF))
+				.append(Component.literal("CLIENT").withColor(0xECECF1));
 	}
 
 	public static String brandName() {
@@ -622,6 +654,12 @@ public final class Theme {
 
 	public static int lerpColor(int from, int to, float t) {
 		t = Math.clamp(t, 0, 1);
+		// Theme colours are stored in their base palette and mapped when drawn; a blend of two of them isn't a
+		// palette entry any more, so map both ends first (otherwise hover animations flash the old pink palette)
+		if (t <= 0) return from;
+		if (t >= 1) return to;
+		from = night(from);
+		to = night(to);
 		int a = (int) (((from >>> 24) & 0xFF) + (((to >>> 24) & 0xFF) - ((from >>> 24) & 0xFF)) * t);
 		int r = (int) (((from >> 16) & 0xFF) + (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * t);
 		int g = (int) (((from >> 8) & 0xFF) + (((to >> 8) & 0xFF) - ((from >> 8) & 0xFF)) * t);

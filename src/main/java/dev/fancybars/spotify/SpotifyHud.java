@@ -50,7 +50,7 @@ public final class SpotifyHud {
 		});
 		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("spotify"), (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
-			if (config.spotifyEnabled && config.spotifyHud && Spotify.connected() && Spotify.state().active && Minecraft.getInstance().gui.screen() == null) {
+			if (config.spotifyEnabled && config.spotifyHud && Spotify.connected() && Spotify.state().active && dev.fancybars.util.HudVisibility.allowed()) {
 				render(graphics);
 			}
 		});
@@ -84,8 +84,8 @@ public final class SpotifyHud {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
-		Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudBg(0.7f, a));
-		if (dev.fancybars.config.FancyBarsConfig.get().hudBorders) Theme.border(graphics, 0, 0, WIDTH, HEIGHT, 6, SpotifyUi.green(0x66), a);
+		Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudBg(0.88f, a));
+		if (dev.fancybars.config.FancyBarsConfig.get().hudBorders) Theme.border(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudLine(), a);
 		SpotifyUi.art(graphics, s.artUrl, 5, 5, 34);
 		int tx = 45;
 		int tw = WIDTH - tx - 18;

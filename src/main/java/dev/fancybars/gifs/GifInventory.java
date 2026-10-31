@@ -45,7 +45,16 @@ public final class GifInventory {
 
 	public static void init() {
 		ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-			if (screen instanceof InventoryScreen inventory && enabled()) setupInventory(inventory);
+			if (screen instanceof InventoryScreen inventory) {
+				preparePatchedBackground();
+				if (enabled()) setupInventory(inventory);
+				else if (FancyBarsConfig.get().gifsHideRecipeBook && hideCraftingGrid()) {
+					int[] panel = panel(inventory);
+					int bookX = panel[0] + 104;
+					int bookY = inventory.height / 2 - 22;
+					Screens.getWidgets(inventory).removeIf(widget -> widget.getX() == bookX && widget.getY() == bookY);
+				}
+			}
 		});
 	}
 
@@ -53,13 +62,121 @@ public final class GifInventory {
 		return FancyBarsConfig.get().gifsEnabled;
 	}
 
+	/** Works on its own now (it used to need Inventory GIFs switched on). */
 	public static boolean hideCraftingGrid() {
-		return enabled() && FancyBarsConfig.get().gifsHideCraftingGrid;
+		return FancyBarsConfig.get().gifsHideCraftingGrid;
 	}
 
-	public static boolean isHiddenCraftSlot(Object screen, Slot slot) {
-		return hideCraftingGrid() && screen instanceof InventoryScreen && slot != null && slot.index >= 0 && slot.index <= 4;
+	public static boolean hideOffhand() {
+		return FancyBarsConfig.get().hideOffhandSlot;
 	}
+
+	/** Crafting result + 2x2 grid are menu slots 0-4, the offhand is 45. */
+	public static boolean isHiddenCraftSlot(Object screen, Slot slot) {
+		if (!(screen instanceof InventoryScreen) || slot == null) return false;
+		return hideCraftingGrid() && slot.index >= 0 && slot.index <= 4 || hideOffhand() && slot.index == 45;
+	}
+
+	private static final net.minecraft.resources.Identifier INVENTORY_TEXTURE = net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/inventory.png");
+	private static final net.minecraft.resources.Identifier PATCHED = dev.fancybars.FancyBarsMod.id("gifs/inventory_patched");
+	private static String patchedKey = "";
+	private static int patchedW;
+	private static int patchedH;
+	private static boolean patchedOk;
+
+	private static volatile boolean patching;
+
+	/**
+	 * Rebuilds the inventory background from your resource pack with the hidden slots removed (see
+	 * {@link InventoryPatcher}). Runs once per pack / setting change on a background thread; until it's ready the
+	 * inventory just shows normally.
+	 */
+	public static void preparePatchedBackground() {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		if (!c.gifsHideCraftingGrid && !c.hideOffhandSlot) return;
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+		try {
+			var resource = mc.getResourceManager().getResource(INVENTORY_TEXTURE);
+			if (resource.isEmpty()) return;
+			String key = resource.get().sourcePackId() + "|" + c.gifsHideCraftingGrid + "|" + c.hideOffhandSlot;
+			if (key.equals(patchedKey) || patching) return;
+			patching = true;
+			patchedOk = false;
+			int[][] target = {null};
+			int[] size = new int[2];
+			try (var in = resource.get().open(); var image = com.mojang.blaze3d.platform.NativeImage.read(in)) {
+				size[0] = image.getWidth();
+				size[1] = image.getHeight();
+				target[0] = pixels(image);
+			}
+			List<InventoryPatcher.Img> others = new java.util.ArrayList<>();
+			for (String name : SIBLINGS) {
+				var res = mc.getResourceManager().getResource(net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/" + name + ".png"));
+				if (res.isEmpty()) continue;
+				try (var in = res.get().open(); var img = com.mojang.blaze3d.platform.NativeImage.read(in)) {
+					if (img.getWidth() == size[0] && img.getHeight() == size[1]) others.add(new InventoryPatcher.Img(pixels(img), size[0], size[1]));
+				} catch (Exception ignored) {
+				}
+			}
+			boolean craft = c.gifsHideCraftingGrid, offhand = c.hideOffhandSlot;
+			java.util.concurrent.CompletableFuture.runAsync(() -> {
+				float scale = size[0] / 256f;
+				int S = Math.max(1, Math.round(scale));
+				List<InventoryPatcher.Hole> holes = new java.util.ArrayList<>();
+				// open sides = sides that border plain background in the vanilla layout
+				if (offhand) holes.add(new InventoryPatcher.Hole(76 * S, 61 * S, 94 * S, 79 * S, true, true, false, true));
+				if (craft) holes.add(new InventoryPatcher.Hole(96 * S, 16 * S, 172 * S, 54 * S, true, true, true, false));
+				InventoryPatcher.Img img = new InventoryPatcher.Img(target[0], size[0], size[1]);
+				InventoryPatcher.patch(img, others, holes.toArray(InventoryPatcher.Hole[]::new), new int[]{4 * S, 4 * S, 172 * S, 162 * S}, scale);
+				mc.execute(() -> {
+					com.mojang.blaze3d.platform.NativeImage out = new com.mojang.blaze3d.platform.NativeImage(size[0], size[1], false);
+					for (int y = 0; y < size[1]; y++) for (int x = 0; x < size[0]; x++) out.setPixel(x, y, img.px()[y * size[0] + x]);
+					net.minecraft.client.renderer.texture.DynamicTexture texture = new net.minecraft.client.renderer.texture.DynamicTexture(() -> "SBCLIENT inventory", out);
+					mc.getTextureManager().register(PATCHED, texture);
+					texture.upload();
+					patchedW = size[0];
+					patchedH = size[1];
+					patchedKey = key;
+					patchedOk = true;
+					patching = false;
+				});
+			}, dev.fancybars.FancyBarsMod.VIRTUAL_THREAD_EXECUTOR).exceptionally(e -> {
+				dev.fancybars.FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't remove the inventory slots", e);
+				patching = false;
+				return null;
+			});
+		} catch (Exception e) {
+			patching = false;
+			dev.fancybars.FancyBarsMod.LOGGER.debug("[SBCLIENT] Couldn't patch the inventory background", e);
+		}
+	}
+
+	private static int[] pixels(com.mojang.blaze3d.platform.NativeImage img) {
+		int w = img.getWidth(), h = img.getHeight();
+		int[] px = new int[w * h];
+		for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) px[y * w + x] = img.getPixel(x, y);
+		return px;
+	}
+
+	private static final String[] SIBLINGS = {"generic_54", "shulker_box", "furnace", "blast_furnace", "smoker", "crafting_table", "dispenser",
+			"hopper", "brewing_stand", "enchanting_table", "anvil", "grindstone", "loom", "cartography_table", "smithing", "stonecutter",
+			"beacon", "horse", "villager", "crafter"};
+
+	/** Draws the patched background over the normal one (before GIFs and the player, so those stay on top). */
+	public static void coverHiddenSlots(InventoryScreen screen, GuiGraphicsExtractor graphics) {
+		if (!hideCraftingGrid() && !hideOffhand()) return;
+		preparePatchedBackground();
+		if (!patchedOk) return;
+		int[] p = panel(screen);
+		float s = patchedW / 256f;
+		org.joml.Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		pose.translate(p[0], p[1]);
+		pose.scale(1 / s, 1 / s);
+		graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PATCHED, 0, 0, 0, 0, Math.round(p[2] * s), Math.round(p[3] * s), patchedW, patchedH);
+		pose.popMatrix();
+	}
+
 
 	public static void drawGifs(InventoryScreen screen, GuiGraphicsExtractor graphics, boolean fallback) {
 		if (!enabled()) return;

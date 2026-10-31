@@ -133,9 +133,9 @@ public final class ActionBar {
 		boolean custom = config.actionBarCustomize;
 		if (custom && config.actionBarBackground) {
 			int bgAlpha = Math.round(a * Math.clamp(config.actionBarBackgroundOpacity / 100f, 0, 1));
-			int bgRgb = Theme.customColors() ? config.themeBackground : 0x10121C;
+			int bgRgb = Theme.customColors() ? config.themeBackground : 0x0E0F12;
 			Theme.roundedRect(graphics, -w / 2 - 7, -8, w + 14, 17, 5, (bgAlpha << 24) | bgRgb & 0xFFFFFF);
-			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, -w / 2 - 7, -8, w + 14, 17, 5, ((bgAlpha / 2) << 24) | Theme.accent() & 0xFFFFFF, 255);
+			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, -w / 2 - 7, -8, w + 14, 17, 5, ((bgAlpha * 3 / 4) << 24) | Theme.hudLine() & 0xFFFFFF, 255);
 		}
 		int color = (a << 24) | 0xFFFFFF;
 		boolean shadow = !custom || config.actionBarShadow;

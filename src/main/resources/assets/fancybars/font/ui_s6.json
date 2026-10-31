@@ -6,8 +6,8 @@
   },
   {
    "type": "ttf",
-   "file": "fancybars:inter-medium.ttf",
-   "size": 10.0,
+   "file": "fancybars:geist-medium.ttf",
+   "size": 11.0,
    "oversample": 6.0,
    "shift": [
     0,

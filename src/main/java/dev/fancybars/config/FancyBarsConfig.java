@@ -83,6 +83,9 @@ public class FancyBarsConfig {
 
 	public boolean gifsHideCraftingGrid = true;
 
+	/** Hide the offhand (shield) slot in the inventory. */
+	public boolean hideOffhandSlot = false;
+
 	public boolean gifsHideRecipeBook = true;
 
 	// ---------------------------------------------------------------- Dungeon secrets display (from SkyblockAddons)
@@ -95,6 +98,9 @@ public class FancyBarsConfig {
 
 	/** Remove the "X/Y Secrets" text from the action bar while the display is on. */
 	public boolean secretsHideActionBar = true;
+
+	/** Action Bar section: always hide the "X/Y Secrets" counter, whether or not the secrets display is on. */
+	public boolean actionBarHideSecrets = false;
 
 	/** Top-left position as a fraction of the screen; negative = default spot. */
 	public float secretsX = -1;
@@ -113,13 +119,19 @@ public class FancyBarsConfig {
 	// ---------------------------------------------------------------- Appearance (whole mod)
 
 	/** Use your own colours for every menu and HUD instead of night blue / SHIKIMODE pink. */
+	/** Use Minecraft's own font for every menu and HUD instead of the smooth Geist font. */
+	public boolean minecraftFont = false;
+
+	/** Minecraft-style drop shadow on text when using Minecraft's font. */
+	public boolean minecraftFontShadow = true;
+
 	public boolean customColors = false;
 
-	public int themeAccent = 0x6FA8FF;
+	public int themeAccent = 0x7C8CFF;
 
-	public int themeBackground = 0x0B1430;
+	public int themeBackground = 0x0E0F12;
 
-	public int themeText = 0xE8EEFA;
+	public int themeText = 0xECECF1;
 
 	/** See-through-ness of menu panels and cards (1 = normal). */
 	public float panelOpacity = 1;
@@ -154,12 +166,15 @@ public class FancyBarsConfig {
 	public float tooltipDelay = 0.35f;
 
 	/** Border thickness in pixels for menus and HUDs (0 = no border). */
-	public float borderThickness = 1;
+	public float borderThickness = 0.6f;
+
+	/** Bumped when a redesign changes defaults that saved configs should pick up. */
+	public int designVersion = 0;
 
 	/** Use {@link #borderColor} for borders instead of the theme's. */
 	public boolean customBorder = false;
 
-	public int borderColor = 0x6FA8FF;
+	public int borderColor = 0x7C8CFF;
 
 	public float borderOpacity = 0.6f;
 
@@ -294,6 +309,9 @@ public class FancyBarsConfig {
 	public boolean shitterAutoKick = true;
 
 	// ---------------------------------------------------------------- Spotify
+
+	/** Show the song from the Spotify app without logging in (no developer app or Premium needed). */
+	public boolean spotifyBrokeMode = false;
 
 	public boolean spotifyEnabled = true;
 
@@ -460,6 +478,28 @@ public class FancyBarsConfig {
 	/** Cape id from {@code Capes.ALL}, "custom" or "none". */
 	public String cape = "migrator";
 
+	/** Custom cape: 0 = the PNG is a full cape texture, 1 = place the picture on the cape (editor). */
+	public int capeCustomMode = 1;
+
+	/** Picture offset on the cape, -1..1 (half a panel each way). */
+	public float capeImageX = 0;
+
+	public float capeImageY = 0;
+
+	/** Picture size; 1 = fits the cape exactly. */
+	public float capeImageScale = 1;
+
+	/** 0 / 90 / 180 / 270. */
+	public int capeImageRotation = 0;
+
+	public boolean capeImageFlip = false;
+
+	public boolean capeImageInside = false;
+
+	public boolean capeImageSmooth = true;
+
+	public int capeBackground = 0x101014;
+
 	// ---------------------------------------------------------------- Wall Licker
 
 	public boolean wallLickerEnabled = true;
@@ -474,6 +514,34 @@ public class FancyBarsConfig {
 
 	/** Licks this dungeon run (reset when a run starts / ends). */
 	public int wallLicksRun = 0;
+
+	// ---------------------------------------------------------------- FPS / TPS display
+
+	/** Keep SBCLIENT's HUDs on screen while chat or an inventory / chest is open. */
+	public boolean hudInScreens = false;
+
+	public boolean perfEnabled = false;
+
+	public boolean perfShowFps = true;
+
+	public boolean perfShowTps = true;
+
+	/** Colour the TPS green / yellow / red by how laggy the server is. */
+	public boolean perfColorTps = true;
+
+	public boolean perfBackground = true;
+
+	public int perfBackgroundColor = 0x0E0F12;
+
+	public float perfBackgroundOpacity = 0.88f;
+
+	public int perfTextColor = 0xECECF1;
+
+	public float perfX = -1;
+
+	public float perfY = -1;
+
+	public float perfScale = 1;
 
 	public float wallLickerX = -1;
 
@@ -623,6 +691,7 @@ public class FancyBarsConfig {
 			if (instance.invHudScale <= 0) instance.invHudScale = 1;
 			if (instance.commissionsScale <= 0) instance.commissionsScale = 1;
 			if (instance.wallLickerScale <= 0) instance.wallLickerScale = 1;
+			if (instance.perfScale <= 0) instance.perfScale = 1;
 			if (instance.cape == null) instance.cape = "migrator";
 			if (instance.screenImages == null) instance.screenImages = new java.util.HashMap<>();
 			if (instance.chatFilters == null) instance.chatFilters = new java.util.HashSet<>();
@@ -643,6 +712,11 @@ public class FancyBarsConfig {
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.designVersion < 2) {
+				// Linear redesign: hairline borders
+				instance.borderThickness = 0.6f;
+				instance.designVersion = 2;
+			}
 			if (instance.chromaSpeed <= 0) instance.chromaSpeed = 1;
 			if (instance.animationSpeed <= 0) instance.animationSpeed = 1;
 			if (instance.cornerRoundness < 0) instance.cornerRoundness = 1;
