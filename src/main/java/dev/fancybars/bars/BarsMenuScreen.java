@@ -542,6 +542,18 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SwatchItem("actionBarColor", () -> new Color(config.actionBarColor, false), color -> config.actionBarColor = color.getRGB() | 0xFF000000));
 			}
 			case HUD -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.perf.title"), null));
+				list.add(new ToggleItem("perfEnabled", () -> config.perfEnabled, value -> config.perfEnabled = value));
+				list.add(new ToggleItem("perfShowFps", () -> config.perfShowFps, value -> config.perfShowFps = value));
+				list.add(new ToggleItem("perfShowTps", () -> config.perfShowTps, value -> config.perfShowTps = value));
+				list.add(new ToggleItem("perfColorTps", () -> config.perfColorTps, value -> config.perfColorTps = value));
+				list.add(new SwatchItem("perfTextColor", () -> new Color(config.perfTextColor, false), color -> config.perfTextColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("perfBackground", () -> config.perfBackground, value -> config.perfBackground = value));
+				list.add(new SwatchItem("perfBackgroundColor", () -> new Color(config.perfBackgroundColor, false), color -> config.perfBackgroundColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SliderItem("perfBackgroundOpacity", 0.01f, 1, 0.01f, true, () -> config.perfBackgroundOpacity, value -> config.perfBackgroundOpacity = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.PERFORMANCE.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.keystrokes"), null));
 				list.add(new ToggleItem("keystrokesEnabled", () -> config.keystrokesEnabled, value -> config.keystrokesEnabled = value));
 				list.add(new ValueCycleItem("keystrokesMode", new int[]{0, 1, 2}, () -> config.keystrokesMode,

@@ -506,6 +506,31 @@ public class FancyBarsConfig {
 	/** Licks this dungeon run (reset when a run starts / ends). */
 	public int wallLicksRun = 0;
 
+	// ---------------------------------------------------------------- FPS / TPS display
+
+	public boolean perfEnabled = false;
+
+	public boolean perfShowFps = true;
+
+	public boolean perfShowTps = true;
+
+	/** Colour the TPS green / yellow / red by how laggy the server is. */
+	public boolean perfColorTps = true;
+
+	public boolean perfBackground = true;
+
+	public int perfBackgroundColor = 0x0E0F12;
+
+	public float perfBackgroundOpacity = 0.88f;
+
+	public int perfTextColor = 0xECECF1;
+
+	public float perfX = -1;
+
+	public float perfY = -1;
+
+	public float perfScale = 1;
+
 	public float wallLickerX = -1;
 
 	public float wallLickerY = -1;
@@ -654,6 +679,7 @@ public class FancyBarsConfig {
 			if (instance.invHudScale <= 0) instance.invHudScale = 1;
 			if (instance.commissionsScale <= 0) instance.commissionsScale = 1;
 			if (instance.wallLickerScale <= 0) instance.wallLickerScale = 1;
+			if (instance.perfScale <= 0) instance.perfScale = 1;
 			if (instance.cape == null) instance.cape = "migrator";
 			if (instance.screenImages == null) instance.screenImages = new java.util.HashMap<>();
 			if (instance.chatFilters == null) instance.chatFilters = new java.util.HashSet<>();

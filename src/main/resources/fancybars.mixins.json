@@ -24,7 +24,8 @@
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor",
 		"SmoothTextMixin",
-		"SmoothTextWidthMixin"
+		"SmoothTextWidthMixin",
+		"TimePacketMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

@@ -579,6 +579,69 @@ public interface MovableElement {
 		}
 	};
 
+	MovableElement PERFORMANCE = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.hud.PerformanceHud.position(screenW, screenH);
+			int[] size = dev.fancybars.hud.PerformanceHud.size();
+			return new float[]{pos[0], pos[1], size[0] * config.perfScale, size[1] * config.perfScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			float[] pos = dev.fancybars.hud.PerformanceHud.position(screenW, screenH);
+			dev.fancybars.hud.PerformanceHud.renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.perfX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.perfY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().perfScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().perfScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().perfEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().perfEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.perfX = -1;
+			config.perfY = -1;
+			config.perfScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.performance");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
 	// ---------------------------------------------------------------- Titles / hotbar
 
 	MovableElement TITLE = new MovableElement() {
@@ -962,5 +1025,5 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY, MELODY, TERM_INFO};
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE};
 }

@@ -1,4 +1,7 @@
 [
+  {"version": "2.21.0", "date": "2026-10-31",
+   "added": ["FPS / TPS display (HUD tab) with its own text colour, optional background, background colour and opacity, and lag-coloured TPS", "Move and resize it in Edit GUI like every other element"],
+   "fixed": []},
   {"version": "2.20.0", "date": "2026-10-31",
    "added": ["Spotify Broke Mode: show what you're playing without logging in, no developer app or Premium needed (Spotify tab)", "Broke Mode play / pause / skip from the Spotify screen, HUD keybinds and inventory player"],
    "fixed": []},
