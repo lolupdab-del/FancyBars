@@ -734,6 +734,7 @@
 	"fancybars.style.segmented.description": "Pixel-art segmented bars from Bigmans masterpiece.",
 	"fancybars.style.skyblockaddons": "SkyblockAddons",
 	"fancybars.style.skyblockaddons.description": "Glossy bars with a progress tick, from SkyblockAddons.",
+	"fancybars.tab.gifs": "GIFs",
 	"fancybars.tab.settings": "Settings",
 	"fancybars.terminals.description": "Inactive terminals, devices and levers in floor 7 (from Odin)",
 	"fancybars.terminals.show.0": "All",

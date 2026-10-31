@@ -1,4 +1,7 @@
 [
+  {"version": "2.22.2", "date": "2026-10-31",
+   "added": ["GIFs has its own tab again, with Screen Images in it"],
+   "fixed": ["Symbols like ✪ stars, ⚚ and ✕ showed as crossed-out boxes; they're drawn again (the rest of the text stays smooth)"]},
   {"version": "2.22.1", "date": "2026-10-31",
    "added": [],
    "fixed": ["Reset Layout moved to the bottom of the Bars tab", "Removed the Done button from Home (close the menu with Esc or the ✕)"]},

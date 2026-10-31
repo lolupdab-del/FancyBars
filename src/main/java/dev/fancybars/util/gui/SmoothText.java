@@ -24,6 +24,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -59,9 +60,58 @@ public final class SmoothText {
 	private static int counter;
 	private static boolean failed;
 
-	private record Entry(@Nullable Identifier plain, @Nullable Identifier colored, int width, int height, float ascentPx, long[] lastUsed) {}
+	private record Entry(@Nullable Identifier plain, @Nullable Identifier colored, int width, int height, float ascentPx, long[] lastUsed, List<Run> fallback) {}
 
-	private record Segment(String text, int color, boolean bold) {}
+	/** A piece of text Geist has no glyphs for (✪, ⚚, ✕ ...), drawn by Minecraft at {@code offsetPx} from the start. */
+	private record Run(float offsetPx, Segment segment) {}
+
+	private record Segment(String text, int color, boolean bold, boolean fallback) {}
+
+	private record Collected(String kind, List<Segment> segments) {}
+
+	/** Set while handing symbols back to Minecraft, so the mixin doesn't send them straight back here. */
+	private static boolean bypass;
+
+	/** Splits text into runs of the same look; returns null if it isn't (only) in SBCLIENT's fonts. */
+	private static @Nullable Collected collect(FormattedCharSequence text) {
+		List<Segment> segments = new ArrayList<>();
+		String[] kind = new String[1];
+		StringBuilder current = new StringBuilder();
+		Style[] currentStyle = new Style[1];
+		boolean[] currentFallback = new boolean[1];
+		boolean[] mixed = new boolean[1];
+		text.accept((index, style, codePoint) -> {
+			String k = kindOf(style);
+			if (kind[0] == null && k != null) kind[0] = k;
+			if (k == null) {
+				mixed[0] = true;
+				return false;
+			}
+			Font f = baseFont(KINDS.get(k).file());
+			boolean fallback = f != null && !f.canDisplay(codePoint);
+			if (currentStyle[0] != null && (!sameLook(currentStyle[0], style) || fallback != currentFallback[0])) {
+				segments.add(segment(current.toString(), currentStyle[0], currentFallback[0]));
+				current.setLength(0);
+			}
+			currentStyle[0] = style;
+			currentFallback[0] = fallback;
+			current.appendCodePoint(codePoint);
+			return true;
+		});
+		if (kind[0] == null || mixed[0]) return null;
+		if (currentStyle[0] != null && current.length() > 0) segments.add(segment(current.toString(), currentStyle[0], currentFallback[0]));
+		return new Collected(kind[0], segments);
+	}
+
+	private static Component fallbackComponent(Segment seg, int color) {
+		int rgb = seg.color() < 0 ? color & 0xFFFFFF : seg.color();
+		return Component.literal(seg.text()).withStyle(st -> st.withColor(rgb).withBold(seg.bold()));
+	}
+
+	/** Width in GUI units of a fallback run, as Minecraft draws it. */
+	private static float fallbackWidth(Segment seg) {
+		return Minecraft.getInstance().font.width(fallbackComponent(seg, 0xFFFFFF));
+	}
 
 	private SmoothText() {}
 
@@ -97,26 +147,11 @@ public final class SmoothText {
 	 * text isn't in one of SBCLIENT's fonts, so Minecraft draws it as usual.
 	 */
 	public static boolean draw(GuiGraphicsExtractor graphics, FormattedCharSequence text, int x, int y, int color, boolean shadow) {
-		if (failed) return false;
-		List<Segment> segments = new ArrayList<>();
-		String[] kind = new String[1];
-		StringBuilder current = new StringBuilder();
-		Style[] currentStyle = new Style[1];
-		boolean[] mixed = new boolean[1];
-		text.accept((index, style, codePoint) -> {
-			String k = kindOf(style);
-			if (kind[0] == null && k != null) kind[0] = k;
-			if (k == null) mixed[0] = true;
-			if (currentStyle[0] != null && !sameLook(currentStyle[0], style)) {
-				segments.add(segment(current.toString(), currentStyle[0]));
-				current.setLength(0);
-			}
-			currentStyle[0] = style;
-			current.appendCodePoint(codePoint);
-			return true;
-		});
-		if (kind[0] == null || mixed[0]) return false;
-		if (currentStyle[0] != null && current.length() > 0) segments.add(segment(current.toString(), currentStyle[0]));
+		if (failed || bypass) return false;
+		Collected collected = collect(text);
+		if (collected == null) return false;
+		List<Segment> segments = collected.segments();
+		String[] kind = {collected.kind()};
 		if (segments.isEmpty() || (color >>> 24) == 0) return true;
 
 		Matrix3x2fStack pose = graphics.pose();
@@ -135,6 +170,21 @@ public final class SmoothText {
 		float ly = y + BASELINE - entry.ascentPx() / pxPerUnit;
 		if (shadow) blitAll(graphics, entry, lx + 1, ly + 1, pxPerUnit, (color & 0xFF000000) | ((color & 0xFCFCFC) >> 2), true);
 		blitAll(graphics, entry, lx, ly, pxPerUnit, color, false);
+		if (!entry.fallback().isEmpty()) {
+			// symbols Geist doesn't have: let Minecraft draw them in its own font, in place
+			bypass = true;
+			try {
+				net.minecraft.client.gui.Font mcFont = Minecraft.getInstance().font;
+				for (Run run : entry.fallback()) {
+					pose.pushMatrix();
+					pose.translate(x + run.offsetPx() / pxPerUnit, y);
+					graphics.text(mcFont, fallbackComponent(run.segment(), color), 0, 0, (color & 0xFF000000) | 0xFFFFFF, shadow);
+					pose.popMatrix();
+				}
+			} finally {
+				bypass = false;
+			}
+		}
 		return true;
 	}
 
@@ -150,29 +200,14 @@ public final class SmoothText {
 	 * Returns -1 when the text isn't (only) in SBCLIENT's fonts.
 	 */
 	public static float width(FormattedCharSequence text) {
-		if (failed) return -1;
-		List<Segment> segments = new ArrayList<>();
-		String[] kind = new String[1];
-		StringBuilder current = new StringBuilder();
-		Style[] currentStyle = new Style[1];
-		boolean[] mixed = new boolean[1];
-		text.accept((index, style, codePoint) -> {
-			String k = kindOf(style);
-			if (kind[0] == null && k != null) kind[0] = k;
-			if (k == null) mixed[0] = true;
-			if (currentStyle[0] != null && currentStyle[0].isBold() != style.isBold()) {
-				segments.add(segment(current.toString(), currentStyle[0]));
-				current.setLength(0);
-			}
-			currentStyle[0] = style;
-			current.appendCodePoint(codePoint);
-			return true;
-		});
-		if (kind[0] == null || mixed[0]) return -1;
-		if (current.length() > 0) segments.add(segment(current.toString(), currentStyle[0]));
+		if (failed || bypass) return -1;
+		Collected collected = collect(text);
+		if (collected == null) return -1;
+		List<Segment> segments = collected.segments();
+		String[] kind = {collected.kind()};
 		Kind k = KINDS.get(kind[0]);
 		StringBuilder key = new StringBuilder(kind[0]);
-		for (Segment seg : segments) key.append(seg.bold() ? '\u0001' : '\u0002').append(seg.text());
+		for (Segment seg : segments) key.append(seg.fallback() ? '\u0003' : seg.bold() ? '\u0001' : '\u0002').append(seg.text());
 		String cacheKey = key.toString();
 		Float cached = WIDTHS.get(cacheKey);
 		if (cached != null) return cached;
@@ -183,8 +218,13 @@ public final class SmoothText {
 		Font bold = (boldBase == null ? base : boldBase).deriveFont(100f);
 		FontRenderContext frc = new FontRenderContext(null, RenderingHints.VALUE_TEXT_ANTIALIAS_ON, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		double total = 0;
-		for (Segment seg : segments) if (!seg.text().isEmpty()) total += (seg.bold() ? bold : regular).getStringBounds(seg.text(), frc).getWidth();
-		float w = (float) (total * (k.size() / EM_RATIO) / 100.0);
+		float fallback = 0;
+		for (Segment seg : segments) {
+			if (seg.text().isEmpty()) continue;
+			if (seg.fallback()) fallback += fallbackWidth(seg);
+			else total += (seg.bold() ? bold : regular).getStringBounds(seg.text(), frc).getWidth();
+		}
+		float w = (float) (total * (k.size() / EM_RATIO) / 100.0) + fallback;
 		WIDTHS.put(cacheKey, w);
 		return w;
 	}
@@ -193,9 +233,9 @@ public final class SmoothText {
 		return java.util.Objects.equals(a.getColor(), b.getColor()) && a.isBold() == b.isBold() && java.util.Objects.equals(kindOf(a), kindOf(b));
 	}
 
-	private static Segment segment(String text, Style style) {
+	private static Segment segment(String text, Style style, boolean fallback) {
 		TextColor c = style.getColor();
-		return new Segment(text, c == null ? -1 : c.getValue() & 0xFFFFFF, style.isBold());
+		return new Segment(text, c == null ? -1 : c.getValue() & 0xFFFFFF, style.isBold(), fallback);
 	}
 
 	private static void blitAll(GuiGraphicsExtractor graphics, Entry e, float lx, float ly, float pxPerUnit, int color, boolean shadow) {
@@ -224,7 +264,7 @@ public final class SmoothText {
 
 	private static @Nullable Entry get(String kindName, Kind kind, float emPx, List<Segment> segments) {
 		StringBuilder key = new StringBuilder(kindName).append('|').append(emPx);
-		for (Segment s : segments) key.append('|').append(s.color()).append(s.bold() ? 'b' : 'n').append(s.text());
+		for (Segment s : segments) key.append('|').append(s.color()).append(s.fallback() ? 'f' : s.bold() ? 'b' : 'n').append(s.text());
 		String k = key.toString();
 		long now = net.minecraft.util.Util.getMillis();
 		Entry e = CACHE.get(k);
@@ -261,11 +301,19 @@ public final class SmoothText {
 
 		float[] advances = new float[segments.size()];
 		float total = 0;
+		float pxPerGui = emPx * EM_RATIO / kind.size();
+		List<Run> fallback = new ArrayList<>();
 		boolean anyPlain = false;
 		boolean anyColored = false;
 		for (int i = 0; i < segments.size(); i++) {
 			Segment s = segments.get(i);
 			if (s.text().isEmpty()) continue;
+			if (s.fallback()) {
+				fallback.add(new Run(total, s));
+				advances[i] = fallbackWidth(s) * pxPerGui;
+				total += advances[i];
+				continue;
+			}
 			advances[i] = (float) (s.bold() ? bold : regular).getStringBounds(s.text(), frc).getWidth();
 			total += advances[i];
 			if (s.color() < 0) anyPlain = true;
@@ -283,6 +331,10 @@ public final class SmoothText {
 		for (int i = 0; i < segments.size(); i++) {
 			Segment s = segments.get(i);
 			if (s.text().isEmpty()) continue;
+			if (s.fallback()) {
+				pen += advances[i];
+				continue;
+			}
 			Graphics2D g = s.color() < 0 ? gp : gc;
 			g.setFont(s.bold() ? bold : regular);
 			g.setColor(new java.awt.Color(s.color() < 0 ? 0xFFFFFF : s.color()));
@@ -293,7 +345,7 @@ public final class SmoothText {
 		if (gc != null) gc.dispose();
 		Identifier p = plain == null ? null : upload(plain);
 		Identifier c = colored == null ? null : upload(colored);
-		return new Entry(p, c, width, height, ascentPx, new long[]{now});
+		return new Entry(p, c, width, height, ascentPx, new long[]{now}, fallback);
 	}
 
 	private static Graphics2D setup(BufferedImage img) {
