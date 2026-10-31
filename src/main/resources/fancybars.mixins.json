@@ -20,10 +20,10 @@
 		"ItemModelResolverMixin",
 		"ItemStackNameMixin",
 		"LivingEntitySwingMixin",
-		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor",
-		"FirstPersonHandsMixin"
+		"FirstPersonHandsMixin",
+		"GameModeDropProtectionMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
