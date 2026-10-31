@@ -405,6 +405,8 @@
 	"fancybars.config.showEstimatedTilde.@Tooltip": "Displays a tilde (~) before a bar's value when it is estimated by FancyBars because it is not visible in the action bar.",
 	"fancybars.config.smoothBarText": "Smooth Bar Numbers",
 	"fancybars.config.smoothBarText.@Tooltip": "Draw the numbers on the bars with the smooth Inter font instead of the pixel font.",
+	"fancybars.config.spotifyBrokeMode": "Broke Mode",
+	"fancybars.config.spotifyBrokeMode.@Tooltip": "Show what you're playing without logging in to Spotify: no developer app or Premium needed. Reads the song straight from the Spotify desktop app. On Windows play/pause/skip work and cover art comes from a song search; volume and seeking need macOS/Linux or a normal login.",
 	"fancybars.config.spotifyEnabled": "Spotify",
 	"fancybars.config.spotifyEnabled.@Tooltip": "Connect to your Spotify account to see and control what you're listening to.",
 	"fancybars.config.spotifyHud": "Now Playing HUD",

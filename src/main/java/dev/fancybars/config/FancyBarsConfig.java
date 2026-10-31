@@ -301,6 +301,9 @@ public class FancyBarsConfig {
 
 	// ---------------------------------------------------------------- Spotify
 
+	/** Show the song from the Spotify app without logging in (no developer app or Premium needed). */
+	public boolean spotifyBrokeMode = false;
+
 	public boolean spotifyEnabled = true;
 
 	public boolean spotifyHud = true;

@@ -1,4 +1,7 @@
 [
+  {"version": "2.20.0", "date": "2026-10-31",
+   "added": ["Spotify Broke Mode: show what you're playing without logging in, no developer app or Premium needed (Spotify tab)", "Broke Mode play / pause / skip from the Spotify screen, HUD keybinds and inventory player"],
+   "fixed": []},
   {"version": "2.19.1", "date": "2026-10-31",
    "added": ["Hide Secrets in the Action Bar section hides the dungeon secrets counter on its own, even with the secrets display off"],
    "fixed": ["The secrets option in the Action Bar section is now called Hide Secrets with the right description", "Enable Bars, Rift, mana and Intelligence Display options moved from Settings to the Bars tab"]},

@@ -93,6 +93,22 @@ public final class Spotify {
 		loadTokens();
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
+			if (config.spotifyEnabled && config.spotifyBrokeMode) {
+				// Broke Mode: read the song from the Spotify app itself (no login needed)
+				wasBroke = true;
+				if (busy) return;
+				long now = Util.getMillis();
+				if (now < nextPoll) return;
+				nextPoll = now + 1000;
+				busy = true;
+				CompletableFuture.runAsync(() -> state = BrokeMode.poll(state), FancyBarsMod.VIRTUAL_THREAD_EXECUTOR).whenComplete((v, e) -> busy = false);
+				return;
+			}
+			if (wasBroke) {
+				wasBroke = false;
+				BrokeMode.stop();
+				state = new State();
+			}
 			if (!config.spotifyEnabled || refreshToken == null || busy) return;
 			long now = Util.getMillis();
 			if (now < nextPoll) return;
@@ -108,8 +124,16 @@ public final class Spotify {
 		return state;
 	}
 
+	private static boolean wasBroke;
+
+	public static boolean brokeMode() {
+		boolean on = FancyBarsConfig.get().spotifyBrokeMode;
+		if (on) wasBroke = true;
+		return on;
+	}
+
 	public static boolean connected() {
-		return refreshToken != null;
+		return refreshToken != null || brokeMode();
 	}
 
 	public static String status() {
@@ -392,19 +416,35 @@ public final class Spotify {
 		s.playing = !s.playing;
 		s.progressMs = s.progressNow();
 		s.fetchedAt = Util.getMillis();
+		if (brokeMode()) {
+			BrokeMode.playPause();
+			return;
+		}
 		command("PUT", s.playing ? "/play" : "/pause");
 	}
 
 	public static void next() {
+		if (brokeMode()) {
+			BrokeMode.next();
+			return;
+		}
 		command("POST", "/next");
 	}
 
 	public static void previous() {
+		if (brokeMode()) {
+			BrokeMode.previous();
+			return;
+		}
 		command("POST", "/previous");
 	}
 
 	public static void setVolume(int percent) {
 		state.volume = Math.clamp(percent, 0, 100);
+		if (brokeMode()) {
+			BrokeMode.setVolume(state.volume);
+			return;
+		}
 		command("PUT", "/volume?volume_percent=" + state.volume);
 	}
 
@@ -412,10 +452,15 @@ public final class Spotify {
 		State s = state;
 		s.progressMs = Math.clamp(ms, 0, s.durationMs);
 		s.fetchedAt = Util.getMillis();
+		if (brokeMode()) {
+			BrokeMode.seek(s.progressMs);
+			return;
+		}
 		command("PUT", "/seek?position_ms=" + s.progressMs);
 	}
 
 	public static void toggleShuffle() {
+		if (brokeMode()) return;
 		state.shuffle = !state.shuffle;
 		command("PUT", "/shuffle?state=" + state.shuffle);
 	}
@@ -427,6 +472,7 @@ public final class Spotify {
 			default -> "off";
 		};
 		state.repeat = next;
+		if (brokeMode()) return;
 		command("PUT", "/repeat?state=" + next);
 	}
 
