@@ -137,7 +137,6 @@ public final class DungeonSecrets {
 	public static float[] position(int screenW, int screenH, int found, int max) {
 		FancyBarsConfig config = FancyBarsConfig.get();
 		int[] size = size(found, max);
-		if (config.textHudBackgrounds) Theme.hudPanel(graphics, -4, -4, size[0] + 8, size[1] + 7, 4, 0.55f, 255);
 		float s = config.secretsScale;
 		if (config.secretsX < 0 || config.secretsY < 0) {
 			return new float[]{screenW - size[0] * s - 12, Math.round(screenH * 0.42f)};
@@ -160,6 +159,7 @@ public final class DungeonSecrets {
 
 		int textX = config.secretsShowChest ? 18 : 0;
 		int[] size = size(found, max);
+		if (config.textHudBackgrounds) Theme.hudPanel(graphics, -4, -4, size[0] + 8, size[1] + 7, 4, 0.55f, 255);
 		Component count = countText(found, max);
 		if (config.secretsShowWord) {
 			Component word = wordText();
