@@ -1,0 +1,185 @@
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-entity-events-v1/5.0.5+06488ac19e/5cbecb675b91d0ebfe2ef3f20339e1a2c76c435/fabric-entity-events-v1-5.0.5+06488ac19e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-data-attachment-api-v1/2.2.18+515ac5339e/67d246e2dc7c33e7c58e70655180891703bb199/fabric-data-attachment-api-v1-2.2.18+515ac5339e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-resource-conditions-api-v1/6.1.0+10e9a28b9e/bfe91afa0e7712974b318ed7e274b493b038a596/fabric-resource-conditions-api-v1-6.1.0+10e9a28b9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-block-getter-api-v2/2.0.7+ec56b6019e/8204045ca262749761be09b144618e6c4133ebe1/fabric-block-getter-api-v2-2.0.7+ec56b6019e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-serialization-api-v1/2.0.4+11a26f319e/ebf77996be79909f639a7352689d851385a9cd2b/fabric-serialization-api-v1-2.0.4+11a26f319e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-rendering-v1/25.3.2+515ac5339e/c60fb9b8b8f321a8fd49a2f84ef4fbc967a02058/fabric-rendering-v1-25.3.2+515ac5339e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-resource-loader-v0/3.3.20+4fc5413f9e/c6551ab905383f3c8e046a403a78a25bebabaff0/fabric-resource-loader-v0-3.3.20+4fc5413f9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-rendering-fluids-v1/6.0.4+06488ac19e/9ded3bc73b5ff3c441075d0c8eca988aacce1f1f/fabric-rendering-fluids-v1-6.0.4+06488ac19e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-transitive-access-wideners-v1/8.1.4+67c847259e/e1e769f8e123395ab939d5d8da900e6a6ad53ab2/fabric-transitive-access-wideners-v1-8.1.4+67c847259e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-renderer-api-v1/14.1.3+2b0d8a229e/d626deb09fea4d62987f739c21677b27331a2e00/fabric-renderer-api-v1-14.1.3+2b0d8a229e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-tag-api-v1/2.1.4+515ac5339e/f66a24273cdcc2ce424bf8c69cdc9cf48bdcb328/fabric-tag-api-v1-2.1.4+515ac5339e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-creative-tab-api-v1/5.0.14+d871b99e9e/6730a71041da25b25aed75b88eb4cb1eb971f4f0/fabric-creative-tab-api-v1-5.0.14+d871b99e9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-model-loading-api-v1/8.0.16+c80601bb9e/5d104226e85fffd0336cfcf0a0085eb5af2c3b7b/fabric-model-loading-api-v1-8.0.16+c80601bb9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-crash-report-info-v1/1.0.5+086d547a9e/119f48a9a648d86c89fe21444176d0032449d95c/fabric-crash-report-info-v1-1.0.5+086d547a9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-biome-api-v1/18.0.6+c7bd5b8e9e/414c89d2bc8ab64dce1763edc4dbe4619113a5b/fabric-biome-api-v1-18.0.6+c7bd5b8e9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-dimensions-v1/5.1.11+515ac5339e/b303c9f570e9157a0a29998335785dc3b7f2a8a6/fabric-dimensions-v1-5.1.11+515ac5339e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-object-builder-api-v1/24.1.0+6fcd5f039e/3bf5bd0f8a4a53fdc3ac78bc93b1853c4b520722/fabric-object-builder-api-v1-24.1.0+6fcd5f039e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-permission-api-v1/1.0.5+e442d8d09e/92197dd81a18322fd36b87de79bdaa8d2b4a1ba9/fabric-permission-api-v1-1.0.5+e442d8d09e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-data-generation-api-v1/25.5.0+aed122aa9e/f3565695da2373effe3542dabc63a1d23140f236/fabric-data-generation-api-v1-25.5.0+aed122aa9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-transfer-api-v1/8.0.12+11dbb7d79e/b2bcd304a951ee748602f18b6ffc89fb32c14a14/fabric-transfer-api-v1-8.0.12+11dbb7d79e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-renderer-indigo/9.1.3+2b0d8a229e/b9a15bbfa210ea1753b206c51832ea8381d46fb/fabric-renderer-indigo-9.1.3+2b0d8a229e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-command-api-v2/3.1.0+00cb03469e/b144d197307c39c1bc516c274d9460f0116131a3/fabric-command-api-v2-3.1.0+00cb03469e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-loot-api-v3/3.0.17+06488ac19e/964f3985687b491093db6b9ff87b35106112b74d/fabric-loot-api-v3-3.0.17+06488ac19e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-game-rule-api-v1/4.0.8+46a6d00c9e/886816530fb79c925eb1bc6c34dd4d9d82e71d49/fabric-game-rule-api-v1-4.0.8+46a6d00c9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-resource-loader-v1/2.0.13+9edec1269e/db19bb66f069d7ed3dde41eb7e1f9ff3122c15a4/fabric-resource-loader-v1-2.0.13+9edec1269e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-key-mapping-api-v1/2.0.5+e2bdee789e/c86dc688a7e9caa7edca9973dc6abfe37c652135/fabric-key-mapping-api-v1-2.0.5+e2bdee789e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api/0.157.0+26.2/deb9d110def35ebcaf5f15a9e6c8b8e85685319/fabric-api-0.157.0+26.2.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-events-interaction-v0/5.2.7+515ac5339e/fdb7f47e29a0294100b1fa95d3f54e288ff142b6/fabric-events-interaction-v0-5.2.7+515ac5339e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-particles-v1/5.0.18+d1756aa99e/e67e831509acd4f7e5578ebed6bbbc7cf0165202/fabric-particles-v1-5.0.18+d1756aa99e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-block-api-v1/3.0.3+ec56b6019e/32d4afa4bbfa703830787de04d55e727816b676b/fabric-block-api-v1-3.0.3+ec56b6019e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-debug-api-v1/1.0.2+c792624d9e/9f0581bb985edf22a0d812dbe67178bd2849286/fabric-debug-api-v1-1.0.2+c792624d9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-registry-sync-v0/7.1.0+c7bd5b8e9e/f2221eb179baa35535c43655ffcba3a5f1bea97f/fabric-registry-sync-v0-7.1.0+c7bd5b8e9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-content-registries-v0/11.3.1+37b1aa249e/a7ea5342459c30562e00b5b920f45ea5ced5c854/fabric-content-registries-v0-11.3.1+37b1aa249e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-item-api-v1/14.4.0+49a69a7b9e/fef3ee32f02d0dfe435fb408b2f5d16bfe05bf94/fabric-item-api-v1-14.4.0+49a69a7b9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-lifecycle-events-v1/4.1.3+4575b05f9e/a90250858d4e251a823d64d0e0f2877edf456f10/fabric-lifecycle-events-v1-4.1.3+4575b05f9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-sound-api-v1/2.0.5+11a26f319e/73e4e62924608e1d1581f192607857db096dafe7/fabric-sound-api-v1-2.0.5+11a26f319e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api-lookup-api-v1/2.0.17+11e1c9a39e/491ba67a029a00c00912050d9ef6875bf78ecaef/fabric-api-lookup-api-v1-2.0.17+11e1c9a39e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-networking-api-v1/6.3.3+72073ef09e/ec9e63e40eca212cb2ff05f72fc0f76a3ef9ba0a/fabric-networking-api-v1-6.3.3+72073ef09e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api-base/2.0.4+ece063239e/e766f3698b7bab8b1e13683040f8648fab511ca3/fabric-api-base-2.0.4+ece063239e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-gametest-api-v1/4.0.21+4a7fa0819e/e211272a2b116eaed8a2b05170c14af84250ea6b/fabric-gametest-api-v1-4.0.21+4a7fa0819e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-screen-api-v1/5.2.0+58e078ad9e/6bdfb84ee630376fbb1075d6b90cef5d69260128/fabric-screen-api-v1-5.2.0+58e078ad9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-recipe-api-v1/9.0.20+11e1c9a39e/c2540b28f851487fa5247fb3c7eb7fd0d58ee240/fabric-recipe-api-v1-9.0.20+11e1c9a39e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-client-gametest-api-v1/6.0.0+515ac5339e/1ee4ef80c4f73873fa52dc556ae98059c74da37a/fabric-client-gametest-api-v1-6.0.0+515ac5339e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-menu-api-v1/2.0.16+086d547a9e/8a0c9ebc8624604d15cc59fedf1ca43c55064696/fabric-menu-api-v1-2.0.16+086d547a9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-convention-tags-v2/4.7.0+1f023a9e9e/7d9023bfcca4a74a72580b70cd84ce547a9e63bb/fabric-convention-tags-v2-4.7.0+1f023a9e9e.jar
+/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-message-api-v1/7.0.8+bb2ed3f79e/106dc9ed22970076aaa39cd257b69705d136dd05/fabric-message-api-v1-7.0.8+bb2ed3f79e.jar
+/home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar
+/home/runner/.gradle/caches/fabric-loom/26.2/minecraft-client.jar
+/home/runner/.gradle/caches/fabric-loom/26.2/minecraft-merged.jar
+/home/runner/.gradle/caches/fabric-loom/26.2/minecraft-extracted_server.jar
+/home/runner/.gradle/caches/fabric-loom/26.2/minecraft-server.jar
+.gradle/loom-cache/minecraftMaven/net/minecraft/minecraft-merged-5577501fcd/26.2/minecraft-merged-5577501fcd-26.2.jar
+=== net.minecraft.client.renderer.OrderedSubmitNodeCollector (/home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar)
+Compiled from "OrderedSubmitNodeCollector.java"
+public interface net.minecraft.client.renderer.OrderedSubmitNodeCollector {
+  public abstract void submitShadow(com.mojang.blaze3d.vertex.PoseStack, float, java.util.List<net.minecraft.client.renderer.entity.state.EntityRenderState$ShadowPiece>);
+  public abstract void submitNameTag(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.world.phys.Vec3, int, net.minecraft.network.chat.Component, boolean, int, net.minecraft.client.renderer.state.level.CameraRenderState);
+  public abstract void submitText(com.mojang.blaze3d.vertex.PoseStack, float, float, net.minecraft.util.FormattedCharSequence, boolean, net.minecraft.client.gui.Font$DisplayMode, int, int, int, int);
+  public abstract void submitFlame(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.entity.state.EntityRenderState, org.joml.Quaternionf);
+  public abstract void submitLeash(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.entity.state.EntityRenderState$LeashState);
+  public abstract <S> void submitModel(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, int, net.minecraft.client.renderer.texture.TextureAtlasSprite, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default <S> void submitModel(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default <S> void submitModel(net.minecraft.client.model.Model<? super S>, S, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.resources.Identifier, int, int, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default <S> void submitModel(net.minecraft.client.model.Model<S>, S, com.mojang.blaze3d.vertex.PoseStack, int, int, int, net.minecraft.client.resources.model.sprite.SpriteId, net.minecraft.client.resources.model.sprite.SpriteGetter, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default void submitModelPart(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, net.minecraft.client.renderer.texture.TextureAtlasSprite);
+  public default void submitModelPart(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, net.minecraft.client.renderer.texture.TextureAtlasSprite, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay);
+  public default void submitModelPart(net.minecraft.client.model.geom.ModelPart, com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, int, int, net.minecraft.client.renderer.texture.TextureAtlasSprite, int, net.minecraft.client.renderer.feature.ModelFeatureRenderer$CrumblingOverlay, int);
+  public abstract void submitMovingBlock(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.block.MovingBlockRenderState, int);
+  public abstract void submitBlockModel(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, java.util.List<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>, int[], int, int, int);
+  public abstract void submitBreakingBlockModel(com.mojang.blaze3d.vertex.PoseStack, java.util.List<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>, int);
+  public abstract void submitShapeOutline(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.world.phys.shapes.VoxelShape, net.minecraft.client.renderer.rendertype.RenderType, int, float, boolean);
+  public abstract void submitItem(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.world.item.ItemDisplayContext, int, int, int, int[], java.util.List<net.minecraft.client.resources.model.geometry.BakedQuad>, net.minecraft.client.renderer.item.ItemStackRenderState$FoilType);
+  public abstract void submitCustomGeometry(com.mojang.blaze3d.vertex.PoseStack, net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.client.renderer.SubmitNodeCollector$CustomGeometryRenderer);
+  public abstract void submitQuadParticleGroup(net.minecraft.client.renderer.state.level.QuadParticleRenderState);
+  public abstract void submitGizmoPrimitives(net.minecraft.client.renderer.gizmos.DrawableGizmoPrimitives$Group, net.minecraft.client.renderer.state.level.CameraRenderState, boolean);
+  private static net.minecraft.client.renderer.rendertype.RenderType lambda$submitModelPart$0(net.minecraft.client.renderer.rendertype.RenderType, net.minecraft.resources.Identifier);
+}
+=== com.mojang.blaze3d.vertex.VertexConsumer (/home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar)
+Compiled from "VertexConsumer.java"
+public interface com.mojang.blaze3d.vertex.VertexConsumer {
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer addVertex(float, float, float);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setColor(int, int, int, int);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setColor(int);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setUv(float, float);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setUv1(int, int);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setUv2(int, int);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setNormal(float, float, float);
+  public abstract com.mojang.blaze3d.vertex.VertexConsumer setLineWidth(float);
+  public default void addVertex(float, float, float, int, float, float, int, int, float, float, float);
+  public default com.mojang.blaze3d.vertex.VertexConsumer setColor(float, float, float, float);
+  public default com.mojang.blaze3d.vertex.VertexConsumer setLight(int);
+  public default com.mojang.blaze3d.vertex.VertexConsumer setOverlay(int);
+  public default void putBlockBakedQuad(float, float, float, net.minecraft.client.resources.model.geometry.BakedQuad, com.mojang.blaze3d.vertex.QuadInstance);
+  public default void putBakedQuad(com.mojang.blaze3d.vertex.PoseStack$Pose, net.minecraft.client.resources.model.geometry.BakedQuad, com.mojang.blaze3d.vertex.QuadInstance);
+  public default com.mojang.blaze3d.vertex.VertexConsumer addVertex(org.joml.Vector3fc);
+  public default com.mojang.blaze3d.vertex.VertexConsumer addVertex(com.mojang.blaze3d.vertex.PoseStack$Pose, org.joml.Vector3fc);
+  public default com.mojang.blaze3d.vertex.VertexConsumer addVertex(com.mojang.blaze3d.vertex.PoseStack$Pose, float, float, float);
+  public default com.mojang.blaze3d.vertex.VertexConsumer addVertex(org.joml.Matrix4fc, float, float, float);
+  public default com.mojang.blaze3d.vertex.VertexConsumer addVertexWith2DPose(org.joml.Matrix3x2fc, float, float);
+  public default com.mojang.blaze3d.vertex.VertexConsumer setNormal(com.mojang.blaze3d.vertex.PoseStack$Pose, float, float, float);
+  public default com.mojang.blaze3d.vertex.VertexConsumer setNormal(com.mojang.blaze3d.vertex.PoseStack$Pose, org.joml.Vector3fc);
+}
+=== net.minecraft.client.renderer.state.level.LevelRenderState (/home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar)
+Compiled from "LevelRenderState.java"
+public class net.minecraft.client.renderer.state.level.LevelRenderState {
+  public net.minecraft.client.renderer.state.level.CameraRenderState cameraRenderState;
+  public final java.util.List<net.minecraft.client.renderer.state.level.SectionUpdateRenderState> sectionUpdateRenderStates;
+  public final java.util.List<net.minecraft.client.renderer.entity.state.EntityRenderState> entityRenderStates;
+  public final java.util.List<net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState> blockEntityRenderStates;
+  public net.minecraft.client.renderer.state.level.BlockOutlineRenderState blockOutlineRenderState;
+  public final java.util.List<net.minecraft.client.renderer.state.level.BlockBreakingRenderState> blockBreakingRenderStates;
+  public final net.minecraft.client.renderer.state.level.WeatherRenderState weatherRenderState;
+  public final net.minecraft.client.renderer.state.level.WorldBorderRenderState worldBorderRenderState;
+  public final net.minecraft.client.renderer.state.level.SkyRenderState skyRenderState;
+  public final net.minecraft.client.renderer.state.level.ParticlesRenderState particlesRenderState;
+  public long gameTime;
+  public int lastEntityRenderStateCount;
+  public int cloudColor;
+  public float cloudHeight;
+  public boolean render3dCrosshair;
+  public java.lang.Runnable playerCompiledSectionCallback;
+  public net.minecraft.client.renderer.state.level.ChunkLoadingRenderState chunkLoadingRenderState;
+  public boolean shouldResetChunkLayerSampler;
+  public boolean shouldShowEntityOutlines;
+  public boolean shouldResetSkyRenderer;
+  public net.minecraft.client.renderer.state.level.LevelRenderState();
+  public void reset();
+}
+=== net.minecraft.world.item.DyeColor (/home/runner/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged-deobf/26.2/minecraft-merged-deobf-26.2.jar)
+Compiled from "DyeColor.java"
+public final class net.minecraft.world.item.DyeColor extends java.lang.Enum<net.minecraft.world.item.DyeColor> implements net.minecraft.util.StringRepresentable {
+  public static final net.minecraft.world.item.DyeColor WHITE;
+  public static final net.minecraft.world.item.DyeColor ORANGE;
+  public static final net.minecraft.world.item.DyeColor MAGENTA;
+  public static final net.minecraft.world.item.DyeColor LIGHT_BLUE;
+  public static final net.minecraft.world.item.DyeColor YELLOW;
+  public static final net.minecraft.world.item.DyeColor LIME;
+  public static final net.minecraft.world.item.DyeColor PINK;
+  public static final net.minecraft.world.item.DyeColor GRAY;
+  public static final net.minecraft.world.item.DyeColor LIGHT_GRAY;
+  public static final net.minecraft.world.item.DyeColor CYAN;
+  public static final net.minecraft.world.item.DyeColor PURPLE;
+  public static final net.minecraft.world.item.DyeColor BLUE;
+  public static final net.minecraft.world.item.DyeColor BROWN;
+  public static final net.minecraft.world.item.DyeColor GREEN;
+  public static final net.minecraft.world.item.DyeColor RED;
+  public static final net.minecraft.world.item.DyeColor BLACK;
+  public static final java.util.List<net.minecraft.world.item.DyeColor> VALUES;
+  private static final java.util.function.IntFunction<net.minecraft.world.item.DyeColor> BY_ID;
+  private static final it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap<net.minecraft.world.item.DyeColor> BY_FIREWORK_COLOR;
+  public static final net.minecraft.util.StringRepresentable$EnumCodec<net.minecraft.world.item.DyeColor> CODEC;
+  public static final net.minecraft.network.codec.StreamCodec<io.netty.buffer.ByteBuf, net.minecraft.world.item.DyeColor> STREAM_CODEC;
+  public static final com.mojang.serialization.Codec<net.minecraft.world.item.DyeColor> LEGACY_ID_CODEC;
+  private final int id;
+  private final java.lang.String name;
+  private final net.minecraft.world.level.material.MapColor mapColor;
+  private final net.minecraft.world.level.material.MapColor terracottaColor;
+  private final int textureDiffuseColor;
+  private final int fireworkColor;
+  private final int textColor;
+  private static final net.minecraft.world.item.DyeColor[] $VALUES;
+  public static net.minecraft.world.item.DyeColor[] values();
+  public static net.minecraft.world.item.DyeColor valueOf(java.lang.String);
+  private net.minecraft.world.item.DyeColor(int, java.lang.String, int, net.minecraft.world.level.material.MapColor, net.minecraft.world.level.material.MapColor, int, int);
+  public int getId();
+  public java.lang.String getName();
+  public int getTextureDiffuseColor();
+  public net.minecraft.world.level.material.MapColor getMapColor();
+  public net.minecraft.world.level.material.MapColor getTerracottaColor();
+  public int getFireworkColor();
+  public int getTextColor();
+  public static net.minecraft.world.item.DyeColor byId(int);
+  public static net.minecraft.world.item.DyeColor byName(java.lang.String, net.minecraft.world.item.DyeColor);
+  public static net.minecraft.world.item.DyeColor byFireworkColor(int);
+  public java.lang.String toString();
+  public java.lang.String getSerializedName();
+  public static net.minecraft.world.item.DyeColor getMixedColor(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.DyeColor, net.minecraft.world.item.DyeColor);
+  private static net.minecraft.world.item.DyeColor findColorMixInRecipes(net.minecraft.server.level.ServerLevel, net.minecraft.world.item.DyeColor, net.minecraft.world.item.DyeColor);
+  private static net.minecraft.world.item.DyeColor[] $values();
+  private static java.lang.Byte lambda$static$2(net.minecraft.world.item.DyeColor);
+  private static net.minecraft.world.item.DyeColor lambda$static$1(net.minecraft.world.item.DyeColor);
+  private static java.lang.Integer lambda$static$0(net.minecraft.world.item.DyeColor);
+  private static net.minecraft.world.item.DyeColor[] lambda$BY_ID$0(int);
+  static {};
+}

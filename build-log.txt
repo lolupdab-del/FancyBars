@@ -1,0 +1,30 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Configure project :
+Fabric Loom: 1.17.21
+
+> Task :compileJava
+Note: /home/runner/work/FancyBars/FancyBars/src/main/java/dev/fancybars/items/ItemChangerScreen.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: /home/runner/work/FancyBars/FancyBars/src/main/java/dev/fancybars/gifs/GifDecoder.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :processResources
+> Task :classes
+> Task :processIncludeJars
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :jar
+> Task :validateAccessWidener
+> Task :assemble
+> Task :check
+> Task :build
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1793408546652.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/FancyBars/FancyBars/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 21s
+5 actionable tasks: 5 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html
