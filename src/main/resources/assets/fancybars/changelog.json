@@ -1,7 +1,7 @@
 [
   {"version": "2.24.2", "date": "2026-10-31",
    "added": [],
-   "fixed": ["No more streaks where the crafting grid / offhand slot are hidden on detailed inventory textures"]},
+   "fixed": ["No more streaks where the crafting grid / offhand slot are hidden on detailed inventory textures", "Spotify volume no longer flicks back and forth after you change it (same for seeking)"]},
   {"version": "2.24.1", "date": "2026-10-31",
    "added": [],
    "fixed": ["Hidden crafting grid / offhand slot blend into your resource pack's inventory art instead of leaving mismatched blocks", "GIFs are no longer covered by the hidden-slot patches"]},

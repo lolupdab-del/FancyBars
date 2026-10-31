@@ -101,7 +101,7 @@ public final class Spotify {
 				if (now < nextPoll) return;
 				nextPoll = now + 1000;
 				busy = true;
-				CompletableFuture.runAsync(() -> state = BrokeMode.poll(state), FancyBarsMod.VIRTUAL_THREAD_EXECUTOR).whenComplete((v, e) -> busy = false);
+				CompletableFuture.runAsync(() -> state = applyHolds(BrokeMode.poll(state)), FancyBarsMod.VIRTUAL_THREAD_EXECUTOR).whenComplete((v, e) -> busy = false);
 				return;
 			}
 			if (wasBroke) {
@@ -375,7 +375,7 @@ public final class Spotify {
 					}
 				}
 			}
-			state = s;
+			state = applyHolds(s);
 			status = "Connected";
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.debug("[SBCLIENT] Spotify poll failed", e);
@@ -439,8 +439,34 @@ public final class Spotify {
 		command("POST", "/previous");
 	}
 
+	// Spotify takes a moment to apply a change, so polls right after it still report the old value; keep showing the
+	// value you picked until Spotify catches up (or 4 s pass) instead of flicking back and forth
+	private static volatile int heldVolume = -1;
+	private static volatile long volumeHeldUntil;
+	private static volatile long heldProgress = -1;
+	private static volatile long heldProgressAt;
+	private static volatile long progressHeldUntil;
+
+	private static State applyHolds(State s) {
+		long now = Util.getMillis();
+		if (heldVolume >= 0) {
+			if (now < volumeHeldUntil && s.volume != heldVolume) s.volume = heldVolume;
+			else heldVolume = -1;
+		}
+		if (heldProgress >= 0) {
+			long expected = heldProgress + (s.playing ? now - heldProgressAt : 0);
+			if (now < progressHeldUntil && Math.abs(s.progressMs - expected) > 2500) {
+				s.progressMs = expected;
+				s.fetchedAt = now;
+			} else heldProgress = -1;
+		}
+		return s;
+	}
+
 	public static void setVolume(int percent) {
 		state.volume = Math.clamp(percent, 0, 100);
+		heldVolume = state.volume;
+		volumeHeldUntil = Util.getMillis() + 4000;
 		if (brokeMode()) {
 			BrokeMode.setVolume(state.volume);
 			return;
@@ -451,6 +477,9 @@ public final class Spotify {
 	public static void seek(long ms) {
 		State s = state;
 		s.progressMs = Math.clamp(ms, 0, s.durationMs);
+		heldProgress = s.progressMs;
+		heldProgressAt = Util.getMillis();
+		progressHeldUntil = heldProgressAt + 4000;
 		s.fetchedAt = Util.getMillis();
 		if (brokeMode()) {
 			BrokeMode.seek(s.progressMs);
