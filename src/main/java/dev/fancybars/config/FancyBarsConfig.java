@@ -182,6 +182,11 @@ public class FancyBarsConfig {
 	public boolean petRingRarity = false;
 	public int petRingColor = 0x00FFFF;
 	public int petRingUnfilled = 0xC0C0C0;
+	/** Distance between the rarity circle and the XP ring. */
+	public float petRingGap = 1;
+	/** Fill that gap with a ring (otherwise it's see-through). */
+	public boolean petSeparator = true;
+	public int petSeparatorColor = 0x808080;
 	/** Bumped when the pet display's defaults change to match SkyHanni. */
 	public int petStyleVersion = 0;
 	public boolean petShowLevel = true;

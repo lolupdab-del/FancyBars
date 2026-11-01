@@ -1,6 +1,6 @@
 [
   {"version": "2.33.2", "date": "2026-11-01",
-   "added": [],
+   "added": ["Pet Display: Ring Gap slider for the space between the rarity background and the XP ring, with Fill Ring Gap and Gap Colour"],
    "fixed": ["Pet Display shows your pet's skin: it uses the exact pet you click in /pets, and picks up skins you apply later"]},
   {"version": "2.33.1", "date": "2026-11-01",
    "added": [],

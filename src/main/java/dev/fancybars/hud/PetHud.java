@@ -577,9 +577,16 @@ public final class PetHud {
 	private static final float ICON_SIZE = 40;
 	/** Rarity circle padding around the icon. */
 	private static final float BG_PAD = 4;
-	private static final float SEPARATOR = 1;
 	private static final float XP_RING = 3;
-	private static final float CIRCLE = ICON_SIZE + BG_PAD * 2 + SEPARATOR * 2 + XP_RING * 2;
+	/** Gap between the rarity circle and the XP ring (Ring Gap setting). */
+	private static float gap() {
+		return Math.max(0, FancyBarsConfig.get().petRingGap);
+	}
+
+	/** Full diameter of the icon: rarity circle, gap and XP ring. */
+	private static float circle() {
+		return ICON_SIZE + BG_PAD * 2 + gap() * 2 + XP_RING * 2;
+	}
 	private static final int TEXT_GAP = 4;
 	private static final int LINE_H = 10;
 
@@ -617,7 +624,7 @@ public final class PetHud {
 		List<Component> l = lines(sample);
 		int textW = 0;
 		for (Component line : l) textW = Math.max(textW, font.width(line));
-		int circle = c.petShowIcon ? Math.round(CIRCLE) : 0;
+		int circle = c.petShowIcon ? Math.round(circle()) : 0;
 		int w = circle + (textW > 0 ? (circle > 0 ? TEXT_GAP : 0) + textW : 0);
 		int h = Math.max(circle, l.size() * LINE_H);
 		if (c.petBackground) {
@@ -661,6 +668,7 @@ public final class PetHud {
 		float innerH = size[1] - oy * 2;
 		float tx = ox;
 		if (c.petShowIcon) {
+			final float CIRCLE = circle();
 			float cx = ox + CIRCLE / 2f;
 			float cy = oy + innerH / 2f;
 			if (c.petXpRing) {
@@ -673,7 +681,10 @@ public final class PetHud {
 				drawArc(graphics, cx - CIRCLE / 2f, cy - CIRCLE / 2f, CIRCLE, XP_RING, filled, ringColor);
 			}
 			// separator ring between the XP ring and the rarity circle
-			if (c.petXpRing && c.petRarityBackground) disc(graphics, cx, cy, CIRCLE - XP_RING * 2, a << 24 | 0x808080);
+			if (c.petXpRing && c.petSeparator && gap() > 0.01f) {
+				float inner = CIRCLE - XP_RING * 2;
+				drawArc(graphics, cx - inner / 2f, cy - inner / 2f, inner, gap(), 1, a << 24 | c.petSeparatorColor & 0xFFFFFF);
+			}
 			if (c.petRarityBackground) disc(graphics, cx, cy, ICON_SIZE + BG_PAD * 2, a << 24 | color & 0xFFFFFF);
 			ItemStack stack = icon(useSample ? "golden dragon" : name, color);
 			// rendered at full screen resolution, so the head is as smooth as SkyHanni's
