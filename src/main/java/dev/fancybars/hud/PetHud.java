@@ -114,7 +114,9 @@ public final class PetHud {
 					String hover = ChatFormatting.stripFormatting(hovered.getItem().getHoverName().getString());
 					Matcher hm = hover == null ? null : MENU_NAME.matcher(hover.trim());
 					if (hm != null && hm.matches()) {
-						hoveredPet = hm.group("pet").trim();
+						hoveredPet = cleanPet(hm.group("pet"));
+						hoveredLevel = parseInt(hm.group("level"));
+						hoveredColor = colorOf(hovered.getItem().getHoverName(), hoveredPet);
 						hoveredHead = headOf(hovered.getItem());
 						hoveredSkin = skinColorOf(hovered.getItem().getHoverName());
 						hoveredAt = System.currentTimeMillis();
@@ -150,24 +152,32 @@ public final class PetHud {
 	 */
 	private static final dev.fancybars.util.Held<String> HELD_PET = new dev.fancybars.util.Held<>(15_000, String::equalsIgnoreCase);
 
+	/** "Skeleton ✦" -> "Skeleton": chat puts the skin star (and other symbols) right in the pet's name. */
+	private static String cleanPet(String pet) {
+		return pet.replaceAll("\\s*[✦⚘✪★].*$", "").trim();
+	}
+
 	private static void onChat(String text, Component message) {
 		Matcher m;
 		if ((m = AUTOPET.matcher(text)).matches()) {
-			setPet(m.group("pet"), Integer.parseInt(m.group("level")), colorOf(message, m.group("pet")));
-			HELD_PET.set(m.group("pet"));
+			String pet = cleanPet(m.group("pet"));
+			setPet(pet, Integer.parseInt(m.group("level")), colorOf(message, pet));
+			HELD_PET.set(pet);
 			heldItem = "";
-			switchedTo(m.group("pet"));
-			if (skinColorOf(message) != -1) skinColor = skinColorOf(message);
+			skinColor = skinColorOf(message);
+			switchedTo(pet); // the pet you clicked in /pets wins: its star has the right colour
 		} else if ((m = SUMMON.matcher(text)).matches()) {
-			setPet(m.group("pet"), -1, colorOf(message, m.group("pet")));
-			HELD_PET.set(m.group("pet"));
+			String pet = cleanPet(m.group("pet"));
+			setPet(pet, -1, colorOf(message, pet));
+			HELD_PET.set(pet);
 			heldItem = "";
-			switchedTo(m.group("pet"));
+			skinColor = skinColorOf(message);
+			switchedTo(pet);
 		} else if ((m = DESPAWN.matcher(text)).matches()) {
 			name = "";
 			level = -1;
 			HELD_PET.set("");
-		} else if ((m = LEVEL_UP.matcher(text)).matches() && m.group("pet").equalsIgnoreCase(name)) {
+		} else if ((m = LEVEL_UP.matcher(text)).matches() && cleanPet(m.group("pet")).equalsIgnoreCase(name)) {
 			level = Integer.parseInt(m.group("level"));
 		} else if ((m = HOLDING.matcher(text)).matches()) {
 			heldItem = m.group("item");
@@ -408,6 +418,9 @@ public final class PetHud {
 		if (hoveredHead != null && hoveredPet.equalsIgnoreCase(pet) && System.currentTimeMillis() - hoveredAt < 15_000) {
 			setCurrentIcon(pet, hoveredHead);
 			skinColor = hoveredSkin;
+			// the pet you clicked tells us its level and rarity right away (chat doesn't)
+			if (hoveredLevel > 0) level = hoveredLevel;
+			if (hoveredColor != -1) rarityColor = hoveredColor;
 		} else if (!currentIconPet.equalsIgnoreCase(pet)) {
 			currentIcon = null;
 			currentIconPet = "";
@@ -418,6 +431,8 @@ public final class PetHud {
 	/** Colour of the pet's skin star (✦), or -1 when it has no skin. */
 	private static int skinColor = -1;
 	private static int hoveredSkin = -1;
+	private static int hoveredLevel = -1;
+	private static int hoveredColor = -1;
 
 	/** Finds the skin star in a pet name and returns its colour (-1 if there's none). */
 	private static int skinColorOf(Component component) {

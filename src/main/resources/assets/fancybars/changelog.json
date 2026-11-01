@@ -1,4 +1,7 @@
 [
+  {"version": "2.33.5", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Pet Display shows a skinned pet properly the moment you summon it, instead of a bone with no level or rarity for a few seconds"]},
   {"version": "2.33.4", "date": "2026-11-01",
    "added": ["Pet Display: skin star (✦) after the name when your pet has a skin, in the skin's colour (Skin Star toggle)"],
    "fixed": []},
