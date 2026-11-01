@@ -647,7 +647,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("armorBarrier", () -> config.armorBarrier, value -> config.armorBarrier = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> dev.fancybars.hud.ArmorHud.ELEMENT.reset())));
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.ARMOR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.pet.title"), null));
 				list.add(new ToggleItem("petEnabled", () -> config.petEnabled, value -> config.petEnabled = value));
 				list.add(new ToggleItem("petBackground", () -> config.petBackground, value -> config.petBackground = value));
@@ -661,7 +661,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("petShowHeldItem", () -> config.petShowHeldItem, value -> config.petShowHeldItem = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> dev.fancybars.hud.PetHud.ELEMENT.reset())));
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.PET.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.keystrokes"), null));
 				list.add(new ToggleItem("keystrokesEnabled", () -> config.keystrokesEnabled, value -> config.keystrokesEnabled = value));
 				list.add(new ValueCycleItem("keystrokesMode", new int[]{0, 1, 2}, () -> config.keystrokesMode,

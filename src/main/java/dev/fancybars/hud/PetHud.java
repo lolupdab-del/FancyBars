@@ -44,7 +44,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemLore;
 
 import dev.fancybars.FancyBarsMod;
-import dev.fancybars.bars.MovableElement;
 import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.util.SkyblockLocation;
 import dev.fancybars.util.gui.Theme;
@@ -507,68 +506,4 @@ public final class PetHud {
 		pose.popMatrix();
 	}
 
-	// ---------------------------------------------------------------- editor
-
-	public static final MovableElement ELEMENT = new MovableElement() {
-		@Override
-		public float[] rect(int screenW, int screenH) {
-			float[] pos = position(screenW, screenH);
-			int[] size = size(true);
-			float s = scale();
-			return new float[]{pos[0], pos[1], size[0] * s, size[1] * s};
-		}
-
-		@Override
-		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
-			float[] pos = position(screenW, screenH);
-			renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f, true);
-		}
-
-		@Override
-		public void moveTo(float x, float y, int screenW, int screenH) {
-			FancyBarsConfig c = FancyBarsConfig.get();
-			float[] r = rect(screenW, screenH);
-			c.petX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
-			c.petY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
-		}
-
-		@Override
-		public float scale() {
-			return FancyBarsConfig.get().petScale;
-		}
-
-		@Override
-		public void setScale(float scale) {
-			FancyBarsConfig.get().petScale = scale;
-		}
-
-		@Override
-		public boolean enabled() {
-			return FancyBarsConfig.get().petEnabled;
-		}
-
-		@Override
-		public void setEnabled(boolean enabled) {
-			FancyBarsConfig.get().petEnabled = enabled;
-		}
-
-		@Override
-		public void reset() {
-			FancyBarsConfig c = FancyBarsConfig.get();
-			c.petX = -1;
-			c.petY = -1;
-			c.petScale = 1;
-			FancyBarsConfig.save();
-		}
-
-		@Override
-		public Component name() {
-			return Component.translatable("fancybars.editor.element.pet");
-		}
-
-		@Override
-		public boolean snapsToCenter() {
-			return false;
-		}
-	};
 }
