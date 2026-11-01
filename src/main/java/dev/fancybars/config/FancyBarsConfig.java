@@ -323,6 +323,19 @@ public class FancyBarsConfig {
 	/** Mini player next to your inventory. */
 	public boolean spotifyInventory = true;
 
+	/** Where you dragged the inventory player, relative to the inventory's top-left corner. */
+	public boolean spotifyPanelMoved = false;
+	public int spotifyPanelDX = 0;
+	public int spotifyPanelDY = 0;
+
+	/** Item value tooltips (ported from Skyblocker). */
+	public boolean itemValueEnabled = true;
+	public boolean itemValueEstimated = true;
+	public boolean itemValueLowestBin = true;
+	public boolean itemValueAvgBin = true;
+	public boolean itemValueBazaar = true;
+	public boolean itemValueNpc = true;
+
 	/** Your own Spotify app's Client ID (developer.spotify.com). */
 	public String spotifyClientId = "";
 

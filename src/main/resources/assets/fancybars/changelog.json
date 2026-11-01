@@ -1,4 +1,7 @@
 [
+  {"version": "2.30.0", "date": "2026-11-01",
+   "added": ["Item Value tooltips from Skyblocker (Items tab): estimated item value, lowest BIN, 3 day average BIN, bazaar buy / sell and NPC sell price, each with its own toggle", "Drag the inventory Spotify player by its background to put it anywhere (reset it from the Spotify tab)"],
+   "fixed": []},
   {"version": "2.29.0", "date": "2026-11-01",
    "added": ["Star in Front of Items toggle for protected items (Items tab)"],
    "fixed": ["Spotify progress and volume bars glide smoothly instead of stepping", "Spotify screen layout: shuffle, repeat, volume and buttons no longer overlap", "Spotify album art is sharp (loads the full-size cover and lines it up with screen pixels)"]},

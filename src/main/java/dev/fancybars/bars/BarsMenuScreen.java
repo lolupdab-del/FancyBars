@@ -450,6 +450,13 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("protectionStarInFront", () -> config.protectionStarInFront, value -> config.protectionStarInFront = value));
 				list.add(new ProtectedItemsItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.itemValue"), null));
+				list.add(new ToggleItem("itemValueEnabled", () -> config.itemValueEnabled, value -> config.itemValueEnabled = value));
+				list.add(new ToggleItem("itemValueEstimated", () -> config.itemValueEstimated, value -> config.itemValueEstimated = value));
+				list.add(new ToggleItem("itemValueLowestBin", () -> config.itemValueLowestBin, value -> config.itemValueLowestBin = value));
+				list.add(new ToggleItem("itemValueAvgBin", () -> config.itemValueAvgBin, value -> config.itemValueAvgBin = value));
+				list.add(new ToggleItem("itemValueBazaar", () -> config.itemValueBazaar, value -> config.itemValueBazaar = value));
+				list.add(new ToggleItem("itemValueNpc", () -> config.itemValueNpc, value -> config.itemValueNpc = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.itemCustomization"), null));
 				list.add(new ToggleItem("itemCustomizationEnabled", () -> config.itemCustomizationEnabled, value -> config.itemCustomizationEnabled = value));
 				list.add(new ToggleItem("itemCustomizationButton", () -> config.itemCustomizationButton, value -> config.itemCustomizationButton = value));
@@ -687,6 +694,10 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("spotifyBrokeMode", () -> config.spotifyBrokeMode, value -> config.spotifyBrokeMode = value));
 				list.add(new ToggleItem("spotifyHud", () -> config.spotifyHud, value -> config.spotifyHud = value));
 				list.add(new ToggleItem("spotifyInventory", () -> config.spotifyInventory, value -> config.spotifyInventory = value));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.spotify.resetPanel"), () -> {
+					config.spotifyPanelMoved = false;
+					FancyBarsConfig.save();
+				})));
 				list.add(new InfoCardItem(Component.translatable("fancybars.spotify.aboutTitle"), List.of(
 						Component.translatable(dev.fancybars.spotify.Spotify.connected() ? "fancybars.spotify.connected" : "fancybars.spotify.notConnected"),
 						Component.translatable("fancybars.spotify.premium"),

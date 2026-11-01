@@ -38,7 +38,9 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 	private final Screen owner;
 	private float hoverPlay;
 	private long lastFrame = Util.getMillis();
-	private int dragging; // 0 none, 1 seek, 2 volume
+	private int dragging; // 0 none, 1 seek, 2 volume, 3 moving the panel
+	private double grabX;
+	private double grabY;
 	private float dragValue;
 
 	private SpotifyInventoryPanel(Screen owner, ContainerScreenAccessor screen) {
@@ -68,6 +70,13 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		int left = screen.fancybars$getLeftPos();
 		int top = screen.fancybars$getTopPos();
 		int right = left + screen.fancybars$getImageWidth();
+		FancyBarsConfig config = FancyBarsConfig.get();
+		if (config.spotifyPanelMoved) {
+			int x = Math.clamp(left + config.spotifyPanelDX, 0, Math.max(0, owner.width - W));
+			int y = Math.clamp(top + config.spotifyPanelDY, 0, Math.max(0, owner.height - H));
+			setPosition(x, y);
+			return;
+		}
 		int x = right + 6 + W <= owner.width ? right + 6 : Math.max(2, left - 6 - W);
 		setPosition(x, top);
 	}
@@ -156,7 +165,8 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		SpotifyUi.progress(graphics, volumeX(), volumeY(), volumeW(), volume, overVol || dragging == 2 ? SpotifyUi.green() : Theme.hudText(255));
 		if (overVol || dragging == 2) Theme.circle(graphics, volumeX() + volumeW() * volume, volumeY() + 2f, 8f, Theme.hudText(255));
 
-		if (overBar || overVol || overPlay(mouseX, mouseY) || overSkip(mouseX, mouseY, true) || overSkip(mouseX, mouseY, false) || dragging != 0) {
+		if (dragging == 3) graphics.requestCursor(CursorTypes.RESIZE_ALL);
+		else if (overBar || overVol || overPlay(mouseX, mouseY) || overSkip(mouseX, mouseY, true) || overSkip(mouseX, mouseY, false) || dragging != 0) {
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 	}
@@ -198,6 +208,11 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		} else if (inside(mx, my, volumeX() - 2, volumeY() - 4, volumeW() + 4, 10)) {
 			dragging = 2;
 			dragValue = (float) Math.clamp((mx - volumeX()) / volumeW(), 0, 1);
+		} else {
+			// anywhere else: pick the panel up and move it
+			dragging = 3;
+			grabX = mx - getX();
+			grabY = my - getY();
 		}
 	}
 
@@ -205,12 +220,22 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 	protected void onDrag(MouseButtonEvent click, double dx, double dy) {
 		if (dragging == 1) dragValue = (float) Math.clamp((click.x() - barX()) / barW(), 0, 1);
 		else if (dragging == 2) dragValue = (float) Math.clamp((click.x() - volumeX()) / volumeW(), 0, 1);
+		else if (dragging == 3) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			int x = (int) Math.round(Math.clamp(click.x() - grabX, 0, Math.max(0, owner.width - W)));
+			int y = (int) Math.round(Math.clamp(click.y() - grabY, 0, Math.max(0, owner.height - H)));
+			config.spotifyPanelMoved = true;
+			config.spotifyPanelDX = x - screen.fancybars$getLeftPos();
+			config.spotifyPanelDY = y - screen.fancybars$getTopPos();
+			setPosition(x, y);
+		}
 	}
 
 	@Override
 	public void onRelease(MouseButtonEvent click) {
 		if (dragging == 1) Spotify.seek((long) (dragValue * Spotify.state().durationMs));
 		else if (dragging == 2) Spotify.setVolume(Math.round(dragValue * 100));
+		else if (dragging == 3) FancyBarsConfig.save();
 		dragging = 0;
 	}
 
