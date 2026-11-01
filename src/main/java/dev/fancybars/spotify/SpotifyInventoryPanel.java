@@ -134,7 +134,7 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		float fraction = dragging == 1 ? dragValue : s.durationMs > 0 ? s.progressNow() / (float) s.durationMs : 0;
 		boolean overBar = inside(mouseX, mouseY, barX() - 2, barY() - 4, barW() + 4, 10);
 		SpotifyUi.progress(graphics, barX(), barY(), barW(), fraction, overBar || dragging == 1 ? SpotifyUi.green() : Theme.hudText(255));
-		if (overBar || dragging == 1) Theme.circle(graphics, barX() + Math.round(barW() * fraction) - 4, barY() - 2, 8, Theme.hudText(255));
+		if (overBar || dragging == 1) Theme.circle(graphics, barX() + barW() * fraction, barY() + 2f, 8f, Theme.hudText(255));
 		long shownMs = dragging == 1 ? (long) (dragValue * s.durationMs) : s.progressNow();
 		smallText(graphics, Spotify.time(shownMs), barX(), barY() + 5, false);
 		smallText(graphics, Spotify.time(s.durationMs), barX() + barW(), barY() + 5, true);
@@ -154,7 +154,7 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		SpotifyUi.icon(graphics, "speaker", x + PAD - 1, volumeY() - 4, 10, Theme.hudTextSoft(255));
 		boolean overVol = inside(mouseX, mouseY, volumeX() - 2, volumeY() - 4, volumeW() + 4, 10);
 		SpotifyUi.progress(graphics, volumeX(), volumeY(), volumeW(), volume, overVol || dragging == 2 ? SpotifyUi.green() : Theme.hudText(255));
-		if (overVol || dragging == 2) Theme.circle(graphics, volumeX() + Math.round(volumeW() * volume) - 4, volumeY() - 2, 8, Theme.hudText(255));
+		if (overVol || dragging == 2) Theme.circle(graphics, volumeX() + volumeW() * volume, volumeY() + 2f, 8f, Theme.hudText(255));
 
 		if (overBar || overVol || overPlay(mouseX, mouseY) || overSkip(mouseX, mouseY, true) || overSkip(mouseX, mouseY, false) || dragging != 0) {
 			graphics.requestCursor(CursorTypes.POINTING_HAND);

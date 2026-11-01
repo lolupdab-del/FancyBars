@@ -357,6 +357,8 @@
 	"fancybars.config.lagReportEnabled.@Tooltip": "At the end of every dungeon run, show how many seconds the server lost to lag (and its average TPS).",
 	"fancybars.config.lagReportParty": "Auto-Send to Party Chat",
 	"fancybars.config.lagReportParty.@Tooltip": "Also send the lag report to party chat automatically when the run ends.",
+	"fancybars.config.protectionStarInFront": "Star in Front of Items",
+	"fancybars.config.protectionStarInFront.@Tooltip": "Draw the protection star on top of the item instead of behind it.",
 	"fancybars.config.lagReportCustom": "Custom Message",
 	"fancybars.config.lagReportCustom.@Tooltip": "Write the lag report in your own words.",
 	"fancybars.config.lagReportFormat": "Message",

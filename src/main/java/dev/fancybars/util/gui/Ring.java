@@ -136,6 +136,24 @@ public final class Ring {
 		graphics.pose().popMatrix();
 	}
 
+	/**
+	 * Rounded bar whose length moves in sub-pixel steps: the next screen pixel fades in instead of
+	 * the bar jumping a whole pixel at a time.
+	 */
+	public static void fillRoundedSmooth(GuiGraphicsExtractor graphics, float x, float y, float w, float h, float radius, int color) {
+		if (w <= 0 || h <= 0 || (color >>> 24) == 0) return;
+		float perUnit = Math.abs(graphics.pose().m00()) * Theme.guiScale();
+		float exact = w * perUnit;
+		int whole = (int) Math.floor(exact);
+		float frac = exact - whole;
+		float unit = 1f / perUnit;
+		if (frac > 0.02f) {
+			int a = Math.round((color >>> 24) * frac);
+			fillRounded(graphics, x, y, (whole + 1) * unit, h, radius, a << 24 | color & 0xFFFFFF);
+		}
+		if (whole > 0) fillRounded(graphics, x, y, whole * unit, h, radius, color);
+	}
+
 	/** Smooth rounded outline whose thickness is in screen pixels (fractions fade the inner edge). */
 	public static void outlinePx(GuiGraphicsExtractor graphics, float x, float y, float w, float h, float radius, float thicknessPx, int color) {
 		if (w <= 0 || h <= 0 || thicknessPx <= 0 || (color >>> 24) == 0) return;

@@ -359,13 +359,13 @@ public final class Spotify {
 					s.album = str(album, "name");
 					if (album.has("images")) {
 						JsonArray images = album.getAsJsonArray("images");
-						// smallest image that is at least 64px, else the first
+						// biggest image (640 px) so the art stays sharp
 						String best = "";
-						int bestSize = Integer.MAX_VALUE;
+						int bestSize = 0;
 						for (JsonElement img : images) {
 							JsonObject o = img.getAsJsonObject();
 							int w = o.has("width") && !o.get("width").isJsonNull() ? o.get("width").getAsInt() : 300;
-							if (w >= 64 && w < bestSize) {
+							if (w > bestSize) {
 								bestSize = w;
 								best = str(o, "url");
 							}
@@ -525,7 +525,7 @@ public final class Spotify {
 			if (ART_PENDING.add(url)) {
 				FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> {
 					try {
-						HttpResponse<byte[]> response = HTTP.send(HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(15)).GET().build(),
+						HttpResponse<byte[]> response = HTTP.send(HttpRequest.newBuilder(URI.create(hiRes(url))).timeout(Duration.ofSeconds(15)).GET().build(),
 								HttpResponse.BodyHandlers.ofByteArray());
 						java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(response.body()));
 						if (image != null) ORIGINALS.put(url, image);
@@ -564,6 +564,11 @@ public final class Spotify {
 			});
 		}
 		return null;
+	}
+
+	/** Spotify CDN art comes in 64 / 300 / 640 px versions; always fetch the 640 px one. */
+	private static String hiRes(String url) {
+		return url.replace("ab67616d00004851", "ab67616d0000b273").replace("ab67616d00001e02", "ab67616d0000b273");
 	}
 
 	/** Smooth multi-step downscale + anti-aliased rounded-corner mask. */

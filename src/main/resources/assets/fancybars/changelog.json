@@ -1,4 +1,7 @@
 [
+  {"version": "2.29.0", "date": "2026-11-01",
+   "added": ["Star in Front of Items toggle for protected items (Items tab)"],
+   "fixed": ["Spotify progress and volume bars glide smoothly instead of stepping", "Spotify screen layout: shuffle, repeat, volume and buttons no longer overlap", "Spotify album art is sharp (loads the full-size cover and lines it up with screen pixels)"]},
   {"version": "2.28.1", "date": "2026-10-31",
    "added": ["Lag Report: Custom Message toggle, write it your own way with {lost} and {tps}"],
    "fixed": []},

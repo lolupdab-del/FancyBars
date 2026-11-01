@@ -39,6 +39,11 @@ public final class SpotifyUi {
 			icon(graphics, "note", x + size * 0.3f, y + size * 0.3f, size * 0.4f, 0x66FFFFFF);
 			return;
 		}
+		if (Math.abs(worldScale - 1) < 0.001f) {
+			// line the art up with real screen pixels so it isn't resampled (blurry)
+			x = Math.round(x * gs) / gs;
+			y = Math.round(y * gs) / gs;
+		}
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(size / pixels, size / pixels);
@@ -75,8 +80,8 @@ public final class SpotifyUi {
 
 	public static void progress(GuiGraphicsExtractor graphics, int x, int y, int width, float fraction, int color) {
 		Theme.roundedRect(graphics, x, y, width, 3, 1, 0x40FFFFFF);
-		int fill = Math.round(width * Math.clamp(fraction, 0, 1));
-		if (fill > 0) Theme.roundedRect(graphics, x, y, Math.max(2, fill), 3, 1, color);
+		float fill = width * Math.clamp(fraction, 0, 1);
+		if (fill > 0) dev.fancybars.util.gui.Ring.fillRoundedSmooth(graphics, x, y, Math.max(1f, fill), 3, 1, Theme.night(color));
 	}
 
 	// ---------------------------------------------------------------- Icons

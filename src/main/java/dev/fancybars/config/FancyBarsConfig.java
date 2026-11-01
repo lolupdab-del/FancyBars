@@ -65,6 +65,9 @@ public class FancyBarsConfig {
 
 	public StarCorner protectionStarCorner = StarCorner.BOTTOM_RIGHT;
 
+	/** Draw the protection star on top of the item instead of behind it. */
+	public boolean protectionStarInFront = false;
+
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();
 

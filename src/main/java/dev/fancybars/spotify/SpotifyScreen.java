@@ -37,7 +37,7 @@ public class SpotifyScreen extends Screen {
 	@Override
 	protected void init() {
 		pw = Math.min(width - 12, 320);
-		ph = Math.min(height - 12, Spotify.connected() ? 170 : 200);
+		ph = Math.min(height - 12, Spotify.connected() ? 200 : 200);
 		px = (width - pw) / 2;
 		py = (height - ph) / 2;
 		FancyBarsConfig config = FancyBarsConfig.get();
@@ -57,18 +57,18 @@ public class SpotifyScreen extends Screen {
 			int infoX = px + 12 + art + 12;
 			barX = infoX;
 			barW = px + pw - 12 - infoX;
-			barY = py + 72;
-			controlsY = py + 100;
+			barY = py + 74;
+			controlsY = py + 92;
 			int small = 52;
 			ModernButton shuffle = new ModernButton(small, 16, Component.translatable("fancybars.spotify.shuffle"), Spotify::toggleShuffle);
-			shuffle.setPosition(infoX, controlsY + 30);
+			shuffle.setPosition(infoX, py + 124);
 			addRenderableWidget(shuffle);
 			ModernButton repeat = new ModernButton(small, 16, Component.translatable("fancybars.spotify.repeat"), Spotify::cycleRepeat);
-			repeat.setPosition(px + pw - 12 - small, controlsY + 30);
+			repeat.setPosition(px + pw - 12 - small, py + 124);
 			addRenderableWidget(repeat);
 			ModernSlider[] volume = new ModernSlider[1];
 			volume[0] = new ModernSlider(barW - 14, 12, 0, 100, 1, Math.max(0, Spotify.state().volume), v -> {}, () -> Spotify.setVolume(Math.round(volume[0].getValue())));
-			volume[0].setPosition(infoX + 14, py + ph - 42);
+			volume[0].setPosition(infoX + 14, py + 156);
 			addRenderableWidget(volume[0]);
 			ModernButton disconnect = new ModernButton(80, 16, Component.translatable("fancybars.spotify.disconnect"), () -> {
 				Spotify.disconnect();
@@ -134,7 +134,7 @@ public class SpotifyScreen extends Screen {
 		boolean overBar = mouseX >= barX && mouseX < barX + barW && mouseY >= barY - 4 && mouseY < barY + 7;
 		SpotifyUi.progress(graphics, barX, barY, barW, fraction, overBar || seeking ? SpotifyUi.green() : Theme.night(Theme.TEXT));
 		if (overBar || seeking) {
-			Theme.circle(graphics, barX + Math.round(barW * fraction) - 4, barY - 2, 8, Theme.night(Theme.TEXT));
+			Theme.circle(graphics, barX + barW * fraction, barY + 1.5f, 8f, Theme.TEXT);
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 		long shown = seeking ? (long) (seekFraction * s.durationMs) : s.progressNow();
@@ -156,14 +156,14 @@ public class SpotifyScreen extends Screen {
 		if (overPlay || overPrev || overNext) graphics.requestCursor(CursorTypes.POINTING_HAND);
 
 		// shuffle / repeat state
-		int stateY = controlsY + 48;
+		int stateY = py + 142;
 		Theme.textInBox(graphics, font, Component.translatable(s.shuffle ? "fancybars.spotify.on" : "fancybars.spotify.off"), barX + 2, stateY, 10,
 				s.shuffle ? SpotifyUi.green() : Theme.TEXT_MUTED);
 		Component rep = Component.translatable("fancybars.spotify.repeat." + s.repeat);
 		Theme.textInBox(graphics, font, rep, barX + barW - Theme.width(font, rep) - 2, stateY, 10, s.repeat.equals("off") ? Theme.TEXT_MUTED : SpotifyUi.green());
 
 		// volume
-		SpotifyUi.speaker(graphics, barX, py + ph - 41, Theme.TEXT_SOFT);
+		SpotifyUi.speaker(graphics, barX, py + 157, Theme.TEXT_SOFT);
 		Component status = Component.literal(Spotify.status().equals("Connected") ? "" : Spotify.status());
 		Theme.textInBox(graphics, font, status, px + 100, py + ph - 24, 16, Theme.TEXT_MUTED);
 		super.extractRenderState(graphics, mouseX, mouseY, a);
