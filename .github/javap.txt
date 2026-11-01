@@ -1,6 +1,5 @@
-net.minecraft.client.gui.GuiGraphicsExtractor
-net.minecraft.client.gui.Font
-net.minecraft.client.multiplayer.ClientPacketListener
-net.minecraft.client.Minecraft
-net.minecraft.network.chat.Style
-net.minecraft.server.packs.resources.Resource
+net.minecraft.client.gui.render.GuiRenderer
+net.minecraft.client.renderer.RenderPipelines
+com.mojang.renderpearl.api.pipeline.RenderPipeline
+com.mojang.renderpearl.api.pipeline.RenderPipeline$Builder
+net.minecraft.client.renderer.DynamicUniformStorage

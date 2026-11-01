@@ -45,7 +45,7 @@ jobs:
             done
           done < .github/javap.txt
           echo "=== CLASS SEARCH" >> javap-out.txt
-          for jar in $(head -1 /tmp/mcjars.txt); do unzip -l "$jar" 2>/dev/null | grep -E 'net/minecraft/client/.*([Dd]rop|Actions)' | awk '{print $4}' ; done | sort -u >> javap-out.txt
+          for jar in $(head -1 /tmp/mcjars.txt); do unzip -l "$jar" 2>/dev/null | grep -E 'com/mojang/(renderpearl|blaze3d)/|Uniform|Std140|net/minecraft/client/gui/render/' | grep -v '\$' | awk '{print $4}' ; done | sort -u >> javap-out.txt
           find ~/.gradle/caches -name '*.jar' | grep -iE 'lwjgl' | head -20 >> javap-out.txt
       - uses: actions/upload-artifact@v4
         with:
