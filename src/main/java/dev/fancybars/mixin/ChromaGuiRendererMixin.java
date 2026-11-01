@@ -14,6 +14,11 @@ import dev.fancybars.util.gui.Chroma;
 /** Gives SBCLIENT's chroma shader its settings for every GUI draw (same injection point as SkyHanni). */
 @Mixin(GuiRenderer.class)
 public abstract class ChromaGuiRendererMixin {
+	@Inject(method = "executeDrawRange", at = @At("HEAD"))
+	private void fancybars$prepareChroma(CallbackInfo ci) {
+		Chroma.prepare();
+	}
+
 	@Inject(method = "executeDrawRange", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderPass;setUniform(Ljava/lang/String;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", shift = At.Shift.AFTER))
 	private void fancybars$bindChroma(CallbackInfo ci, @Local RenderPass renderPass) {
 		Chroma.bind(renderPass);

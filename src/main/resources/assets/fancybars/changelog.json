@@ -1,4 +1,7 @@
 [
+  {"version": "2.35.1", "date": "2026-11-01",
+   "added": ["Chroma text from SkyHanni (like its Enchant Parsing's perfect enchants) is drawn with SBCLIENT's chroma too"],
+   "fixed": ["Chroma could show up plain white (maxed enchants, and possibly borders and the preview)"]},
   {"version": "2.35.0", "date": "2026-11-01",
    "added": ["Chroma Max Enchants (Settings > Appearance, on by default): enchants at their max level show in chroma in item tooltips"],
    "fixed": []},

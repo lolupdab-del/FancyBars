@@ -107,8 +107,9 @@ public final class Chroma {
 
 	// ---------------------------------------------------------------- uniforms (called from GuiRenderer mixin)
 
-	public static void bind(RenderPass pass) {
-		if (!usedThisFrame) return;
+	/** Writes this frame's settings before a draw starts (writing them mid-draw leaves the shader with zeros). */
+	public static void prepare() {
+		if (!shaderEnabled()) return;
 		if (slice == null) {
 			if (storage == null) storage = new DynamicUniformStorage<>("SBCLIENT Chroma UBO", SIZE, 2);
 			FancyBarsConfig c = FancyBarsConfig.get();
@@ -119,6 +120,10 @@ public final class Chroma {
 			int forward = c.chromaShaderDirection % 2 == 0 ? 1 : 0;
 			slice = storage.writeUniform(new Value(size, time, Math.clamp(c.chromaShaderSaturation, 0, 1), forward));
 		}
+	}
+
+	public static void bind(RenderPass pass) {
+		if (!shaderEnabled() || slice == null) return;
 		pass.setUniform(UNIFORM, slice);
 	}
 
