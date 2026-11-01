@@ -1,4 +1,7 @@
 [
+  {"version": "2.32.2", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["The big item preview in the item customizer is smooth instead of pixelated"]},
   {"version": "2.32.1", "date": "2026-11-01",
    "added": [],
    "fixed": ["Keystrokes no longer flash pink when you press a key or click", "Pet Display head is drawn at full resolution, smooth like SkyHanni's", "Resizing or moving a bar next to the hotbar no longer stretches or moves the other bars"]},

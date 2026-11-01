@@ -504,11 +504,8 @@ public class ItemChangerScreen extends Screen {
 		if (!uuid().isEmpty()) {
 			Theme.roundedRect(graphics, gridX, previewY, COLS * SLOT, py + ph - 34 - previewY, 5, 0xCC141622);
 			org.joml.Matrix3x2fStack pose = graphics.pose();
-			pose.pushMatrix();
-			pose.translate(gridX + COLS * SLOT / 2f - 24, previewY + 6);
-			pose.scale(3, 3);
-			graphics.item(sel, 0, 0);
-			pose.popMatrix();
+			// drawn at full screen resolution instead of a stretched 16 px item
+			dev.fancybars.util.gui.SharpItem.draw(graphics, sel, gridX + COLS * SLOT / 2f - 24, previewY + 6, 48);
 			Component name = sel.getHoverName();
 			float nameScale = Math.min(1, (COLS * SLOT - 8f) / Math.max(1, font.width(name)));
 			pose.pushMatrix();
