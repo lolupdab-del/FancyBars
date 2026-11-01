@@ -536,8 +536,11 @@ public final class PetHud {
 		int lvl = useSample ? 200 : level;
 		int color = useSample ? 0xFFAA00 : rarityColor;
 		List<Component> out = new ArrayList<>();
-		String title = (c.petShowLevel && lvl > 0 ? "[Lvl " + lvl + "] " : "") + pet;
-		out.add(Component.literal(title).withColor(color & 0xFFFFFF));
+		// level in grey, name in the rarity colour (like Hypixel's own pet names)
+		net.minecraft.network.chat.MutableComponent title = Component.empty();
+		if (c.petShowLevel && lvl > 0) title.append(Component.literal("[Lvl " + lvl + "] ").withColor(0xAAAAAA));
+		title.append(Component.literal(pet).withColor(color & 0xFFFFFF));
+		out.add(title);
 		if (c.petShowXp) {
 			String xp;
 			if (useSample) xp = "12.4M/25.4M XP (48.8%)";
