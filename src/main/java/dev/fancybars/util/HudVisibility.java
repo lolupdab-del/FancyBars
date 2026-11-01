@@ -11,10 +11,14 @@ import dev.fancybars.config.FancyBarsConfig;
 public final class HudVisibility {
 	private HudVisibility() {}
 
-	/** No screen open, or (with "Keep HUDs in Inventory and Chat") the open screen is chat or an inventory / chest. */
+	/**
+	 * No screen open, or "Show HUDs Always" is on: then they stay up behind every screen (chat, inventories,
+	 * /sbc, other mods' menus). The Edit GUI screen draws its own copies, so the real ones hide there.
+	 */
 	public static boolean allowed() {
 		Screen screen = Minecraft.getInstance().gui.screen();
 		if (screen == null) return true;
-		return FancyBarsConfig.get().hudInScreens && (screen instanceof ChatScreen || screen instanceof AbstractContainerScreen);
+		if (screen instanceof dev.fancybars.bars.BarEditorScreen) return false;
+		return FancyBarsConfig.get().hudAlways;
 	}
 }

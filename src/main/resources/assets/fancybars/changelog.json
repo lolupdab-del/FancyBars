@@ -1,4 +1,7 @@
 [
+  {"version": "2.33.0", "date": "2026-11-01",
+   "added": ["Show HUDs Always (HUD tab, on by default): HUDs stay on screen behind every screen, including /sbc and other mods' menus. Replaces Keep HUDs in Inventory and Chat"],
+   "fixed": []},
   {"version": "2.32.3", "date": "2026-11-01",
    "added": [],
    "fixed": ["Switching pets no longer makes the Pet Display flick between your old and new pet", "Spotify play / pause, shuffle and repeat no longer flick back for a moment after you click them", "One shared fix for anything that's changed instantly but read from a slower source, so new features get it too"]},

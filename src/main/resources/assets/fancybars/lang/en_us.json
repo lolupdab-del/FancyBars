@@ -323,6 +323,8 @@
 	"fancybars.config.hideOwnFireF5.@Tooltip": "Don't show the flames on yourself in third person when you're burning.",
 	"fancybars.config.hudBorders": "Borders on HUDs",
 	"fancybars.config.hudBorders.@Tooltip": "Draw the border around HUD elements too, not only menus.",
+	"fancybars.config.hudAlways": "Show HUDs Always",
+	"fancybars.config.hudAlways.@Tooltip": "Keep SBCLIENT's HUDs (FPS/TPS, keystrokes, Spotify, pet, armor, commissions, Wall Licker...) on screen behind every screen: chat, inventories, /sbc and other mods' menus.",
 	"fancybars.config.hudInScreens": "Keep HUDs in Inventory and Chat",
 	"fancybars.config.hudInScreens.@Tooltip": "Keep SBCLIENT's HUDs (FPS/TPS, keystrokes, Spotify, inventory, commissions, Wall Licker...) on screen while chat or an inventory or chest is open.",
 	"fancybars.config.hudOpacity": "HUD Background Opacity",

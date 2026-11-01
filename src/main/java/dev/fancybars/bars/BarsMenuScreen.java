@@ -635,7 +635,7 @@ public class BarsMenuScreen extends Screen {
 			}
 			case HUD -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.hud.general"), null));
-				list.add(new ToggleItem("hudInScreens", () -> config.hudInScreens, value -> config.hudInScreens = value));
+				list.add(new ToggleItem("hudAlways", () -> config.hudAlways, value -> config.hudAlways = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.perf.title"), null));
 				list.add(new ToggleItem("perfEnabled", () -> config.perfEnabled, value -> config.perfEnabled = value));
 				list.add(new ToggleItem("perfShowFps", () -> config.perfShowFps, value -> config.perfShowFps = value));

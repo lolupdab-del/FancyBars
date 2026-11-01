@@ -573,6 +573,9 @@ public class FancyBarsConfig {
 	/** Keep SBCLIENT's HUDs on screen while chat or an inventory / chest is open. */
 	public boolean hudInScreens = false;
 
+	/** Keep SBCLIENT's HUDs on screen behind every screen (chat, inventories, /sbc, other mods). */
+	public boolean hudAlways = true;
+
 	/** Keep screen images visible while chat or an inventory / chest is open. */
 	public boolean screenImagesInScreens = false;
 
