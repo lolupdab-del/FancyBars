@@ -499,6 +499,8 @@
 	"fancybars.config.petSeparatorColor.@Tooltip": "Colour of the ring in the gap.",
 	"fancybars.config.petRingUnfilled": "Ring Empty Colour",
 	"fancybars.config.petRingUnfilled.@Tooltip": "Colour of the part of the XP ring that isn't filled yet.",
+	"fancybars.config.petShowSkin": "Skin Star",
+	"fancybars.config.petShowSkin.@Tooltip": "Show the ✦ after the name when your pet has a skin, in the skin's colour.",
 	"fancybars.config.petShowLevel": "Pet Level",
 	"fancybars.config.petShowLevel.@Tooltip": "Show the level before the pet's name.",
 	"fancybars.config.petShowXp": "XP Progress",

@@ -190,6 +190,8 @@ public class FancyBarsConfig {
 	/** Bumped when the pet display's defaults change to match SkyHanni. */
 	public int petStyleVersion = 0;
 	public boolean petShowLevel = true;
+	/** Show the ✦ after the name when the pet has a skin. */
+	public boolean petShowSkin = true;
 	public boolean petShowXp = false;
 	public boolean petShowHeldItem = false;
 

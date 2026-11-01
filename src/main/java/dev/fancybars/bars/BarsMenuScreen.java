@@ -670,6 +670,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SwatchItem("petSeparatorColor", () -> new Color(config.petSeparatorColor, false), color -> config.petSeparatorColor = color.getRGB() & 0xFFFFFF));
 				list.add(new SwatchItem("petRingUnfilled", () -> new Color(config.petRingUnfilled, false), color -> config.petRingUnfilled = color.getRGB() & 0xFFFFFF));
 				list.add(new ToggleItem("petShowLevel", () -> config.petShowLevel, value -> config.petShowLevel = value));
+				list.add(new ToggleItem("petShowSkin", () -> config.petShowSkin, value -> config.petShowSkin = value));
 				list.add(new ToggleItem("petShowXp", () -> config.petShowXp, value -> config.petShowXp = value));
 				list.add(new ToggleItem("petShowHeldItem", () -> config.petShowHeldItem, value -> config.petShowHeldItem = value));
 				list.add(new ButtonRowItem(

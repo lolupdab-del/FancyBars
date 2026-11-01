@@ -116,6 +116,7 @@ public final class PetHud {
 					if (hm != null && hm.matches()) {
 						hoveredPet = hm.group("pet").trim();
 						hoveredHead = headOf(hovered.getItem());
+						hoveredSkin = skinColorOf(hovered.getItem().getHoverName());
 						hoveredAt = System.currentTimeMillis();
 					}
 				}
@@ -156,6 +157,7 @@ public final class PetHud {
 			HELD_PET.set(m.group("pet"));
 			heldItem = "";
 			switchedTo(m.group("pet"));
+			if (skinColorOf(message) != -1) skinColor = skinColorOf(message);
 		} else if ((m = SUMMON.matcher(text)).matches()) {
 			setPet(m.group("pet"), -1, colorOf(message, m.group("pet")));
 			HELD_PET.set(m.group("pet"));
@@ -208,6 +210,7 @@ public final class PetHud {
 					return;
 				}
 				setPet(tabPet, parseInt(m.group("level")), colorOf(display, tabPet));
+				skinColor = skinColorOf(display);
 			} else if (text.equals("MAX LEVEL")) {
 				maxLevel = true;
 				progress = 1;
@@ -259,6 +262,7 @@ public final class PetHud {
 			// (a menu still open from before you switched can show the old pet as active: the hold skips it)
 			if (active && !HELD_PET.holding() || active && HELD_PET.value().equalsIgnoreCase(pet)) {
 				setCurrentIcon(pet, icon);
+				skinColor = skinColorOf(stack.getHoverName());
 				setPet(pet, Integer.parseInt(m.group("level")), colorOf(stack.getHoverName(), pet));
 				heldItem = held;
 				if (percent >= 0) progress = percent;
@@ -403,10 +407,40 @@ public final class PetHud {
 	private static void switchedTo(String pet) {
 		if (hoveredHead != null && hoveredPet.equalsIgnoreCase(pet) && System.currentTimeMillis() - hoveredAt < 15_000) {
 			setCurrentIcon(pet, hoveredHead);
+			skinColor = hoveredSkin;
 		} else if (!currentIconPet.equalsIgnoreCase(pet)) {
 			currentIcon = null;
 			currentIconPet = "";
+			skinColor = -1;
 		}
+	}
+
+	/** Colour of the pet's skin star (✦), or -1 when it has no skin. */
+	private static int skinColor = -1;
+	private static int hoveredSkin = -1;
+
+	/** Finds the skin star in a pet name and returns its colour (-1 if there's none). */
+	private static int skinColorOf(Component component) {
+		String raw = component.getString();
+		int star = raw.indexOf('✦');
+		if (star < 0) return -1;
+		if (raw.indexOf('§') >= 0) {
+			for (int i = star - 2; i >= 0; i--) {
+				if (raw.charAt(i) == '§') {
+					int idx = "0123456789abcdef".indexOf(Character.toLowerCase(raw.charAt(i + 1)));
+					if (idx >= 0) return LEGACY[idx];
+				}
+			}
+		}
+		int[] found = {-1};
+		component.visit((Style style, String text) -> {
+			if (found[0] == -1 && text.indexOf('✦') >= 0) {
+				TextColor color = style.getColor();
+				found[0] = color != null ? color.getValue() : 0xFF55FF;
+			}
+			return Optional.empty();
+		}, Style.EMPTY);
+		return found[0] == -1 ? 0xFF55FF : found[0];
 	}
 
 	/** Pet heads bundled from the NEU repo: lowercase name -> pet id, pet id -> {d: default hash, "0".."5": per-rarity hash}. */
@@ -605,6 +639,8 @@ public final class PetHud {
 		net.minecraft.network.chat.MutableComponent title = Component.empty();
 		if (c.petShowLevel && lvl > 0) title.append(Component.literal("[Lvl " + lvl + "] ").withColor(0xAAAAAA));
 		title.append(Component.literal(pet).withColor(color & 0xFFFFFF));
+		int skin = useSample ? 0xFF55FF : skinColor;
+		if (c.petShowSkin && skin != -1) title.append(Component.literal(" ✦").withColor(skin & 0xFFFFFF));
 		out.add(title);
 		if (c.petShowXp) {
 			String xp;
