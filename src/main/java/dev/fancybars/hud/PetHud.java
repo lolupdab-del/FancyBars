@@ -133,16 +133,26 @@ public final class PetHud {
 		if (color != -1) rarityColor = color;
 	}
 
+	/**
+	 * Chat says which pet you switched to instantly, but the tab list keeps showing the old one for a few seconds;
+	 * hold the new pet until the tab list catches up so the display doesn't flick between the two.
+	 */
+	private static final dev.fancybars.util.Held<String> HELD_PET = new dev.fancybars.util.Held<>(15_000, String::equalsIgnoreCase);
+
 	private static void onChat(String text, Component message) {
 		Matcher m;
 		if ((m = AUTOPET.matcher(text)).matches()) {
 			setPet(m.group("pet"), Integer.parseInt(m.group("level")), colorOf(message, m.group("pet")));
+			HELD_PET.set(m.group("pet"));
 			heldItem = "";
 		} else if ((m = SUMMON.matcher(text)).matches()) {
 			setPet(m.group("pet"), -1, colorOf(message, m.group("pet")));
+			HELD_PET.set(m.group("pet"));
+			heldItem = "";
 		} else if ((m = DESPAWN.matcher(text)).matches()) {
 			name = "";
 			level = -1;
+			HELD_PET.set("");
 		} else if ((m = LEVEL_UP.matcher(text)).matches() && m.group("pet").equalsIgnoreCase(name)) {
 			level = Integer.parseInt(m.group("level"));
 		} else if ((m = HOLDING.matcher(text)).matches()) {
@@ -175,13 +185,17 @@ public final class PetHud {
 			line++;
 			Matcher m;
 			if (line == 1) {
-				if (text.equalsIgnoreCase("No pet selected") || text.equalsIgnoreCase("None")) {
+				boolean none = text.equalsIgnoreCase("No pet selected") || text.equalsIgnoreCase("None");
+				m = TAB_NAME.matcher(text);
+				String tabPet = none ? "" : m.matches() ? m.group("pet").trim() : null;
+				if (tabPet == null) continue;
+				// still showing the pet from before you switched: ignore the whole widget until it updates
+				if (!HELD_PET.filter(tabPet).equalsIgnoreCase(tabPet)) return;
+				if (none) {
 					name = "";
 					return;
 				}
-				if ((m = TAB_NAME.matcher(text)).matches()) {
-					setPet(m.group("pet").trim(), parseInt(m.group("level")), colorOf(display, m.group("pet").trim()));
-				}
+				setPet(tabPet, parseInt(m.group("level")), colorOf(display, tabPet));
 			} else if (text.equals("MAX LEVEL")) {
 				maxLevel = true;
 				progress = 1;
@@ -231,7 +245,7 @@ public final class PetHud {
 				if (p.matches()) percent = Float.parseFloat(p.group("percent")) / 100f;
 				if (line.equals("MAX LEVEL")) percent = 1;
 			}
-			if (active) {
+			if (active && !HELD_PET.holding() || active && HELD_PET.value().equalsIgnoreCase(pet)) {
 				setPet(pet, Integer.parseInt(m.group("level")), colorOf(stack.getHoverName(), pet));
 				heldItem = held;
 				if (percent >= 0) progress = percent;

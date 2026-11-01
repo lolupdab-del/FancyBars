@@ -11,3 +11,9 @@ Every release, before bumping `mod_version` in `gradle.properties`:
    # SBCLIENT vX.Y.Z
    **Added** — ...
    **Fixed** — ...
+
+## Values that are set instantly but also polled
+
+If a feature changes something right away (a click, a chat message) and also reads it from a slower source (Spotify,
+the tab list, the scoreboard, a menu), pass the slow readings through `dev.fancybars.util.Held`. Otherwise the display
+flicks between the new value and the stale one until the slow source catches up.

@@ -413,8 +413,9 @@ public final class Spotify {
 
 	public static void togglePlay() {
 		State s = state;
-		s.playing = !s.playing;
 		s.progressMs = s.progressNow();
+		s.playing = !s.playing;
+		HELD_PLAYING.set(s.playing);
 		s.fetchedAt = Util.getMillis();
 		if (brokeMode()) {
 			BrokeMode.playPause();
@@ -441,18 +442,22 @@ public final class Spotify {
 
 	// Spotify takes a moment to apply a change, so polls right after it still report the old value; keep showing the
 	// value you picked until Spotify catches up (or 4 s pass) instead of flicking back and forth
-	private static volatile int heldVolume = -1;
-	private static volatile long volumeHeldUntil;
+	private static final dev.fancybars.util.Held<Integer> HELD_VOLUME = new dev.fancybars.util.Held<>(4000);
+	private static final dev.fancybars.util.Held<Boolean> HELD_PLAYING = new dev.fancybars.util.Held<>(4000);
+	private static final dev.fancybars.util.Held<Boolean> HELD_SHUFFLE = new dev.fancybars.util.Held<>(4000);
+	private static final dev.fancybars.util.Held<String> HELD_REPEAT = new dev.fancybars.util.Held<>(4000);
 	private static volatile long heldProgress = -1;
 	private static volatile long heldProgressAt;
 	private static volatile long progressHeldUntil;
 
 	private static State applyHolds(State s) {
 		long now = Util.getMillis();
-		if (heldVolume >= 0) {
-			if (now < volumeHeldUntil && s.volume != heldVolume) s.volume = heldVolume;
-			else heldVolume = -1;
-		}
+		s.volume = HELD_VOLUME.filter(s.volume);
+		boolean wasPlaying = s.playing;
+		s.playing = HELD_PLAYING.filter(s.playing);
+		if (s.playing != wasPlaying) s.fetchedAt = now;
+		s.shuffle = HELD_SHUFFLE.filter(s.shuffle);
+		s.repeat = HELD_REPEAT.filter(s.repeat);
 		if (heldProgress >= 0) {
 			long expected = heldProgress + (s.playing ? now - heldProgressAt : 0);
 			if (now < progressHeldUntil && Math.abs(s.progressMs - expected) > 2500) {
@@ -465,8 +470,7 @@ public final class Spotify {
 
 	public static void setVolume(int percent) {
 		state.volume = Math.clamp(percent, 0, 100);
-		heldVolume = state.volume;
-		volumeHeldUntil = Util.getMillis() + 4000;
+		HELD_VOLUME.set(state.volume);
 		if (brokeMode()) {
 			BrokeMode.setVolume(state.volume);
 			return;
@@ -491,6 +495,7 @@ public final class Spotify {
 	public static void toggleShuffle() {
 		if (brokeMode()) return;
 		state.shuffle = !state.shuffle;
+		HELD_SHUFFLE.set(state.shuffle);
 		command("PUT", "/shuffle?state=" + state.shuffle);
 	}
 
@@ -501,6 +506,7 @@ public final class Spotify {
 			default -> "off";
 		};
 		state.repeat = next;
+		HELD_REPEAT.set(next);
 		if (brokeMode()) return;
 		command("PUT", "/repeat?state=" + next);
 	}
