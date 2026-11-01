@@ -109,6 +109,16 @@ public final class PetHud {
 			}
 			if (mc.gui.screen() instanceof AbstractContainerScreen<?> screen && MENU_TITLE.matcher(screen.getTitle().getString()).matches()) {
 				readPetsMenu(screen);
+				Slot hovered = ((dev.fancybars.mixin.ContainerScreenAccessor) screen).fancybars$getHoveredSlot();
+				if (hovered != null && hovered.getItem().is(Items.PLAYER_HEAD)) {
+					String hover = ChatFormatting.stripFormatting(hovered.getItem().getHoverName().getString());
+					Matcher hm = hover == null ? null : MENU_NAME.matcher(hover.trim());
+					if (hm != null && hm.matches()) {
+						hoveredPet = hm.group("pet").trim();
+						hoveredHead = headOf(hovered.getItem());
+						hoveredAt = System.currentTimeMillis();
+					}
+				}
 			}
 			if (iconsDirty && now % 5000 < 60) saveIcons();
 		});
@@ -145,10 +155,12 @@ public final class PetHud {
 			setPet(m.group("pet"), Integer.parseInt(m.group("level")), colorOf(message, m.group("pet")));
 			HELD_PET.set(m.group("pet"));
 			heldItem = "";
+			switchedTo(m.group("pet"));
 		} else if ((m = SUMMON.matcher(text)).matches()) {
 			setPet(m.group("pet"), -1, colorOf(message, m.group("pet")));
 			HELD_PET.set(m.group("pet"));
 			heldItem = "";
+			switchedTo(m.group("pet"));
 		} else if ((m = DESPAWN.matcher(text)).matches()) {
 			name = "";
 			level = -1;
@@ -222,13 +234,12 @@ public final class PetHud {
 			if (!m.matches()) continue;
 			String pet = m.group("pet").trim();
 			String key = pet.toLowerCase(Locale.ROOT);
-			if (!ICONS.containsKey(key)) {
-				ItemStack icon = new ItemStack(Items.PLAYER_HEAD);
-				var profile = stack.get(DataComponents.PROFILE);
-				if (profile != null) icon.set(DataComponents.PROFILE, profile);
-				ICONS.put(key, icon);
-				iconsDirty = true;
-			}
+			int petColor = colorOf(stack.getHoverName(), pet);
+			ItemStack icon = headOf(stack);
+			// always take the latest look, so skins you apply later show up
+			ICONS.put(key + "|" + tierOf(petColor), icon);
+			ICONS.put(key, icon);
+			iconsDirty = true;
 			ItemLore lore = stack.get(DataComponents.LORE);
 			if (lore == null) continue;
 			boolean active = false;
@@ -245,6 +256,7 @@ public final class PetHud {
 				if (p.matches()) percent = Float.parseFloat(p.group("percent")) / 100f;
 				if (line.equals("MAX LEVEL")) percent = 1;
 			}
+			if (active) setCurrentIcon(pet, icon);
 			if (active && !HELD_PET.holding() || active && HELD_PET.value().equalsIgnoreCase(pet)) {
 				setPet(pet, Integer.parseInt(m.group("level")), colorOf(stack.getHoverName(), pet));
 				heldItem = held;
@@ -335,7 +347,13 @@ public final class PetHud {
 			if (!Files.exists(iconFile())) return;
 			JsonObject root = JsonParser.parseString(Files.readString(iconFile())).getAsJsonObject();
 			for (Map.Entry<String, JsonElement> e : root.entrySet()) {
-				ItemStack.CODEC.parse(ops, e.getValue()).result().ifPresent(stack -> ICONS.putIfAbsent(e.getKey(), stack));
+				ItemStack.CODEC.parse(ops, e.getValue()).result().ifPresent(stack -> {
+					ICONS.putIfAbsent(e.getKey(), stack);
+					if (e.getKey().startsWith("current:") && currentIcon == null) {
+						currentIcon = stack;
+						currentIconPet = e.getKey().substring("current:".length());
+					}
+				});
 			}
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read pet icons", e);
@@ -355,6 +373,38 @@ public final class PetHud {
 			Files.writeString(iconFile(), root.toString());
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't save pet icons", e);
+		}
+	}
+
+	/** The head of the pet you have out right now (with its skin), from the /pets menu or the pet you clicked there. */
+	private static ItemStack currentIcon;
+	private static String currentIconPet = "";
+	private static ItemStack hoveredHead;
+	private static String hoveredPet = "";
+	private static long hoveredAt;
+
+	private static ItemStack headOf(ItemStack stack) {
+		ItemStack icon = new ItemStack(Items.PLAYER_HEAD);
+		var profile = stack.get(DataComponents.PROFILE);
+		if (profile != null) icon.set(DataComponents.PROFILE, profile);
+		return icon;
+	}
+
+	private static void setCurrentIcon(String pet, ItemStack head) {
+		currentIcon = head;
+		currentIconPet = pet;
+		ICONS.put("current:" + pet.toLowerCase(Locale.ROOT), head);
+		ICONS.keySet().removeIf(k -> k.startsWith("current:") && !k.equals("current:" + pet.toLowerCase(Locale.ROOT)));
+		iconsDirty = true;
+	}
+
+	/** You just summoned / Autopet equipped {@code pet}: use the head you clicked in /pets if that's the one. */
+	private static void switchedTo(String pet) {
+		if (hoveredHead != null && hoveredPet.equalsIgnoreCase(pet) && System.currentTimeMillis() - hoveredAt < 15_000) {
+			setCurrentIcon(pet, hoveredHead);
+		} else if (!currentIconPet.equalsIgnoreCase(pet)) {
+			currentIcon = null;
+			currentIconPet = "";
 		}
 	}
 
@@ -450,7 +500,10 @@ public final class PetHud {
 
 	/** The pet's real head: the one seen in /pets (includes skins), else its default look. */
 	private static ItemStack icon(String pet, int color) {
-		ItemStack stack = ICONS.get(pet.toLowerCase(Locale.ROOT));
+		if (currentIcon != null && currentIconPet.equalsIgnoreCase(pet)) return currentIcon;
+		String key = pet.toLowerCase(Locale.ROOT);
+		ItemStack stack = ICONS.get(key + "|" + tierOf(color));
+		if (stack == null) stack = ICONS.get(key);
 		if (stack != null) return stack;
 		String hash = textureHash(pet, tierOf(color));
 		return hash != null ? headFromHash(hash) : new ItemStack(Items.BONE);
