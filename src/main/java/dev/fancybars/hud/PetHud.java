@@ -344,9 +344,102 @@ public final class PetHud {
 		}
 	}
 
-	private static ItemStack icon(String pet) {
+	/** Pet heads bundled from the NEU repo: lowercase name -> pet id, pet id -> {d: default hash, "0".."5": per-rarity hash}. */
+	private static JsonObject bundled;
+	private static final Map<String, ItemStack> HEADS = new HashMap<>();
+	private static final java.util.Set<String> FETCHING = java.util.concurrent.ConcurrentHashMap.newKeySet();
+	private static final Map<String, String> FETCHED = new java.util.concurrent.ConcurrentHashMap<>();
+
+	private static JsonObject bundled() {
+		if (bundled == null) {
+			bundled = new JsonObject();
+			try (var in = PetHud.class.getResourceAsStream("/assets/fancybars/data/pet_heads.json")) {
+				if (in != null) bundled = JsonParser.parseString(new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
+			} catch (Exception e) {
+				FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read bundled pet heads", e);
+			}
+		}
+		return bundled;
+	}
+
+	/** 0 common .. 5 mythic, from the rarity colour. */
+	private static int tierOf(int color) {
+		return switch (color & 0xFFFFFF) {
+			case 0x55FF55 -> 1;
+			case 0x5555FF -> 2;
+			case 0xAA00AA -> 3;
+			case 0xFFAA00 -> 4;
+			case 0xFF55FF -> 5;
+			default -> 0;
+		};
+	}
+
+	private static String petId(String pet) {
+		JsonObject names = bundled().getAsJsonObject("names");
+		String key = pet.toLowerCase(Locale.ROOT);
+		if (names != null && names.has(key)) return names.get(key).getAsString();
+		return pet.toUpperCase(Locale.ROOT).replace(' ', '_').replace("-", "_");
+	}
+
+	/** Texture hash of the pet's head: bundled, or fetched from the NEU repo for pets added since. */
+	private static String textureHash(String pet, int tier) {
+		String id = petId(pet);
+		JsonObject pets = bundled().getAsJsonObject("pets");
+		if (pets != null && pets.has(id)) {
+			JsonObject e = pets.getAsJsonObject(id);
+			return e.has(String.valueOf(tier)) ? e.get(String.valueOf(tier)).getAsString() : e.get("d").getAsString();
+		}
+		String key = id + ";" + tier;
+		String hash = FETCHED.get(key);
+		if (hash != null) return hash.isEmpty() ? null : hash;
+		if (FETCHING.add(key)) {
+			FancyBarsMod.VIRTUAL_THREAD_EXECUTOR.execute(() -> {
+				String found = "";
+				try {
+					java.net.http.HttpClient http = java.net.http.HttpClient.newHttpClient();
+					String url = "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master/items/" + id + "%3B" + tier + ".json";
+					var res = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(url)).timeout(java.time.Duration.ofSeconds(15)).GET().build(),
+							java.net.http.HttpResponse.BodyHandlers.ofString());
+					if (res.statusCode() == 200) {
+						Matcher v = Pattern.compile("Value:\\\\?\"([A-Za-z0-9+/=]+)").matcher(res.body());
+						if (v.find()) {
+							String json = new String(java.util.Base64.getDecoder().decode(v.group(1)), java.nio.charset.StandardCharsets.UTF_8);
+							Matcher u = Pattern.compile("texture/([0-9a-f]+)").matcher(json);
+							if (u.find()) found = u.group(1);
+						}
+					}
+				} catch (Exception e) {
+					FancyBarsMod.LOGGER.debug("[SBCLIENT] Pet head fetch failed for {}", key, e);
+				}
+				FETCHED.put(key, found);
+			});
+		}
+		return null;
+	}
+
+	private static ItemStack headFromHash(String hash) {
+		return HEADS.computeIfAbsent(hash, h -> {
+			ItemStack head = new ItemStack(Items.PLAYER_HEAD);
+			try {
+				String value = java.util.Base64.getEncoder().encodeToString(("{\"textures\":{\"SKIN\":{\"url\":\"http://textures.minecraft.net/texture/" + h + "\"}}}")
+						.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+				com.mojang.authlib.properties.PropertyMap map = net.minecraft.util.ExtraCodecs.PROPERTY_MAP.parse(JsonOps.INSTANCE,
+						JsonParser.parseString("[{\"name\":\"textures\",\"value\":\"" + value + "\"}]")).getOrThrow();
+				head.set(DataComponents.PROFILE, net.minecraft.world.item.component.ResolvableProfile.createResolved(
+						new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(h.getBytes(java.nio.charset.StandardCharsets.UTF_8)), "pet", map)));
+			} catch (Exception e) {
+				FancyBarsMod.LOGGER.debug("[SBCLIENT] Couldn't build pet head", e);
+			}
+			return head;
+		});
+	}
+
+	/** The pet's real head: the one seen in /pets (includes skins), else its default look. */
+	private static ItemStack icon(String pet, int color) {
 		ItemStack stack = ICONS.get(pet.toLowerCase(Locale.ROOT));
-		return stack != null ? stack : new ItemStack(Items.BONE);
+		if (stack != null) return stack;
+		String hash = textureHash(pet, tierOf(color));
+		return hash != null ? headFromHash(hash) : new ItemStack(Items.BONE);
 	}
 
 	// ---------------------------------------------------------------- XP ring texture
@@ -410,46 +503,57 @@ public final class PetHud {
 		pose.popMatrix();
 	}
 
-	// ---------------------------------------------------------------- drawing
+	// ---------------------------------------------------------------- drawing (matches SkyHanni's defaults)
 
-	private record Lines(List<Component> lines, int width) {}
+	/** Pet icon: 16 px item at 2.5x. */
+	private static final float ICON_SIZE = 40;
+	/** Rarity circle padding around the icon. */
+	private static final float BG_PAD = 4;
+	private static final float SEPARATOR = 1;
+	private static final float XP_RING = 3;
+	private static final float CIRCLE = ICON_SIZE + BG_PAD * 2 + SEPARATOR * 2 + XP_RING * 2;
+	private static final int TEXT_GAP = 4;
+	private static final int LINE_H = 10;
 
-	private static Lines lines(boolean sample) {
+	private static List<Component> lines(boolean sample) {
 		FancyBarsConfig c = FancyBarsConfig.get();
-		Font font = Minecraft.getInstance().font;
-		String pet = sample && name.isEmpty() ? "Golden Dragon" : name;
-		int lvl = sample && name.isEmpty() ? 200 : level;
-		int color = sample && name.isEmpty() ? 0xFFAA00 : rarityColor;
+		boolean useSample = sample && name.isEmpty();
+		String pet = useSample ? "Golden Dragon" : name;
+		int lvl = useSample ? 200 : level;
+		int color = useSample ? 0xFFAA00 : rarityColor;
 		List<Component> out = new ArrayList<>();
 		String title = (c.petShowLevel && lvl > 0 ? "[Lvl " + lvl + "] " : "") + pet;
-		out.add(Theme.bold(Component.literal(title).withColor(color & 0xFFFFFF)));
+		out.add(Component.literal(title).withColor(color & 0xFFFFFF));
 		if (c.petShowXp) {
 			String xp;
-			if (sample && name.isEmpty()) xp = "12.4M/25.4M XP (48.8%)";
+			if (useSample) xp = "12.4M/25.4M XP (48.8%)";
 			else if (maxLevel) xp = "MAX LEVEL";
 			else if (xpCurrent >= 0 && xpNext > 0) xp = shortNumber(xpCurrent) + "/" + shortNumber(xpNext) + " XP" + (progress >= 0 ? String.format(Locale.ROOT, " (%.1f%%)", progress * 100) : "");
-			else if (progress >= 0) xp = String.format(Locale.ROOT, "%.1f%% to next level", progress * 100);
+			else if (progress >= 0) xp = String.format(Locale.ROOT, "%.1f%%", progress * 100);
 			else xp = "";
-			if (!xp.isEmpty()) out.add(Theme.styled(Component.literal(xp).withColor(Theme.hudTextSoft(255) & 0xFFFFFF)));
+			if (!xp.isEmpty()) out.add(Component.literal(xp).withColor(0xAAAAAA));
 		}
 		if (c.petShowHeldItem) {
-			String held = sample && name.isEmpty() ? "Dwarf Turtle Shelmet" : heldItem;
-			if (!held.isEmpty()) out.add(Theme.styled(Component.literal(held).withColor(Theme.hudTextSoft(255) & 0xFFFFFF)));
+			String held = useSample ? "Dwarf Turtle Shelmet" : heldItem;
+			if (!held.isEmpty()) out.add(Component.literal(held).withColor(0xAAAAAA));
 		}
-		int w = 0;
-		for (Component line : out) w = Math.max(w, font.width(line));
-		return new Lines(out, w);
+		return out;
 	}
-
-	private static final int LINE_H = 11;
 
 	public static int[] size(boolean sample) {
 		FancyBarsConfig c = FancyBarsConfig.get();
-		Lines l = lines(sample);
-		int iconW = c.petShowIcon ? ICON + 6 : 0;
-		int textH = l.lines().size() * LINE_H;
-		int h = Math.max(c.petShowIcon ? ICON : 0, textH) + PAD * 2;
-		return new int[]{PAD * 2 + iconW + l.width(), h};
+		Font font = Minecraft.getInstance().font;
+		List<Component> l = lines(sample);
+		int textW = 0;
+		for (Component line : l) textW = Math.max(textW, font.width(line));
+		int circle = c.petShowIcon ? Math.round(CIRCLE) : 0;
+		int w = circle + (textW > 0 ? (circle > 0 ? TEXT_GAP : 0) + textW : 0);
+		int h = Math.max(circle, l.size() * LINE_H);
+		if (c.petBackground) {
+			w += 8;
+			h += 8;
+		}
+		return new int[]{w, h};
 	}
 
 	public static float[] position(int screenW, int screenH) {
@@ -458,12 +562,16 @@ public final class PetHud {
 		return new float[]{c.petX * screenW, c.petY * screenH};
 	}
 
+	private static void disc(GuiGraphicsExtractor graphics, float cx, float cy, float d, int color) {
+		dev.fancybars.util.gui.SmoothShapes.draw(graphics, dev.fancybars.util.gui.SmoothShapes.Shape.CIRCLE, cx - d / 2, cy - d / 2, d, color);
+	}
+
 	public static void renderAt(GuiGraphicsExtractor graphics, float x, float y, float scale, float alpha, boolean sample) {
 		FancyBarsConfig c = FancyBarsConfig.get();
 		Font font = Minecraft.getInstance().font;
 		int a = Math.round(alpha * 255);
 		int[] size = size(sample);
-		Lines l = lines(sample);
+		List<Component> l = lines(sample);
 		boolean useSample = sample && name.isEmpty();
 		int color = useSample ? 0xFFAA00 : rarityColor;
 		float prog = useSample ? 0.488f : maxLevel ? 1 : progress;
@@ -472,38 +580,47 @@ public final class PetHud {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
-		if (c.petBackground) Theme.hudPanel(graphics, 0, 0, size[0], size[1], 6, 0.85f, a);
-		int tx = PAD;
+		float ox = 0;
+		float oy = 0;
+		if (c.petBackground) {
+			Theme.hudPanel(graphics, 0, 0, size[0], size[1], 6, 0.85f, a);
+			ox = 4;
+			oy = 4;
+		}
+		float innerH = size[1] - oy * 2;
+		float tx = ox;
 		if (c.petShowIcon) {
-			float ix = PAD;
-			float iy = (size[1] - ICON) / 2f;
-			float cx = ix + ICON / 2f;
-			float cy = iy + ICON / 2f;
-			if (c.petRarityBackground) Theme.circle(graphics, cx, cy, ICON - 6, Math.round(a * 0.35f) << 24 | color & 0xFFFFFF);
+			float cx = ox + CIRCLE / 2f;
+			float cy = oy + innerH / 2f;
 			if (c.petXpRing) {
-				drawArc(graphics, ix, iy, ICON, 2.2f, 1, Math.round(a * 0.18f) << 24 | 0xFFFFFF);
-				if (prog > 0) {
-					int ring = c.petRingRarity ? color : c.petRingColor;
-					int ringColor = (a << 24) | ring & 0xFFFFFF;
-					if (c.chromaAccent && !c.petRingRarity) ringColor = dev.fancybars.util.gui.Chroma.mark(ringColor);
-					drawArc(graphics, ix, iy, ICON, 2.2f, Math.min(1, prog), ringColor);
-				}
+				// unfilled ring, then the filled part (full when the XP isn't known yet)
+				drawArc(graphics, cx - CIRCLE / 2f, cy - CIRCLE / 2f, CIRCLE, XP_RING, 1, a << 24 | c.petRingUnfilled & 0xFFFFFF);
+				float filled = prog < 0 ? 1 : Math.min(1, prog);
+				int ring = c.petRingRarity ? color : c.petRingColor;
+				int ringColor = (a << 24) | ring & 0xFFFFFF;
+				if (c.chromaAccent && !c.petRingRarity) ringColor = dev.fancybars.util.gui.Chroma.mark(ringColor);
+				drawArc(graphics, cx - CIRCLE / 2f, cy - CIRCLE / 2f, CIRCLE, XP_RING, filled, ringColor);
 			}
-			ItemStack stack = icon(useSample ? "golden dragon" : name);
+			// separator ring between the XP ring and the rarity circle
+			if (c.petXpRing && c.petRarityBackground) disc(graphics, cx, cy, CIRCLE - XP_RING * 2, a << 24 | 0x808080);
+			if (c.petRarityBackground) disc(graphics, cx, cy, ICON_SIZE + BG_PAD * 2, a << 24 | color & 0xFFFFFF);
+			ItemStack stack = icon(useSample ? "golden dragon" : name, color);
 			pose.pushMatrix();
-			pose.translate(cx - 9.6f, cy - 9.6f);
-			pose.scale(1.2f, 1.2f);
+			pose.translate(cx - ICON_SIZE / 2f, cy - ICON_SIZE / 2f);
+			pose.scale(ICON_SIZE / 16f, ICON_SIZE / 16f);
 			graphics.fakeItem(stack, 0, 0);
 			pose.popMatrix();
-			tx += ICON + 6;
+			tx += CIRCLE + TEXT_GAP;
 		}
-		int textH = l.lines().size() * LINE_H;
-		float ty = (size[1] - textH) / 2f;
-		for (Component line : l.lines()) {
-			Theme.drawAtCapTop(graphics, font, line, tx, ty + (LINE_H - Theme.UI_CAP) / 2f, Theme.UI_CAP, a << 24 | 0xFFFFFF);
+		// Minecraft's own font with shadow, like SkyHanni
+		float ty = oy + (innerH - l.size() * LINE_H) / 2f + 1;
+		for (Component line : l) {
+			pose.pushMatrix();
+			pose.translate(tx, ty);
+			graphics.text(font, line, 0, 0, a << 24 | 0xFFFFFF, true);
+			pose.popMatrix();
 			ty += LINE_H;
 		}
 		pose.popMatrix();
 	}
-
 }

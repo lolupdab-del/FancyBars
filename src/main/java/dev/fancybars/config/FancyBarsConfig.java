@@ -175,15 +175,18 @@ public class FancyBarsConfig {
 	public float petX = -1;
 	public float petY = -1;
 	public float petScale = 1;
-	public boolean petBackground = true;
+	public boolean petBackground = false;
 	public boolean petShowIcon = true;
 	public boolean petRarityBackground = true;
 	public boolean petXpRing = true;
 	public boolean petRingRarity = false;
-	public int petRingColor = 0x55FF55;
+	public int petRingColor = 0x00FFFF;
+	public int petRingUnfilled = 0xC0C0C0;
+	/** Bumped when the pet display's defaults change to match SkyHanni. */
+	public int petStyleVersion = 0;
 	public boolean petShowLevel = true;
-	public boolean petShowXp = true;
-	public boolean petShowHeldItem = true;
+	public boolean petShowXp = false;
+	public boolean petShowHeldItem = false;
 
 	/** Rainbow speed (1 = about one full cycle every 10 seconds). */
 	public float chromaSpeed = 1;
@@ -779,6 +782,16 @@ public class FancyBarsConfig {
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.petStyleVersion < 1) {
+				// match SkyHanni's pet display out of the box
+				instance.petBackground = false;
+				instance.petShowXp = false;
+				instance.petShowHeldItem = false;
+				instance.petRingRarity = false;
+				instance.petRingColor = 0x00FFFF;
+				instance.petRingUnfilled = 0xC0C0C0;
+				instance.petStyleVersion = 1;
+			}
 			if (instance.designVersion < 2) {
 				// Linear redesign: hairline borders
 				instance.borderThickness = 0.6f;

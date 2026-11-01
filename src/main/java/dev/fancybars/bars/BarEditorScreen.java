@@ -66,9 +66,47 @@ public class BarEditorScreen extends Screen {
 	private final List<AbstractWidget> toolbar = new ArrayList<>();
 	private boolean rebuildNextTick = false;
 
+	/** Which HUD elements this editor shows (null = all of them). */
+	private final java.util.function.@Nullable Predicate<MovableElement> filter;
+	/** Whether the status bars can be edited. */
+	private final boolean showBars;
+	/** The one element being edited on its own (for Reset). */
+	private final @Nullable MovableElement single;
+
+	/** Edits every GUI at once. */
 	public BarEditorScreen(@Nullable Screen parent) {
+		this(parent, null, true, null);
+	}
+
+	private BarEditorScreen(@Nullable Screen parent, java.util.function.@Nullable Predicate<MovableElement> filter, boolean showBars, @Nullable MovableElement single) {
 		super(Component.translatable("fancybars.editor.title"));
 		this.parent = parent;
+		this.filter = filter;
+		this.showBars = showBars;
+		this.single = single;
+	}
+
+	/** Edits just this one GUI. */
+	public static BarEditorScreen only(@Nullable Screen parent, MovableElement element) {
+		return new BarEditorScreen(parent, e -> e == element, false, element);
+	}
+
+	/** Edits just the status bars. */
+	public static BarEditorScreen barsOnly(@Nullable Screen parent) {
+		return new BarEditorScreen(parent, e -> false, true, null);
+	}
+
+	/** Edits just the screen images. */
+	public static BarEditorScreen screenImages(@Nullable Screen parent) {
+		return new BarEditorScreen(parent, e -> !java.util.Arrays.asList(MovableElement.ALL).contains(e), false, null);
+	}
+
+	private List<MovableElement> elements() {
+		List<MovableElement> all = MovableElement.all();
+		if (filter == null) return all;
+		List<MovableElement> out = new ArrayList<>();
+		for (MovableElement e : all) if (filter.test(e)) out.add(e);
+		return out;
 	}
 
 	@Override
@@ -80,6 +118,14 @@ public class BarEditorScreen extends Screen {
 		toolbar.clear();
 		ModernButton done = new ModernButton(56, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
 		ModernButton reset = new ModernButton(80, 18, Component.translatable("fancybars.menu.resetLayout"), () -> {
+			if (single != null) {
+				single.reset();
+				return;
+			}
+			if (!showBars) {
+				for (MovableElement e : elements()) e.reset();
+				return;
+			}
 			bars.resetBarPositions();
 			bars.statusBars.values().forEach(bar -> {
 				bar.enabled = true;
@@ -123,11 +169,11 @@ public class BarEditorScreen extends Screen {
 		// Bars
 		StatusBar hovered = dragging != null ? dragging : barAt(mouseX, mouseY);
 		for (StatusBar bar : bars.statusBars.values()) {
-			if (!bar.enabled) continue;
+			if (!bar.enabled || !showBars) continue;
 			bar.extractBar(graphics);
 		}
 		for (StatusBar bar : bars.statusBars.values()) {
-			if (!bar.enabled) continue;
+			if (!bar.enabled || !showBars) continue;
 			bar.extractText(graphics);
 		}
 
@@ -186,7 +232,7 @@ public class BarEditorScreen extends Screen {
 	}
 
 	private @Nullable MovableElement elementAt(double mouseX, double mouseY) {
-		for (MovableElement element : MovableElement.all()) {
+		for (MovableElement element : elements()) {
 			if (isOver(element.rect(width, height), mouseX, mouseY)) return element;
 		}
 		return null;
@@ -194,7 +240,7 @@ public class BarEditorScreen extends Screen {
 
 	private void extractElements(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean canHover) {
 		MovableElement hoveredElement = draggingElement != null ? draggingElement : canHover ? elementAt(mouseX, mouseY) : null;
-		for (MovableElement element : MovableElement.all()) {
+		for (MovableElement element : elements()) {
 			element.drawPreview(graphics, width, height);
 		}
 		if (hoveredElement == null) return;
@@ -223,6 +269,7 @@ public class BarEditorScreen extends Screen {
 	// ---------------------------------------------------------------- Hit testing
 
 	private @Nullable StatusBar barAt(double mouseX, double mouseY) {
+		if (!showBars) return null;
 		StatusBar found = null;
 		for (StatusBar bar : bars.statusBars.values()) {
 			if (!bar.enabled) continue;
@@ -452,7 +499,7 @@ public class BarEditorScreen extends Screen {
 	/** Edges of the movable HUD elements other than {@code self}: {x0, y0, x1, y1}. */
 	private List<int[]> elementEdges(Object self) {
 		List<int[]> edges = new ArrayList<>();
-		for (MovableElement element : MovableElement.all()) {
+		for (MovableElement element : elements()) {
 			if (element == self || !element.enabled()) continue;
 			float[] r = element.rect(width, height);
 			edges.add(new int[]{Math.round(r[0]), Math.round(r[1]), Math.round(r[0] + r[2]), Math.round(r[1] + r[3])});
