@@ -908,6 +908,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("chromaShaderSaturation", 0, 1, 0.01f, true, () -> config.chromaShaderSaturation, value -> config.chromaShaderSaturation = value));
 				list.add(new ValueCycleItem("chromaShaderDirection", new int[]{0, 1, 2, 3}, () -> config.chromaShaderDirection,
 						value -> config.chromaShaderDirection = value, v -> Component.translatable("fancybars.chroma.direction." + v)));
+				list.add(new ChromaPreviewItem());
 				list.add(new ToggleItem("menuAnimations", () -> config.menuAnimations, value -> config.menuAnimations = value));
 				list.add(new SliderItem("animationSpeed", 0.25f, 3, 0.01f, true, () -> config.animationSpeed, value -> config.animationSpeed = value));
 				list.add(new SliderItem("glowStrength", 0, 2, 0.01f, true, () -> config.glowStrength, value -> config.glowStrength = value));
@@ -1881,6 +1882,41 @@ public class BarsMenuScreen extends Screen {
 	}
 
 	/** Live preview of the dungeon secrets display. */
+	/** A live sample of the chroma with the current settings. */
+	private class ChromaPreviewItem extends Item {
+		ChromaPreviewItem() {
+			this.height = 56;
+			this.searchable = true;
+			this.searchText = "chroma preview sample rainbow";
+		}
+
+		@Override
+		void layout(int x, int y, int w) {}
+
+		/** White, marked for the shader; or the rainbow colour of the moment when SkyHanni Chroma is off. */
+		private int color(int alpha, float offset) {
+			if (config.chromaShader) return dev.fancybars.util.gui.Chroma.mark(alpha << 24 | 0xFFFFFF);
+			return alpha << 24 | Theme.rgb(Theme.chromaHue(offset), 0.85f, 0.62f);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			row(graphics, x, y, w, height, false);
+			Theme.textInBox(graphics, font, Component.translatable("fancybars.chroma.preview"), x + 10, y + 4, 12, Theme.TEXT_MUTED);
+			// a filled bar, a hairline box and some text: the shapes chroma gets used on
+			float bx = x + 10;
+			float bw = w - 20;
+			dev.fancybars.util.gui.Ring.fillRounded(graphics, bx, y + 20, bw * 0.62f, 8, 4, color(255, 0));
+			dev.fancybars.util.gui.Ring.fillRounded(graphics, bx + bw * 0.62f + 6, y + 20, bw * 0.38f - 6, 8, 4, color(90, 0.3f));
+			float boxW = Math.min(150, bw * 0.45f);
+			dev.fancybars.util.gui.Ring.outlinePx(graphics, bx, y + 33, boxW, 17, 4, Math.max(1, Theme.guiScale()), color(255, 0.5f));
+			Component word = Theme.bold(Component.literal("SBCLIENT"));
+			Theme.drawAtCapTop(graphics, font, word, bx + boxW / 2f - font.width(word) / 2f, y + 33 + (17 - Theme.UI_CAP) / 2f, Theme.UI_CAP, color(255, 0.5f));
+			Component sample = Theme.styled(Component.literal("The quick brown fox jumps over the lazy dog"));
+			Theme.drawAtCapTop(graphics, font, sample, bx + boxW + 10, y + 33 + (17 - Theme.UI_CAP) / 2f, Theme.UI_CAP, color(255, 0.7f));
+		}
+	}
+
 	private class SecretsPreviewItem extends Item {
 		SecretsPreviewItem() {
 			this.height = 40;

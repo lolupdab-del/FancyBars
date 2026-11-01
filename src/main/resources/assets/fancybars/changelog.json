@@ -1,4 +1,7 @@
 [
+  {"version": "2.34.0", "date": "2026-11-01",
+   "added": ["Chroma preview (Settings > Appearance): a live sample of your chroma that updates as you change size, speed, saturation and direction"],
+   "fixed": []},
   {"version": "2.33.5", "date": "2026-11-01",
    "added": [],
    "fixed": ["Pet Display shows a skinned pet properly the moment you summon it, instead of a bone with no level or rarity for a few seconds"]},
