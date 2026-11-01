@@ -515,6 +515,8 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.lag.title"), null));
 				list.add(new ToggleItem("lagReportEnabled", () -> config.lagReportEnabled, value -> config.lagReportEnabled = value));
 				list.add(new ToggleItem("lagReportParty", () -> config.lagReportParty, value -> config.lagReportParty = value));
+				list.add(new ToggleItem("lagReportCustom", () -> config.lagReportCustom, value -> config.lagReportCustom = value));
+				list.add(new TextFieldItem("lagReportFormat", () -> config.lagReportFormat, value -> config.lagReportFormat = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.secrets"), null));
 				list.add(new SecretsPreviewItem());
 				list.add(new ToggleItem("secretsEnabled", () -> config.secretsEnabled, value -> config.secretsEnabled = value));
@@ -1973,7 +1975,7 @@ public class BarsMenuScreen extends Screen {
 			field = new dev.fancybars.util.gui.SearchField(120, 16, getter.get(), Component.translatable("fancybars.config." + key), value -> {
 				setter.accept(value);
 				FancyBarsConfig.save();
-			}).maxLength(60);
+			}).maxLength(120);
 			widgets.add(field);
 		}
 

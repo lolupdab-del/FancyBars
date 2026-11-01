@@ -529,6 +529,11 @@ public class FancyBarsConfig {
 	/** Also send it to party chat automatically. */
 	public boolean lagReportParty = true;
 
+	/** Use your own wording for the lag report ({lost} = seconds lost, {tps} = average TPS). */
+	public boolean lagReportCustom = false;
+
+	public String lagReportFormat = "Server shit itself for {lost}s (avg {tps} TPS)";
+
 	public boolean perfEnabled = false;
 
 	public boolean perfShowFps = true;

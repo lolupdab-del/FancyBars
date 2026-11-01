@@ -1,4 +1,7 @@
 [
+  {"version": "2.28.1", "date": "2026-10-31",
+   "added": ["Lag Report: Custom Message toggle, write it your own way with {lost} and {tps}"],
+   "fixed": []},
   {"version": "2.28.0", "date": "2026-10-31",
    "added": ["Lag Report (Dungeons tab): seconds lost to server lag and average TPS at the end of every dungeon run", "Auto-Send to Party Chat toggle for the lag report"],
    "fixed": []},

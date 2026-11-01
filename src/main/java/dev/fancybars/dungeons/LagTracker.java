@@ -60,7 +60,12 @@ public final class LagTracker {
 		double real = (lastPacket - firstPacket) / 1000.0;
 		double lost = Math.max(0, real - intervals);
 		double tps = 20.0 * intervals / Math.max(1e-3, real);
-		String summary = String.format(java.util.Locale.ROOT, "Lost %.1fs to lag this run (avg %.1f TPS)", lost, Math.min(20, tps));
+		String lostText = String.format(java.util.Locale.ROOT, "%.1f", lost);
+		String tpsText = String.format(java.util.Locale.ROOT, "%.1f", Math.min(20, tps));
+		String summary = "Lost " + lostText + "s to lag this run (avg " + tpsText + " TPS)";
+		if (config.lagReportCustom && config.lagReportFormat != null && !config.lagReportFormat.isBlank()) {
+			summary = config.lagReportFormat.replace("{lost}", lostText).replace("{tps}", tpsText).trim();
+		}
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.player != null) mc.player.sendSystemMessage(Theme.chatPrefix().copy().append(Component.literal(summary)));
 		if (config.lagReportParty) dev.fancybars.commands.Commands.send("pc " + summary);
