@@ -151,6 +151,40 @@ public class FancyBarsConfig {
 	/** Rainbow border around menus and HUDs. */
 	public boolean chromaBorder = false;
 
+	/** Draw the rainbow with SkyHanni's chroma shader (flows across the screen) instead of one colour at a time. */
+	public boolean chromaShader = true;
+	/** Width of one rainbow cycle in % of the screen width. */
+	public float chromaShaderSize = 30;
+	public float chromaShaderSpeed = 6;
+	public float chromaShaderSaturation = 0.75f;
+	/** 0 Forward + Right, 1 Forward + Left, 2 Backward + Right, 3 Backward + Left. */
+	public int chromaShaderDirection = 0;
+
+	/** Armor display (Devonian). */
+	public boolean armorEnabled = false;
+	public float armorX = -1;
+	public float armorY = -1;
+	public float armorScale = 1;
+	public boolean armorHorizontal = false;
+	public boolean armorBackground = true;
+	public boolean armorBorder = true;
+	public boolean armorBarrier = true;
+
+	/** Pet display (SkyHanni). */
+	public boolean petEnabled = false;
+	public float petX = -1;
+	public float petY = -1;
+	public float petScale = 1;
+	public boolean petBackground = true;
+	public boolean petShowIcon = true;
+	public boolean petRarityBackground = true;
+	public boolean petXpRing = true;
+	public boolean petRingRarity = false;
+	public int petRingColor = 0x55FF55;
+	public boolean petShowLevel = true;
+	public boolean petShowXp = true;
+	public boolean petShowHeldItem = true;
+
 	/** Rainbow speed (1 = about one full cycle every 10 seconds). */
 	public float chromaSpeed = 1;
 

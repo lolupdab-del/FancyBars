@@ -96,7 +96,7 @@ public final class SmoothShapes {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(size / pixels, size / pixels);
-		graphics.blit(RenderPipelines.GUI_TEXTURED, tex, 0, 0, 0, 0, pixels, pixels, pixels, pixels, color);
+		graphics.blit(Chroma.textured(color), tex, 0, 0, 0, 0, pixels, pixels, pixels, pixels, color);
 		pose.popMatrix();
 	}
 }

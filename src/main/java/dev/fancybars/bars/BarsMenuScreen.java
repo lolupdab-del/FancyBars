@@ -630,6 +630,29 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.PERFORMANCE.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.armor.title"), null));
+				list.add(new ToggleItem("armorEnabled", () -> config.armorEnabled, value -> config.armorEnabled = value));
+				list.add(new ToggleItem("armorHorizontal", () -> config.armorHorizontal, value -> config.armorHorizontal = value));
+				list.add(new ToggleItem("armorBackground", () -> config.armorBackground, value -> config.armorBackground = value));
+				list.add(new ToggleItem("armorBorder", () -> config.armorBorder, value -> config.armorBorder = value));
+				list.add(new ToggleItem("armorBarrier", () -> config.armorBarrier, value -> config.armorBarrier = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> dev.fancybars.hud.ArmorHud.ELEMENT.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.pet.title"), null));
+				list.add(new ToggleItem("petEnabled", () -> config.petEnabled, value -> config.petEnabled = value));
+				list.add(new ToggleItem("petBackground", () -> config.petBackground, value -> config.petBackground = value));
+				list.add(new ToggleItem("petShowIcon", () -> config.petShowIcon, value -> config.petShowIcon = value));
+				list.add(new ToggleItem("petRarityBackground", () -> config.petRarityBackground, value -> config.petRarityBackground = value));
+				list.add(new ToggleItem("petXpRing", () -> config.petXpRing, value -> config.petXpRing = value));
+				list.add(new ToggleItem("petRingRarity", () -> config.petRingRarity, value -> config.petRingRarity = value));
+				list.add(new SwatchItem("petRingColor", () -> new Color(config.petRingColor, false), color -> config.petRingColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("petShowLevel", () -> config.petShowLevel, value -> config.petShowLevel = value));
+				list.add(new ToggleItem("petShowXp", () -> config.petShowXp, value -> config.petShowXp = value));
+				list.add(new ToggleItem("petShowHeldItem", () -> config.petShowHeldItem, value -> config.petShowHeldItem = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> dev.fancybars.hud.PetHud.ELEMENT.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.keystrokes"), null));
 				list.add(new ToggleItem("keystrokesEnabled", () -> config.keystrokesEnabled, value -> config.keystrokesEnabled = value));
 				list.add(new ValueCycleItem("keystrokesMode", new int[]{0, 1, 2}, () -> config.keystrokesMode,
@@ -856,6 +879,12 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.appearance.effects"), null));
 				list.add(new ToggleItem("chromaAccent", () -> config.chromaAccent, value -> config.chromaAccent = value));
 				list.add(new SliderItem("chromaSpeed", 0.1f, 5, 0.05f, false, () -> config.chromaSpeed, value -> config.chromaSpeed = value));
+				list.add(new ToggleItem("chromaShader", () -> config.chromaShader, value -> config.chromaShader = value));
+				list.add(new SliderItem("chromaShaderSize", 1, 100, 1, false, () -> config.chromaShaderSize, value -> config.chromaShaderSize = value));
+				list.add(new SliderItem("chromaShaderSpeed", 0.5f, 60, 0.5f, false, () -> config.chromaShaderSpeed, value -> config.chromaShaderSpeed = value));
+				list.add(new SliderItem("chromaShaderSaturation", 0, 1, 0.01f, true, () -> config.chromaShaderSaturation, value -> config.chromaShaderSaturation = value));
+				list.add(new ValueCycleItem("chromaShaderDirection", new int[]{0, 1, 2, 3}, () -> config.chromaShaderDirection,
+						value -> config.chromaShaderDirection = value, v -> Component.translatable("fancybars.chroma.direction." + v)));
 				list.add(new ToggleItem("menuAnimations", () -> config.menuAnimations, value -> config.menuAnimations = value));
 				list.add(new SliderItem("animationSpeed", 0.25f, 3, 0.01f, true, () -> config.animationSpeed, value -> config.animationSpeed = value));
 				list.add(new SliderItem("glowStrength", 0, 2, 0.01f, true, () -> config.glowStrength, value -> config.glowStrength = value));
@@ -881,6 +910,11 @@ public class BarsMenuScreen extends Screen {
 					config.chromaAccent = false;
 					config.chromaBorder = false;
 					config.chromaSpeed = 1;
+					config.chromaShader = true;
+					config.chromaShaderSize = 30;
+					config.chromaShaderSpeed = 6;
+					config.chromaShaderSaturation = 0.75f;
+					config.chromaShaderDirection = 0;
 					config.menuAnimations = true;
 					config.animationSpeed = 1;
 					config.glowStrength = 1;

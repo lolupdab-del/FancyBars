@@ -1,4 +1,7 @@
 [
+  {"version": "2.31.0", "date": "2026-11-01",
+   "added": ["SkyHanni chroma: Rainbow Accent and Rainbow Border now flow across the screen like SkyHanni's chroma, with size, speed, saturation and direction settings (Settings > Appearance)", "Armor Display from Devonian (HUD tab): your armor in a movable HUD, vertical or horizontal, with slot backgrounds, borders and barriers for empty slots", "Pet Display from SkyHanni (HUD tab): your pet's icon on a rarity circle with an XP ring, name, level, XP and held item"],
+   "fixed": []},
   {"version": "2.30.0", "date": "2026-11-01",
    "added": ["Item Value tooltips from Skyblocker (Items tab): estimated item value, lowest BIN, 3 day average BIN, bazaar buy / sell and NPC sell price, each with its own toggle", "Drag the inventory Spotify player by its background to put it anywhere (reset it from the Spotify tab)"],
    "fixed": []},

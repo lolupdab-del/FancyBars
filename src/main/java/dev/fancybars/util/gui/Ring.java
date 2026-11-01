@@ -84,7 +84,7 @@ public final class Ring {
 	}
 
 	private static void fillPx(GuiGraphicsExtractor graphics, float x1, float y1, float x2, float y2, int color) {
-		if (x2 > x1 && y2 > y1) graphics.fill((int) x1, (int) y1, (int) x2, (int) y2, color);
+		if (x2 > x1 && y2 > y1) graphics.fill(Chroma.fill(color), (int) x1, (int) y1, (int) x2, (int) y2, color);
 	}
 
 	/** Thin line width in screen pixels for hairlines (about 0.6 GUI px, at least 1 pixel). */
@@ -128,10 +128,10 @@ public final class Ring {
 			fillPx(graphics, X + W - R, Y + R, X + W, Y + H - R, color);
 			Identifier tex = corner(R, R);
 			int size = R * 2;
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X, Y, 0, 0, R, R, size, size, color);
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X + W - R, Y, R, 0, R, R, size, size, color);
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X, Y + H - R, 0, R, R, R, size, size, color);
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X + W - R, Y + H - R, R, R, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X, Y, 0, 0, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X + W - R, Y, R, 0, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X, Y + H - R, 0, R, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X + W - R, Y + H - R, R, R, R, R, size, size, color);
 		}
 		graphics.pose().popMatrix();
 	}
@@ -196,10 +196,10 @@ public final class Ring {
 		if (R > 0) {
 			Identifier tex = corner(R, Math.round(T * 8) / 8f);
 			int size = R * 2;
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X, Y, 0, 0, R, R, size, size, color);
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X + W - R, Y, R, 0, R, R, size, size, color);
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X, Y + H - R, 0, R, R, R, size, size, color);
-			graphics.blit(RenderPipelines.GUI_TEXTURED, tex, X + W - R, Y + H - R, R, R, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X, Y, 0, 0, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X + W - R, Y, R, 0, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X, Y + H - R, 0, R, R, R, size, size, color);
+			graphics.blit(Chroma.textured(color), tex, X + W - R, Y + H - R, R, R, R, R, size, size, color);
 		}
 	}
 
