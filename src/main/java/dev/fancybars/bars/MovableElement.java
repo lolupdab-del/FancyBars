@@ -1037,7 +1037,7 @@ public interface MovableElement {
 		@Override
 		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
 			float[] pos = dev.fancybars.hud.ArmorHud.position(screenW, screenH);
-			renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f, true);
+			dev.fancybars.hud.ArmorHud.renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f, true);
 		}
 
 		@Override
@@ -1100,7 +1100,7 @@ public interface MovableElement {
 		@Override
 		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
 			float[] pos = dev.fancybars.hud.PetHud.position(screenW, screenH);
-			renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f, true);
+			dev.fancybars.hud.PetHud.renderAt(graphics, pos[0], pos[1], scale(), enabled() ? 1 : 0.35f, true);
 		}
 
 		@Override
