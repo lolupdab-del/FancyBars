@@ -665,7 +665,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("petXpRing", () -> config.petXpRing, value -> config.petXpRing = value));
 				list.add(new ToggleItem("petRingRarity", () -> config.petRingRarity, value -> config.petRingRarity = value));
 				list.add(new SwatchItem("petRingColor", () -> new Color(config.petRingColor, false), color -> config.petRingColor = color.getRGB() & 0xFFFFFF));
-				list.add(new SliderItem("petRingGap", 0, 10, 0.5f, false, () -> config.petRingGap, value -> config.petRingGap = value));
+				list.add(new SliderItem("petBackgroundSize", 0, 1, 0.01f, true, () -> config.petBackgroundSize, value -> config.petBackgroundSize = value));
 				list.add(new ToggleItem("petSeparator", () -> config.petSeparator, value -> config.petSeparator = value));
 				list.add(new SwatchItem("petSeparatorColor", () -> new Color(config.petSeparatorColor, false), color -> config.petSeparatorColor = color.getRGB() & 0xFFFFFF));
 				list.add(new SwatchItem("petRingUnfilled", () -> new Color(config.petRingUnfilled, false), color -> config.petRingUnfilled = color.getRGB() & 0xFFFFFF));

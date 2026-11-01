@@ -1,4 +1,7 @@
 [
+  {"version": "2.33.3", "date": "2026-11-01",
+   "added": ["Pet Display: Rarity Background Size (replaces Ring Gap): the XP ring stays put and the rarity circle grows up to filling the inside of the ring, or shrinks as small as you like"],
+   "fixed": []},
   {"version": "2.33.2", "date": "2026-11-01",
    "added": ["Pet Display: Ring Gap slider for the space between the rarity background and the XP ring, with Fill Ring Gap and Gap Colour"],
    "fixed": ["Pet Display shows your pet's skin: it uses the exact pet you click in /pets, and picks up skins you apply later"]},

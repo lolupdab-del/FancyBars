@@ -578,14 +578,18 @@ public final class PetHud {
 	/** Rarity circle padding around the icon. */
 	private static final float BG_PAD = 4;
 	private static final float XP_RING = 3;
-	/** Gap between the rarity circle and the XP ring (Ring Gap setting). */
-	private static float gap() {
-		return Math.max(0, FancyBarsConfig.get().petRingGap);
+	/** Full diameter of the icon with its XP ring (fixed, SkyHanni's size). */
+	private static final float CIRCLE_SIZE = ICON_SIZE + BG_PAD * 2 + 2 + XP_RING * 2;
+	/** Space inside the XP ring: the biggest the rarity background can get. */
+	private static final float INSIDE = CIRCLE_SIZE - XP_RING * 2;
+
+	private static float circle() {
+		return CIRCLE_SIZE;
 	}
 
-	/** Full diameter of the icon: rarity circle, gap and XP ring. */
-	private static float circle() {
-		return ICON_SIZE + BG_PAD * 2 + gap() * 2 + XP_RING * 2;
+	/** Rarity background diameter from the Rarity Background Size setting (100% fills the inside of the ring). */
+	private static float backgroundSize() {
+		return INSIDE * Math.clamp(FancyBarsConfig.get().petBackgroundSize, 0, 1);
 	}
 	private static final int TEXT_GAP = 4;
 	private static final int LINE_H = 10;
@@ -680,12 +684,9 @@ public final class PetHud {
 				if (c.chromaAccent && !c.petRingRarity) ringColor = dev.fancybars.util.gui.Chroma.mark(ringColor);
 				drawArc(graphics, cx - CIRCLE / 2f, cy - CIRCLE / 2f, CIRCLE, XP_RING, filled, ringColor);
 			}
-			// separator ring between the XP ring and the rarity circle
-			if (c.petXpRing && c.petSeparator && gap() > 0.01f) {
-				float inner = CIRCLE - XP_RING * 2;
-				drawArc(graphics, cx - inner / 2f, cy - inner / 2f, inner, gap(), 1, a << 24 | c.petSeparatorColor & 0xFFFFFF);
-			}
-			if (c.petRarityBackground) disc(graphics, cx, cy, ICON_SIZE + BG_PAD * 2, a << 24 | color & 0xFFFFFF);
+			// whatever the rarity background doesn't cover inside the ring
+			if (c.petSeparator) disc(graphics, cx, cy, INSIDE, a << 24 | c.petSeparatorColor & 0xFFFFFF);
+			if (c.petRarityBackground && backgroundSize() > 0.5f) disc(graphics, cx, cy, backgroundSize(), a << 24 | color & 0xFFFFFF);
 			ItemStack stack = icon(useSample ? "golden dragon" : name, color);
 			// rendered at full screen resolution, so the head is as smooth as SkyHanni's
 			dev.fancybars.util.gui.SharpItem.draw(graphics, stack, cx - ICON_SIZE / 2f, cy - ICON_SIZE / 2f, ICON_SIZE);
