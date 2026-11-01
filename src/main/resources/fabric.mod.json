@@ -39,7 +39,7 @@
 		"Skyblocker team (item value tooltips, LGPL-3.0: https://github.com/SkyblockerMod/Skyblocker)",
 		"AzureAaron (Networth Calculator, Apache-2.0: https://github.com/AzureAaron/networth-calculator)",
 		"SkyHanni team (chroma shader and pet display, https://github.com/hannibal002/SkyHanni)",
-		"Synnerz (Devonian armor display, GPL-3.0: https://github.com/Synnerz/devonian)"
+		"Synnerz (Devonian armor display and enchant list, GPL-3.0: https://github.com/Synnerz/devonian)"
 	],
 	"jars": [
 		{
