@@ -512,6 +512,9 @@ public class BarsMenuScreen extends Screen {
 				}
 			}
 			case DUNGEONS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.lag.title"), null));
+				list.add(new ToggleItem("lagReportEnabled", () -> config.lagReportEnabled, value -> config.lagReportEnabled = value));
+				list.add(new ToggleItem("lagReportParty", () -> config.lagReportParty, value -> config.lagReportParty = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.secrets"), null));
 				list.add(new SecretsPreviewItem());
 				list.add(new ToggleItem("secretsEnabled", () -> config.secretsEnabled, value -> config.secretsEnabled = value));

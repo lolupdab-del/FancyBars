@@ -523,6 +523,12 @@ public class FancyBarsConfig {
 	/** Keep screen images visible while chat or an inventory / chest is open. */
 	public boolean screenImagesInScreens = false;
 
+	/** Show how many seconds were lost to server lag at the end of every dungeon run. */
+	public boolean lagReportEnabled = true;
+
+	/** Also send it to party chat automatically. */
+	public boolean lagReportParty = true;
+
 	public boolean perfEnabled = false;
 
 	public boolean perfShowFps = true;

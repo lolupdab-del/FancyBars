@@ -102,7 +102,7 @@ public final class Commands {
 	}
 
 	/** Queues a command; queued commands go out at least ~1 second apart, the first one after a 1 second wait. */
-	private static void send(String command) {
+	public static void send(String command) {
 		long now = System.currentTimeMillis();
 		if (QUEUE.isEmpty()) nextSendAt = Math.max(nextSendAt, now + COMMAND_GAP_MS);
 		QUEUE.add(new Queued(command, 0));

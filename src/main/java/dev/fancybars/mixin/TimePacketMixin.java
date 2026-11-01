@@ -15,5 +15,6 @@ public abstract class TimePacketMixin {
 	@Inject(method = "handleSetTime", at = @At("HEAD"), require = 0)
 	private void fancybars$timePacket(CallbackInfo ci) {
 		PerformanceHud.onTimePacket();
+		dev.fancybars.dungeons.LagTracker.onTimePacket();
 	}
 }
