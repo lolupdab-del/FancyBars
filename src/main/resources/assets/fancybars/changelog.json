@@ -1,7 +1,7 @@
 [
   {"version": "2.32.1", "date": "2026-11-01",
    "added": [],
-   "fixed": ["Pet Display head is drawn at full resolution, smooth like SkyHanni's", "Resizing or moving a bar next to the hotbar no longer stretches or moves the other bars"]},
+   "fixed": ["Keystrokes no longer flash pink when you press a key or click", "Pet Display head is drawn at full resolution, smooth like SkyHanni's", "Resizing or moving a bar next to the hotbar no longer stretches or moves the other bars"]},
   {"version": "2.32.0", "date": "2026-11-01",
    "added": ["Every feature with a HUD has its own Edit GUI button that edits just that one; the corner button and Home still edit everything", "Edit GUI button in the Bars tab for just the bars", "Right-click a search result to jump to where the setting lives (left-click now uses the setting)"],
    "fixed": ["Pet Display now matches SkyHanni's: same sizes, rarity circle, separator and cyan XP ring, Minecraft font with shadow", "Pet Display shows your pet's real head instead of a bone (and your skin once you've opened /pets)", "The corner Edit GUI button is hidden on Home"]},
