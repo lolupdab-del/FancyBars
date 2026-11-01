@@ -82,6 +82,15 @@ public final class Chroma {
 		return (argb & MARK_MASK) == MARK && shaderEnabled();
 	}
 
+	/** Text in this exact colour is drawn with the chroma shader (an odd pink nothing else uses). */
+	public static final int TEXT_MARK = 0xFF56FE;
+
+	/** Pipeline for chroma text glyphs (called from the GuiRenderer mixin). */
+	public static RenderPipeline textPipeline() {
+		usedThisFrame = true;
+		return TEXTURED;
+	}
+
 	/** The pipeline to fill a rectangle of this colour with. */
 	public static RenderPipeline fill(int argb) {
 		if (!marked(argb)) return RenderPipelines.GUI;

@@ -459,6 +459,8 @@
 	"fancybars.config.chromaShaderSaturation.@Tooltip": "How strong the rainbow colours are.",
 	"fancybars.config.chromaShaderDirection": "Chroma Direction",
 	"fancybars.config.chromaShaderDirection.@Tooltip": "Which way the rainbow flows.",
+	"fancybars.config.chromaMaxEnchants": "Chroma Max Enchants",
+	"fancybars.config.chromaMaxEnchants.@Tooltip": "Enchants at their max level are drawn in chroma in item tooltips. Needs SkyHanni Chroma on.",
 	"fancybars.chroma.preview": "Preview",
 	"fancybars.chroma.direction.0": "Forward + Right",
 	"fancybars.chroma.direction.1": "Forward + Left",

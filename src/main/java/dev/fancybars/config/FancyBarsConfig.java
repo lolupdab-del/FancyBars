@@ -159,6 +159,8 @@ public class FancyBarsConfig {
 	public float chromaShaderSaturation = 0.75f;
 	/** 0 Forward + Right, 1 Forward + Left, 2 Backward + Right, 3 Backward + Left. */
 	public int chromaShaderDirection = 0;
+	/** Draw maxed enchants in item tooltips in chroma. */
+	public boolean chromaMaxEnchants = true;
 
 	/** Armor display (Devonian). */
 	public boolean armorEnabled = false;

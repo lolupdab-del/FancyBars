@@ -909,6 +909,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ValueCycleItem("chromaShaderDirection", new int[]{0, 1, 2, 3}, () -> config.chromaShaderDirection,
 						value -> config.chromaShaderDirection = value, v -> Component.translatable("fancybars.chroma.direction." + v)));
 				list.add(new ChromaPreviewItem());
+				list.add(new ToggleItem("chromaMaxEnchants", () -> config.chromaMaxEnchants, value -> config.chromaMaxEnchants = value));
 				list.add(new ToggleItem("menuAnimations", () -> config.menuAnimations, value -> config.menuAnimations = value));
 				list.add(new SliderItem("animationSpeed", 0.25f, 3, 0.01f, true, () -> config.animationSpeed, value -> config.animationSpeed = value));
 				list.add(new SliderItem("glowStrength", 0, 2, 0.01f, true, () -> config.glowStrength, value -> config.glowStrength = value));

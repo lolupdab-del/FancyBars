@@ -5,6 +5,7 @@
 	"client": [
 		"ChromaGameRendererMixin",
 		"ChromaGuiRendererMixin",
+		"ChromaTextMixin",
 		"AvatarRendererMixin",
 		"ContainerScreenAccessor",
 		"ContainerScreenBackpackMixin",

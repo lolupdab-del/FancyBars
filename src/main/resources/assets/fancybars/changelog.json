@@ -1,4 +1,7 @@
 [
+  {"version": "2.35.0", "date": "2026-11-01",
+   "added": ["Chroma Max Enchants (Settings > Appearance, on by default): enchants at their max level show in chroma in item tooltips"],
+   "fixed": []},
   {"version": "2.34.0", "date": "2026-11-01",
    "added": ["Chroma preview (Settings > Appearance): a live sample of your chroma that updates as you change size, speed, saturation and direction"],
    "fixed": []},

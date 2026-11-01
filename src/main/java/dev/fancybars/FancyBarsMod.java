@@ -79,6 +79,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.hud.PerformanceHud.init();
 		dev.fancybars.dungeons.LagTracker.init();
 		dev.fancybars.items.ItemValue.init();
+		dev.fancybars.items.MaxEnchantChroma.init();
 		dev.fancybars.hud.ArmorHud.init();
 		dev.fancybars.hud.PetHud.init();
 		dev.fancybars.util.gui.Chroma.init();
