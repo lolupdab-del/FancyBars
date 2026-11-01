@@ -256,8 +256,9 @@ public final class PetHud {
 				if (p.matches()) percent = Float.parseFloat(p.group("percent")) / 100f;
 				if (line.equals("MAX LEVEL")) percent = 1;
 			}
-			if (active) setCurrentIcon(pet, icon);
+			// (a menu still open from before you switched can show the old pet as active: the hold skips it)
 			if (active && !HELD_PET.holding() || active && HELD_PET.value().equalsIgnoreCase(pet)) {
+				setCurrentIcon(pet, icon);
 				setPet(pet, Integer.parseInt(m.group("level")), colorOf(stack.getHoverName(), pet));
 				heldItem = held;
 				if (percent >= 0) progress = percent;
