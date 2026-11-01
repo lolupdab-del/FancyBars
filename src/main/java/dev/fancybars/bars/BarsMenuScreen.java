@@ -910,6 +910,18 @@ public class BarsMenuScreen extends Screen {
 						value -> config.chromaShaderDirection = value, v -> Component.translatable("fancybars.chroma.direction." + v)));
 				list.add(new ChromaPreviewItem());
 				list.add(new ToggleItem("chromaMaxEnchants", () -> config.chromaMaxEnchants, value -> config.chromaMaxEnchants = value));
+				list.add(new ValueCycleItem("enchantMaxStyle", new int[]{0, 1, 2, 3}, () -> config.enchantMaxStyle,
+						value -> config.enchantMaxStyle = value, v -> Component.translatable("fancybars.enchant.style." + v)));
+				list.add(new SwatchItem("enchantMaxColor", () -> new Color(config.enchantMaxColor, false), color -> config.enchantMaxColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantMaxCustom1", () -> new Color(config.enchantMaxCustom1, false), color -> config.enchantMaxCustom1 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantMaxCustom2", () -> new Color(config.enchantMaxCustom2, false), color -> config.enchantMaxCustom2 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantMaxCustom3", () -> new Color(config.enchantMaxCustom3, false), color -> config.enchantMaxCustom3 = color.getRGB() & 0xFFFFFF));
+				list.add(new ValueCycleItem("enchantUltStyle", new int[]{0, 1, 2, 3}, () -> config.enchantUltStyle,
+						value -> config.enchantUltStyle = value, v -> Component.translatable("fancybars.enchant.style." + v)));
+				list.add(new SwatchItem("enchantUltColor", () -> new Color(config.enchantUltColor, false), color -> config.enchantUltColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantUltCustom1", () -> new Color(config.enchantUltCustom1, false), color -> config.enchantUltCustom1 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantUltCustom2", () -> new Color(config.enchantUltCustom2, false), color -> config.enchantUltCustom2 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantUltCustom3", () -> new Color(config.enchantUltCustom3, false), color -> config.enchantUltCustom3 = color.getRGB() & 0xFFFFFF));
 				list.add(new ToggleItem("menuAnimations", () -> config.menuAnimations, value -> config.menuAnimations = value));
 				list.add(new SliderItem("animationSpeed", 0.25f, 3, 0.01f, true, () -> config.animationSpeed, value -> config.animationSpeed = value));
 				list.add(new SliderItem("glowStrength", 0, 2, 0.01f, true, () -> config.glowStrength, value -> config.glowStrength = value));

@@ -161,6 +161,18 @@ public class FancyBarsConfig {
 	public int chromaShaderDirection = 0;
 	/** Draw maxed enchants in item tooltips in chroma. */
 	public boolean chromaMaxEnchants = true;
+	/** Maxed enchants: 0 Chroma, 1 Custom Chroma, 2 Solid Colour, 3 Off. */
+	public int enchantMaxStyle = 0;
+	public int enchantMaxColor = 0xFFAA00;
+	public int enchantMaxCustom1 = 0xFF5555;
+	public int enchantMaxCustom2 = 0xFFAA00;
+	public int enchantMaxCustom3 = 0xFFFF55;
+	/** Ultimate enchants (any level): same choices, solid pink by default. */
+	public int enchantUltStyle = 2;
+	public int enchantUltColor = 0xFF55FF;
+	public int enchantUltCustom1 = 0xFF55FF;
+	public int enchantUltCustom2 = 0xAA00AA;
+	public int enchantUltCustom3 = 0x55FFFF;
 
 	/** Armor display (Devonian). */
 	public boolean armorEnabled = false;

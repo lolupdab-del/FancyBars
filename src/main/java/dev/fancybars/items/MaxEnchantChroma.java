@@ -67,21 +67,24 @@ public final class MaxEnchantChroma {
 
 	private static void apply(ItemStack stack, List<Component> lines) {
 		FancyBarsConfig c = FancyBarsConfig.get();
-		if (!c.chromaMaxEnchants || !c.chromaShader || !SkyblockLocation.isOnSkyblock() || stack.isEmpty()) return;
+		if (!c.chromaMaxEnchants || !SkyblockLocation.isOnSkyblock() || stack.isEmpty()) return;
 		CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 		CompoundTag ench = data.getCompoundOrEmpty("enchantments");
 		if (ench.isEmpty()) return;
-		// "Sharpness VII", "Sharpness 7" for every enchant on the item that's at its max level
-		List<String> targets = new ArrayList<>();
+		// "Sharpness VII" / "Sharpness 7" for every maxed enchant, and every ultimate enchant, with the colour to use
+		Map<String, Integer> targets = new HashMap<>();
 		for (String key : ench.keySet()) {
 			Object[] info = enchants().get(key);
 			if (info == null) continue;
 			int level = ench.getIntOr(key, 0);
-			int max = (Integer) info[1];
-			if (level < max) continue;
+			boolean ultimate = key.startsWith("ultimate_");
+			if (!ultimate && level < (Integer) info[1]) continue;
+			int color = ultimate ? colorFor(c.enchantUltStyle, c.enchantUltColor, Chroma.TEXT_MARK_CUSTOM_ULTIMATE)
+					: colorFor(c.enchantMaxStyle, c.enchantMaxColor, Chroma.TEXT_MARK_CUSTOM_ENCHANT);
+			if (color == -1) continue;
 			String lore = (String) info[0];
-			if (level < ROMAN.length) targets.add(lore + " " + ROMAN[level]);
-			targets.add(lore + " " + level);
+			if (level < ROMAN.length) targets.put(lore + " " + ROMAN[level], color);
+			targets.put(lore + " " + level, color);
 		}
 		if (targets.isEmpty()) return;
 		for (int i = 0; i < lines.size(); i++) {
@@ -90,8 +93,18 @@ public final class MaxEnchantChroma {
 		}
 	}
 
-	/** The line with every target enchant drawn in chroma, or null when there's nothing to change. */
-	private static Component recolour(Component line, List<String> targets) {
+	/** Text colour for a style: 0 Chroma, 1 Custom Chroma, 2 Solid Colour, 3 Off (-1 = leave it alone). */
+	private static int colorFor(int style, int solid, int customMark) {
+		return switch (style) {
+			case 0 -> Chroma.shaderEnabled() ? Chroma.TEXT_MARK : -1;
+			case 1 -> customMark;
+			case 2 -> solid & 0xFFFFFF;
+			default -> -1;
+		};
+	}
+
+	/** The line with every target enchant recoloured, or null when there's nothing to change. */
+	private static Component recolour(Component line, Map<String, Integer> targets) {
 		List<Style> styles = new ArrayList<>();
 		StringBuilder text = new StringBuilder();
 		line.visit((Style style, String part) -> {
@@ -101,7 +114,8 @@ public final class MaxEnchantChroma {
 		}, Style.EMPTY);
 		String plain = text.toString();
 		boolean changed = false;
-		for (String target : targets) {
+		for (Map.Entry<String, Integer> entry : targets.entrySet()) {
+			String target = entry.getKey();
 			int from = 0;
 			int at;
 			while ((at = plain.indexOf(target, from)) >= 0) {
@@ -110,7 +124,7 @@ public final class MaxEnchantChroma {
 				boolean wordEnd = end >= plain.length() || !Character.isLetterOrDigit(plain.charAt(end));
 				boolean wordStart = at == 0 || !Character.isLetterOrDigit(plain.charAt(at - 1));
 				if (wordStart && wordEnd) {
-					for (int i = at; i < end; i++) styles.set(i, styles.get(i).withColor(Chroma.TEXT_MARK));
+					for (int i = at; i < end; i++) styles.set(i, styles.get(i).withColor(entry.getValue()));
 					changed = true;
 				}
 				from = end;

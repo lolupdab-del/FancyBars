@@ -44,7 +44,27 @@ public final class Chroma {
 			.withBindGroupLayout(LAYOUT)
 			.build());
 
-	private static final int SIZE = new Std140SizeCalculator().putFloat().putFloat().putFloat().putInt().get();
+	/** Your own colours flowing like the chroma (Custom Chroma for maxed / ultimate enchants). */
+	public static final RenderPipeline CUSTOM_ENCHANT = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+			.withLocation(FancyBarsMod.id("pipeline/chroma_custom_enchant"))
+			.withFragmentShader(FancyBarsMod.id("core/chroma_custom_enchant"))
+			.withBindGroupLayout(LAYOUT)
+			.build());
+
+	public static final RenderPipeline CUSTOM_ULTIMATE = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+			.withLocation(FancyBarsMod.id("pipeline/chroma_custom_ultimate"))
+			.withFragmentShader(FancyBarsMod.id("core/chroma_custom_ultimate"))
+			.withBindGroupLayout(LAYOUT)
+			.build());
+
+	/** 4 settings + 6 colours (each 4 floats, std140 vec4). */
+	private static final int SIZE;
+
+	static {
+		Std140SizeCalculator calc = new Std140SizeCalculator().putFloat().putFloat().putFloat().putInt();
+		for (int i = 0; i < 24; i++) calc.putFloat();
+		SIZE = calc.get();
+	}
 	private static DynamicUniformStorage<Value> storage;
 	private static GpuBufferSlice slice;
 	private static boolean usedThisFrame;
@@ -55,11 +75,31 @@ public final class Chroma {
 		// touching the class registers the pipelines early
 	}
 
-	private record Value(float size, float time, float saturation, int forward) implements DynamicUniformStorage.DynamicUniform {
+	private record Value(float size, float time, float saturation, int forward, int[] colors) implements DynamicUniformStorage.DynamicUniform {
 		@Override
 		public void write(ByteBuffer buffer) {
-			Std140Builder.intoBuffer(buffer).putFloat(size).putFloat(time).putFloat(saturation).putInt(forward);
+			Std140Builder b = Std140Builder.intoBuffer(buffer).putFloat(size).putFloat(time).putFloat(saturation).putInt(forward);
+			for (int c : colors) b.putFloat((c >> 16 & 0xFF) / 255f).putFloat((c >> 8 & 0xFF) / 255f).putFloat((c & 0xFF) / 255f).putFloat(1);
 		}
+	}
+
+	/** Text in these exact colours uses your Custom Chroma for enchants / ultimate enchants. */
+	public static final int TEXT_MARK_CUSTOM_ENCHANT = 0xFF56FC;
+	public static final int TEXT_MARK_CUSTOM_ULTIMATE = 0xFF56FA;
+
+	/** Pipeline for glyphs in one of the chroma marker colours, or null for normal text. */
+	public static RenderPipeline textPipelineFor(int rgb) {
+		rgb &= 0xFFFFFF;
+		if (rgb == TEXT_MARK && shaderEnabled()) return textPipeline();
+		if (rgb == TEXT_MARK_CUSTOM_ENCHANT) {
+			usedThisFrame = true;
+			return CUSTOM_ENCHANT;
+		}
+		if (rgb == TEXT_MARK_CUSTOM_ULTIMATE) {
+			usedThisFrame = true;
+			return CUSTOM_ULTIMATE;
+		}
+		return null;
 	}
 
 	// ---------------------------------------------------------------- marking
@@ -109,7 +149,6 @@ public final class Chroma {
 
 	/** Writes this frame's settings before a draw starts (writing them mid-draw leaves the shader with zeros). */
 	public static void prepare() {
-		if (!shaderEnabled()) return;
 		if (slice == null) {
 			if (storage == null) storage = new DynamicUniformStorage<>("SBCLIENT Chroma UBO", SIZE, 2);
 			FancyBarsConfig c = FancyBarsConfig.get();
@@ -118,12 +157,13 @@ public final class Chroma {
 			boolean backward = c.chromaShaderDirection >= 2;
 			float time = (backward ? -ticks : ticks) * (c.chromaShaderSpeed / 360f);
 			int forward = c.chromaShaderDirection % 2 == 0 ? 1 : 0;
-			slice = storage.writeUniform(new Value(size, time, Math.clamp(c.chromaShaderSaturation, 0, 1), forward));
+			int[] colors = {c.enchantMaxCustom1, c.enchantMaxCustom2, c.enchantMaxCustom3, c.enchantUltCustom1, c.enchantUltCustom2, c.enchantUltCustom3};
+			slice = storage.writeUniform(new Value(size, time, Math.clamp(c.chromaShaderSaturation, 0, 1), forward, colors));
 		}
 	}
 
 	public static void bind(RenderPass pass) {
-		if (!shaderEnabled() || slice == null) return;
+		if (slice == null) return;
 		pass.setUniform(UNIFORM, slice);
 	}
 

@@ -9,6 +9,12 @@ layout(std140) uniform SbclientChromaUniforms {
     float timeOffset;
     float saturation;
     int forwardDirection;
+    vec4 enchantA;
+    vec4 enchantB;
+    vec4 enchantC;
+    vec4 ultimateA;
+    vec4 ultimateB;
+    vec4 ultimateC;
 };
 
 out vec4 fragColor;

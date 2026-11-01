@@ -24,9 +24,11 @@ public abstract class ChromaTextMixin {
 	private RenderPipeline fancybars$chromaText(GuiElementRenderState state, Operation<RenderPipeline> original) {
 		if (state instanceof GlyphRenderState glyph && glyph.renderable() instanceof BakedSheetGlyph.GlyphInstance instance) {
 			TextColor color = instance.style().getColor();
-			// ours, or SkyHanni's "chroma" colour (its Enchant Parsing uses it for perfect enchants)
-			if (color != null && Chroma.shaderEnabled() && ((color.getValue() & 0xFFFFFF) == Chroma.TEXT_MARK || "chroma".equals(color.serialize()))) {
-				return Chroma.textPipeline();
+			if (color != null) {
+				RenderPipeline chroma = Chroma.textPipelineFor(color.getValue());
+				if (chroma != null) return chroma;
+				// SkyHanni's "chroma" colour (its Enchant Parsing uses it for perfect enchants)
+				if (Chroma.shaderEnabled() && "chroma".equals(color.serialize())) return Chroma.textPipeline();
 			}
 		}
 		return original.call(state);
