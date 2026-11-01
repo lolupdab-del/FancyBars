@@ -124,7 +124,10 @@ public final class MaxEnchantChroma {
 				boolean wordEnd = end >= plain.length() || !Character.isLetterOrDigit(plain.charAt(end));
 				boolean wordStart = at == 0 || !Character.isLetterOrDigit(plain.charAt(at - 1));
 				if (wordStart && wordEnd) {
-					for (int i = at; i < end; i++) styles.set(i, styles.get(i).withColor(entry.getValue()));
+					int color = entry.getValue();
+					boolean flowing = color == Chroma.TEXT_MARK || color == Chroma.TEXT_MARK_CUSTOM_ENCHANT || color == Chroma.TEXT_MARK_CUSTOM_ULTIMATE;
+					// 26.3: no chroma shader, so every letter gets its own colour (redone each frame the tooltip draws)
+					for (int i = at; i < end; i++) styles.set(i, styles.get(i).withColor(flowing ? Chroma.textColor(color, i - at) : color));
 					changed = true;
 				}
 				from = end;

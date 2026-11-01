@@ -1908,7 +1908,6 @@ public class BarsMenuScreen extends Screen {
 
 		/** White, marked for the shader; or the rainbow colour of the moment when SkyHanni Chroma is off. */
 		private int color(int alpha, float offset) {
-			if (config.chromaShader) return dev.fancybars.util.gui.Chroma.mark(alpha << 24 | 0xFFFFFF);
 			return alpha << 24 | Theme.rgb(Theme.chromaHue(offset), 0.85f, 0.62f);
 		}
 
