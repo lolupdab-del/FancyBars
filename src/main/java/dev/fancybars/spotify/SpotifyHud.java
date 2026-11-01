@@ -101,18 +101,34 @@ public final class SpotifyHud {
 			// time left until the song ends, next to the bar
 			net.minecraft.client.gui.Font font = net.minecraft.client.Minecraft.getInstance().font;
 			Component left = Theme.small(Component.literal("-" + Spotify.time(Math.max(0, s.durationMs - s.progressNow()))));
-			float w = font.width(left);
+			// reserve room for the widest the countdown can get, so the bar doesn't change size as the digits change
+			float w = slotWidth(font, s.durationMs);
 			float textY = 35.5f - Theme.SMALL_CAP / 2f;
 			if (timeMode == 1) {
-				Theme.drawAtCapTop(graphics, font, left, tx, textY, Theme.SMALL_CAP, Theme.hudTextSoft(a));
+				Theme.drawAtCapTop(graphics, font, left, tx + w - font.width(left), textY, Theme.SMALL_CAP, Theme.hudTextSoft(a));
 				barX += Math.round(w) + 5;
 				barW -= Math.round(w) + 5;
 			} else {
-				Theme.drawAtCapTop(graphics, font, left, WIDTH - 6 - w, textY, Theme.SMALL_CAP, Theme.hudTextSoft(a));
+				Theme.drawAtCapTop(graphics, font, left, WIDTH - 6 - font.width(left), textY, Theme.SMALL_CAP, Theme.hudTextSoft(a));
 				barW -= Math.round(w) + 5;
 			}
 		}
 		SpotifyUi.progress(graphics, barX, 34, barW, fraction, SpotifyUi.green(a));
 		pose.popMatrix();
+	}
+
+	/** Width of the countdown with every digit as the widest digit, for a song of this length. */
+	private static float slotWidth(net.minecraft.client.gui.Font font, long durationMs) {
+		float widest = 0;
+		char widestDigit = '0';
+		for (char d = '0'; d <= '9'; d++) {
+			float dw = font.width(Theme.small(Component.literal(String.valueOf(d))));
+			if (dw > widest) {
+				widest = dw;
+				widestDigit = d;
+			}
+		}
+		String pattern = ("-" + Spotify.time(durationMs)).replaceAll("[0-9]", String.valueOf(widestDigit));
+		return font.width(Theme.small(Component.literal(pattern)));
 	}
 }

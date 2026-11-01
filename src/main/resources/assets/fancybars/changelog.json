@@ -1,4 +1,7 @@
 [
+  {"version": "2.37.1", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Spotify HUD progress bar keeps the same length while the Time Left countdown ticks"]},
   {"version": "2.37.0", "date": "2026-11-01",
    "added": ["Spotify Now Playing HUD: Time Left option shows how long until the song ends, bottom left or bottom right"],
    "fixed": []},
