@@ -23,10 +23,9 @@ import dev.fancybars.util.gui.Theme;
 public final class ArmorHud {
 	private static final int SLOT = 18;
 	private static final EquipmentSlot[] SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-	private static final ItemStack BARRIER = new ItemStack(Items.BARRIER);
-	private static final ItemStack[] SAMPLE = {
-			new ItemStack(Items.DIAMOND_HELMET), new ItemStack(Items.DIAMOND_CHESTPLATE),
-			new ItemStack(Items.DIAMOND_LEGGINGS), new ItemStack(Items.DIAMOND_BOOTS)};
+	// created on first use: items don't exist yet while the mod is starting up
+	private static ItemStack barrier;
+	private static ItemStack[] sample;
 
 	private ArmorHud() {}
 
@@ -74,7 +73,8 @@ public final class ArmorHud {
 			ItemStack stack = sample || mc.player == null ? sampleOrReal(i) : mc.player.getItemBySlot(SLOTS[i]);
 			if (stack.isEmpty()) {
 				if (!c.armorBarrier) continue;
-				stack = BARRIER;
+				if (barrier == null) barrier = new ItemStack(Items.BARRIER);
+				stack = barrier;
 			}
 			graphics.fakeItem(stack, sx + 1, sy + 1);
 		}
@@ -87,7 +87,10 @@ public final class ArmorHud {
 			ItemStack real = mc.player.getItemBySlot(SLOTS[i]);
 			if (!real.isEmpty()) return real;
 		}
-		return SAMPLE[i];
+		if (sample == null) sample = new ItemStack[]{
+				new ItemStack(Items.DIAMOND_HELMET), new ItemStack(Items.DIAMOND_CHESTPLATE),
+				new ItemStack(Items.DIAMOND_LEGGINGS), new ItemStack(Items.DIAMOND_BOOTS)};
+		return sample[i];
 	}
 
 	// ---------------------------------------------------------------- editor
