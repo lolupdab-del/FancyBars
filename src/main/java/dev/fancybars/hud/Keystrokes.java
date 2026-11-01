@@ -186,8 +186,10 @@ public final class Keystrokes {
 			int kw = Math.round(key.x() + key.w()) - kx;
 			int kh = Math.round(key.h());
 			int idle = Theme.hudBg(0.88f, a);
-			int pressed = (Math.round(a * 0.85f) << 24) | (Theme.colorAt(graphics, Theme.ACCENT, kx + kw / 2f) & 0xFFFFFF);
-			Theme.roundedRect(graphics, kx, ky, kw, kh, 4, Theme.lerpColor(idle, pressed, p));
+			// idle background, then the accent faded in on top (no colour blending, so nothing off-theme shows mid-press)
+			Theme.roundedRect(graphics, kx, ky, kw, kh, 4, idle);
+			int pressedAlpha = Math.round(a * 0.85f * Math.clamp(p, 0, 1));
+			if (pressedAlpha > 0) Theme.roundedRect(graphics, kx, ky, kw, kh, 4, pressedAlpha << 24 | Theme.accent() & 0xFFFFFF);
 			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, kx, ky, kw, kh, 4, Theme.hudLine(), a);
 			int textColor = Theme.lerpColor(Theme.hudText(255), Theme.night(Theme.TEXT_ON_ACCENT), p);
 			Component label = Theme.bold(Component.literal(key.label()));
@@ -208,7 +210,7 @@ public final class Keystrokes {
 				pose.pushMatrix();
 				pose.translate(kx + kw / 2f, ky + kh / 2f + 5f);
 				pose.scale(cpsScale, cpsScale);
-				int cpsColor = Theme.lerpColor(0xFFBFBFC8, 0xFF3A2A33, p);
+				int cpsColor = Theme.lerpColor(Theme.hudTextSoft(255), Theme.night(Theme.TEXT_ON_ACCENT), p);
 				Theme.drawAtCapTop(graphics, font, cpsText, -cw / 2f, -Theme.UI_CAP / 2f, Theme.UI_CAP, (a << 24) | (cpsColor & 0xFFFFFF));
 				pose.popMatrix();
 			}

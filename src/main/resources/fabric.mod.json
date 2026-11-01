@@ -35,7 +35,11 @@
 	"contributors": [
 		"Skyblocker team (original Fancy Bars, item protection and backpack preview code)",
 		"SkyblockAddons team (secrets display and bar style)",
-		"Furq (ResourcePackCached, bundled unmodified, GPL-3.0: https://github.com/Furqit/ResourcePackCached)"
+		"Furq (ResourcePackCached, bundled unmodified, GPL-3.0: https://github.com/Furqit/ResourcePackCached)",
+		"Skyblocker team (item value tooltips, LGPL-3.0: https://github.com/SkyblockerMod/Skyblocker)",
+		"AzureAaron (Networth Calculator, Apache-2.0: https://github.com/AzureAaron/networth-calculator)",
+		"SkyHanni team (chroma shader and pet display, https://github.com/hannibal002/SkyHanni)",
+		"Synnerz (Devonian armor display and enchant list, GPL-3.0: https://github.com/Synnerz/devonian)"
 	],
 	"jars": [
 		{

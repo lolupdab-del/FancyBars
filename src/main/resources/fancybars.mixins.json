@@ -3,6 +3,9 @@
 	"package": "dev.fancybars.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
+		"ChromaGameRendererMixin",
+		"ChromaGuiRendererMixin",
+		"ChromaTextMixin",
 		"AvatarRendererMixin",
 		"ContainerScreenAccessor",
 		"ContainerScreenBackpackMixin",

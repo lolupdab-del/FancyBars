@@ -56,6 +56,13 @@ public class BarsMenuScreen extends Screen {
 	private int x0;
 	private int y0;
 	private int totalWidth;
+	private int editGuiW;
+	private ModernButton editGuiButton;
+
+	/** The corner Edit GUI button is hidden on Home (Home has its own). */
+	private boolean onHome() {
+		return tab == Tab.HOME && search.isBlank();
+	}
 	private int totalHeight;
 	private int contentX;
 	private int contentY;
@@ -171,6 +178,15 @@ public class BarsMenuScreen extends Screen {
 		tipFor(close, Component.translatable("gui.done"));
 		close.setPosition(x0 + totalWidth - 8 - 16, y0 + (HEADER_HEIGHT - 16) / 2);
 		addRenderableWidget(close);
+
+		// Edit GUI, always in the bottom-right of the footer
+		Component editLabel = Component.translatable("fancybars.menu.editGui");
+		editGuiW = Theme.width(font, editLabel) + 16;
+		editGuiButton = new ModernButton(editGuiW, 14, editLabel, ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
+		tipFor(editGuiButton, Component.translatable("fancybars.menu.editGui.@Tooltip"));
+		editGuiButton.setPosition(x0 + totalWidth - 8 - editGuiW, y0 + totalHeight - FOOTER_HEIGHT + (FOOTER_HEIGHT - 14) / 2);
+		editGuiButton.visible = !onHome();
+		addRenderableWidget(editGuiButton);
 
 		// Category tabs across the top, wrapping onto a second row when needed
 		int tx = x0 + 6;
@@ -326,7 +342,7 @@ public class BarsMenuScreen extends Screen {
 			this.entry = entry;
 			this.always = always;
 			this.height = HEAD;
-			this.searchable = true;
+			this.searchable = false; // update notes never show up in search
 			this.searchText = "changelog update what's new " + entry.version() + " " + String.join(" ", entry.added()) + " " + String.join(" ", entry.fixed());
 		}
 
@@ -425,6 +441,8 @@ public class BarsMenuScreen extends Screen {
 			}
 			case BARS -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.bars"), null));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY,
+						() -> minecraft.gui.setScreen(BarEditorScreen.barsOnly(BarsMenuScreen.this)))));
 				for (StatusBarType type : StatusBarType.values()) {
 					StatusBar bar = bars.statusBars.get(type);
 					if (bar != null) list.add(new BarItem(bar));
@@ -447,8 +465,16 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("itemProtectionEnabled", () -> config.itemProtectionEnabled, value -> config.itemProtectionEnabled = value));
 				list.add(new ToggleItem("protectionChatNotification", () -> config.protectionChatNotification, value -> config.protectionChatNotification = value));
 				list.add(new StarItem());
+				list.add(new ToggleItem("protectionStarInFront", () -> config.protectionStarInFront, value -> config.protectionStarInFront = value));
 				list.add(new ProtectedItemsItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.itemValue"), null));
+				list.add(new ToggleItem("itemValueEnabled", () -> config.itemValueEnabled, value -> config.itemValueEnabled = value));
+				list.add(new ToggleItem("itemValueEstimated", () -> config.itemValueEstimated, value -> config.itemValueEstimated = value));
+				list.add(new ToggleItem("itemValueLowestBin", () -> config.itemValueLowestBin, value -> config.itemValueLowestBin = value));
+				list.add(new ToggleItem("itemValueAvgBin", () -> config.itemValueAvgBin, value -> config.itemValueAvgBin = value));
+				list.add(new ToggleItem("itemValueBazaar", () -> config.itemValueBazaar, value -> config.itemValueBazaar = value));
+				list.add(new ToggleItem("itemValueNpc", () -> config.itemValueNpc, value -> config.itemValueNpc = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.itemCustomization"), null));
 				list.add(new ToggleItem("itemCustomizationEnabled", () -> config.itemCustomizationEnabled, value -> config.itemCustomizationEnabled = value));
 				list.add(new ToggleItem("itemCustomizationButton", () -> config.itemCustomizationButton, value -> config.itemCustomizationButton = value));
@@ -494,8 +520,9 @@ public class BarsMenuScreen extends Screen {
 					for (dev.fancybars.gifs.GifStore.Gif gif : gifs) list.add(new GifItem(gif));
 				}
 				list.add(new HeaderItem(Component.translatable("fancybars.category.screenImages"), null));
+				list.add(new ToggleItem("screenImagesInScreens", () -> config.screenImagesInScreens, value -> config.screenImagesInScreens = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.screenImages(BarsMenuScreen.this))),
 						new ModernButton(10, 20, Component.translatable("fancybars.gifs.openFolder"), dev.fancybars.gifs.ScreenImages::openFolder),
 						new ModernButton(10, 20, Component.translatable("fancybars.gifs.reload"), () -> {
 							dev.fancybars.gifs.ScreenImages.reload();
@@ -511,6 +538,11 @@ public class BarsMenuScreen extends Screen {
 				}
 			}
 			case DUNGEONS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.lag.title"), null));
+				list.add(new ToggleItem("lagReportEnabled", () -> config.lagReportEnabled, value -> config.lagReportEnabled = value));
+				list.add(new ToggleItem("lagReportParty", () -> config.lagReportParty, value -> config.lagReportParty = value));
+				list.add(new ToggleItem("lagReportCustom", () -> config.lagReportCustom, value -> config.lagReportCustom = value));
+				list.add(new TextFieldItem("lagReportFormat", () -> config.lagReportFormat, value -> config.lagReportFormat = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.secrets"), null));
 				list.add(new SecretsPreviewItem());
 				list.add(new ToggleItem("secretsEnabled", () -> config.secretsEnabled, value -> config.secretsEnabled = value));
@@ -518,7 +550,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("secretsShowWord", () -> config.secretsShowWord, value -> config.secretsShowWord = value));
 				list.add(new ToggleItem("secretsHideActionBar", () -> config.secretsHideActionBar, value -> config.secretsHideActionBar = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.SECRETS))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.SECRETS.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.melody"), Component.translatable("fancybars.melody.description")));
 				list.add(new ToggleItem("melodyEnabled", () -> config.melodyEnabled, value -> config.melodyEnabled = value));
@@ -528,7 +560,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ValueCycleItem("melodyShowPlayer", new int[]{0, 1, 2, 3}, () -> config.melodyShowPlayer, value -> config.melodyShowPlayer = value,
 						value -> Component.translatable("fancybars.melody.showPlayer." + value)));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.MELODY))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.MELODY.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.terminals"), Component.translatable("fancybars.terminals.description")));
 				list.add(new ToggleItem("termStatusEnabled", () -> config.termStatusEnabled, value -> config.termStatusEnabled = value));
@@ -541,7 +573,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("termThroughWalls", () -> config.termThroughWalls, value -> config.termThroughWalls = value));
 				list.add(new ToggleItem("termHideDefault", () -> config.termHideDefault, value -> config.termHideDefault = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TERM_INFO))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TERM_INFO.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.rareDrops"), null));
 				list.add(new RareDropsPreviewItem());
@@ -550,7 +582,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("rareDropsBackground", () -> config.rareDropsBackground, value -> config.rareDropsBackground = value));
 				list.add(new ToggleItem("rareDropsChat", () -> config.rareDropsChat, value -> config.rareDropsChat = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.RARE_DROPS))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.RARE_DROPS.reset()),
 						new ModernButton(10, 20, Component.translatable("fancybars.rareDrops.resetCounts"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
 								Component.translatable("fancybars.rareDrops.resetCounts.title"),
@@ -579,7 +611,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ActionBarPreviewItem());
 				list.add(new ToggleItem("actionBarShown", () -> config.actionBarShown, value -> config.actionBarShown = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.ACTION_BAR))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.ACTION_BAR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.actionBar.parts"), null));
 				list.add(new ToggleItem("actionBarHideHealth", () -> config.actionBarHideHealth, value -> config.actionBarHideHealth = value));
@@ -603,7 +635,7 @@ public class BarsMenuScreen extends Screen {
 			}
 			case HUD -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.hud.general"), null));
-				list.add(new ToggleItem("hudInScreens", () -> config.hudInScreens, value -> config.hudInScreens = value));
+				list.add(new ToggleItem("hudAlways", () -> config.hudAlways, value -> config.hudAlways = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.perf.title"), null));
 				list.add(new ToggleItem("perfEnabled", () -> config.perfEnabled, value -> config.perfEnabled = value));
 				list.add(new ToggleItem("perfShowFps", () -> config.perfShowFps, value -> config.perfShowFps = value));
@@ -614,8 +646,36 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SwatchItem("perfBackgroundColor", () -> new Color(config.perfBackgroundColor, false), color -> config.perfBackgroundColor = color.getRGB() & 0xFFFFFF));
 				list.add(new SliderItem("perfBackgroundOpacity", 0.01f, 1, 0.01f, true, () -> config.perfBackgroundOpacity, value -> config.perfBackgroundOpacity = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.PERFORMANCE))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.PERFORMANCE.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.armor.title"), null));
+				list.add(new ToggleItem("armorEnabled", () -> config.armorEnabled, value -> config.armorEnabled = value));
+				list.add(new ToggleItem("armorHorizontal", () -> config.armorHorizontal, value -> config.armorHorizontal = value));
+				list.add(new ToggleItem("armorBackground", () -> config.armorBackground, value -> config.armorBackground = value));
+				list.add(new ToggleItem("armorBorder", () -> config.armorBorder, value -> config.armorBorder = value));
+				list.add(new ToggleItem("armorBarrier", () -> config.armorBarrier, value -> config.armorBarrier = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.ARMOR))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.ARMOR.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.pet.title"), null));
+				list.add(new ToggleItem("petEnabled", () -> config.petEnabled, value -> config.petEnabled = value));
+				list.add(new ToggleItem("petBackground", () -> config.petBackground, value -> config.petBackground = value));
+				list.add(new ToggleItem("petShowIcon", () -> config.petShowIcon, value -> config.petShowIcon = value));
+				list.add(new ToggleItem("petRarityBackground", () -> config.petRarityBackground, value -> config.petRarityBackground = value));
+				list.add(new ToggleItem("petXpRing", () -> config.petXpRing, value -> config.petXpRing = value));
+				list.add(new ToggleItem("petRingRarity", () -> config.petRingRarity, value -> config.petRingRarity = value));
+				list.add(new SwatchItem("petRingColor", () -> new Color(config.petRingColor, false), color -> config.petRingColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SliderItem("petBackgroundSize", 0, 1, 0.01f, true, () -> config.petBackgroundSize, value -> config.petBackgroundSize = value));
+				list.add(new ToggleItem("petSeparator", () -> config.petSeparator, value -> config.petSeparator = value));
+				list.add(new SwatchItem("petSeparatorColor", () -> new Color(config.petSeparatorColor, false), color -> config.petSeparatorColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("petRingUnfilled", () -> new Color(config.petRingUnfilled, false), color -> config.petRingUnfilled = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("petShowLevel", () -> config.petShowLevel, value -> config.petShowLevel = value));
+				list.add(new ToggleItem("petShowSkin", () -> config.petShowSkin, value -> config.petShowSkin = value));
+				list.add(new ToggleItem("petShowXp", () -> config.petShowXp, value -> config.petShowXp = value));
+				list.add(new ToggleItem("petShowHeldItem", () -> config.petShowHeldItem, value -> config.petShowHeldItem = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.PET))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.PET.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.keystrokes"), null));
 				list.add(new ToggleItem("keystrokesEnabled", () -> config.keystrokesEnabled, value -> config.keystrokesEnabled = value));
 				list.add(new ValueCycleItem("keystrokesMode", new int[]{0, 1, 2}, () -> config.keystrokesMode,
@@ -623,7 +683,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("keystrokesLeftCps", () -> config.keystrokesLeftCps, value -> config.keystrokesLeftCps = value));
 				list.add(new ToggleItem("keystrokesRightCps", () -> config.keystrokesRightCps, value -> config.keystrokesRightCps = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.KEYSTROKES))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.KEYSTROKES.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.crosshair"), null));
 				list.add(new ToggleItem("crosshairEnabled", () -> config.crosshairEnabled, value -> config.crosshairEnabled = value));
@@ -633,18 +693,18 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
 				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TITLE))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HOTBAR))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.HOTBAR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.inventoryHud"), null));
 				list.add(new ToggleItem("invHudEnabled", () -> config.invHudEnabled, value -> config.invHudEnabled = value));
 				list.add(new ToggleItem("invHudBackground", () -> config.invHudBackground, value -> config.invHudBackground = value));
 				list.add(new ToggleItem("invHudSlots", () -> config.invHudSlots, value -> config.invHudSlots = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.INVENTORY))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
 			}
 			case COMMANDS -> {
@@ -675,11 +735,15 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.spotify"), null));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.spotify.open"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.spotify.SpotifyScreen(BarsMenuScreen.this))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)))));
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.SPOTIFY)))));
 				list.add(new ToggleItem("spotifyEnabled", () -> config.spotifyEnabled, value -> config.spotifyEnabled = value));
 				list.add(new ToggleItem("spotifyBrokeMode", () -> config.spotifyBrokeMode, value -> config.spotifyBrokeMode = value));
 				list.add(new ToggleItem("spotifyHud", () -> config.spotifyHud, value -> config.spotifyHud = value));
 				list.add(new ToggleItem("spotifyInventory", () -> config.spotifyInventory, value -> config.spotifyInventory = value));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.spotify.resetPanel"), () -> {
+					config.spotifyPanelMoved = false;
+					FancyBarsConfig.save();
+				})));
 				list.add(new InfoCardItem(Component.translatable("fancybars.spotify.aboutTitle"), List.of(
 						Component.translatable(dev.fancybars.spotify.Spotify.connected() ? "fancybars.spotify.connected" : "fancybars.spotify.notConnected"),
 						Component.translatable("fancybars.spotify.premium"),
@@ -710,7 +774,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.commissions"), null));
 				list.add(new ToggleItem("commissionsEnabled", () -> config.commissionsEnabled, value -> config.commissionsEnabled = value));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.COMMISSIONS))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.COMMISSIONS.reset())));
 			}
 			case PLAYER -> {
@@ -770,6 +834,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.wallLicker"), null));
 				list.add(new ToggleItem("wallLickerEnabled", () -> config.wallLickerEnabled, value -> config.wallLickerEnabled = value));
 				list.add(new ToggleItem("wallLickerSound", () -> config.wallLickerSound, value -> config.wallLickerSound = value));
+				list.add(new ToggleItem("wallLickerIgnoreDungeonbreaker", () -> config.wallLickerIgnoreDungeonbreaker, value -> config.wallLickerIgnoreDungeonbreaker = value));
 				list.add(new SliderItem("wallLickerVolume", 0.01f, 1, 0.01f, true, () -> config.wallLickerVolume / 100f,
 						value -> config.wallLickerVolume = Math.round(value * 100)));
 				list.add(new InfoCardItem(Component.translatable("fancybars.wallLicker.statsTitle"), List.of(
@@ -784,7 +849,7 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.test"), dev.fancybars.fun.WallLicker::playSound),
 						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.refresh"), () -> rebuildNextTick = true)));
 				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.WALL_LICKER))),
 						new ModernButton(10, 20, Component.translatable("fancybars.wallLicker.resetCount"), () -> minecraft.gui.setScreen(new ConfirmPopup(BarsMenuScreen.this,
 								Component.translatable("fancybars.wallLicker.resetTitle"),
 								Component.translatable("fancybars.wallLicker.resetMessage", config.wallLicks),
@@ -837,6 +902,26 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.appearance.effects"), null));
 				list.add(new ToggleItem("chromaAccent", () -> config.chromaAccent, value -> config.chromaAccent = value));
 				list.add(new SliderItem("chromaSpeed", 0.1f, 5, 0.05f, false, () -> config.chromaSpeed, value -> config.chromaSpeed = value));
+				list.add(new ToggleItem("chromaShader", () -> config.chromaShader, value -> config.chromaShader = value));
+				list.add(new SliderItem("chromaShaderSize", 1, 100, 1, false, () -> config.chromaShaderSize, value -> config.chromaShaderSize = value));
+				list.add(new SliderItem("chromaShaderSpeed", 0.5f, 60, 0.5f, false, () -> config.chromaShaderSpeed, value -> config.chromaShaderSpeed = value));
+				list.add(new SliderItem("chromaShaderSaturation", 0, 1, 0.01f, true, () -> config.chromaShaderSaturation, value -> config.chromaShaderSaturation = value));
+				list.add(new ValueCycleItem("chromaShaderDirection", new int[]{0, 1, 2, 3}, () -> config.chromaShaderDirection,
+						value -> config.chromaShaderDirection = value, v -> Component.translatable("fancybars.chroma.direction." + v)));
+				list.add(new ChromaPreviewItem());
+				list.add(new ToggleItem("chromaMaxEnchants", () -> config.chromaMaxEnchants, value -> config.chromaMaxEnchants = value));
+				list.add(new ValueCycleItem("enchantMaxStyle", new int[]{0, 1, 2, 3}, () -> config.enchantMaxStyle,
+						value -> config.enchantMaxStyle = value, v -> Component.translatable("fancybars.enchant.style." + v)));
+				list.add(new SwatchItem("enchantMaxColor", () -> new Color(config.enchantMaxColor, false), color -> config.enchantMaxColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantMaxCustom1", () -> new Color(config.enchantMaxCustom1, false), color -> config.enchantMaxCustom1 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantMaxCustom2", () -> new Color(config.enchantMaxCustom2, false), color -> config.enchantMaxCustom2 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantMaxCustom3", () -> new Color(config.enchantMaxCustom3, false), color -> config.enchantMaxCustom3 = color.getRGB() & 0xFFFFFF));
+				list.add(new ValueCycleItem("enchantUltStyle", new int[]{0, 1, 2, 3}, () -> config.enchantUltStyle,
+						value -> config.enchantUltStyle = value, v -> Component.translatable("fancybars.enchant.style." + v)));
+				list.add(new SwatchItem("enchantUltColor", () -> new Color(config.enchantUltColor, false), color -> config.enchantUltColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantUltCustom1", () -> new Color(config.enchantUltCustom1, false), color -> config.enchantUltCustom1 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantUltCustom2", () -> new Color(config.enchantUltCustom2, false), color -> config.enchantUltCustom2 = color.getRGB() & 0xFFFFFF));
+				list.add(new SwatchItem("enchantUltCustom3", () -> new Color(config.enchantUltCustom3, false), color -> config.enchantUltCustom3 = color.getRGB() & 0xFFFFFF));
 				list.add(new ToggleItem("menuAnimations", () -> config.menuAnimations, value -> config.menuAnimations = value));
 				list.add(new SliderItem("animationSpeed", 0.25f, 3, 0.01f, true, () -> config.animationSpeed, value -> config.animationSpeed = value));
 				list.add(new SliderItem("glowStrength", 0, 2, 0.01f, true, () -> config.glowStrength, value -> config.glowStrength = value));
@@ -862,6 +947,11 @@ public class BarsMenuScreen extends Screen {
 					config.chromaAccent = false;
 					config.chromaBorder = false;
 					config.chromaSpeed = 1;
+					config.chromaShader = true;
+					config.chromaShaderSize = 30;
+					config.chromaShaderSpeed = 6;
+					config.chromaShaderSaturation = 0.75f;
+					config.chromaShaderDirection = 0;
 					config.menuAnimations = true;
 					config.animationSpeed = 1;
 					config.glowStrength = 1;
@@ -926,6 +1016,7 @@ public class BarsMenuScreen extends Screen {
 		Theme.textInBox(graphics, font, page, hx, y0, HEADER_HEIGHT, Theme.TEXT);
 
 		// Footer
+		if (editGuiButton != null) editGuiButton.visible = !onHome();
 		Component footer = Theme.mono(Component.literal("v" + FancyBarsMod.VERSION + "  ·  /sbc  ·  R reset  ·  shift-scroll 10%"));
 		Theme.drawAtCapTop(graphics, font, footer, x0 + 10, y0 + totalHeight - FOOTER_HEIGHT + (FOOTER_HEIGHT - Theme.MONO_CAP) / 2f, Theme.MONO_CAP, Theme.TEXT_DISABLED);
 
@@ -966,7 +1057,7 @@ public class BarsMenuScreen extends Screen {
 		graphics.disableScissor();
 		if (hoverJump != null) {
 			Component hint = Component.translatable("fancybars.menu.goTo", hoverJump.label());
-			Theme.textInBox(graphics, font, hint, x0 + totalWidth - 10 - Theme.width(font, hint), y0 + totalHeight - FOOTER_HEIGHT, FOOTER_HEIGHT, Theme.ACCENT_LIGHT);
+			Theme.textInBox(graphics, font, hint, x0 + totalWidth - (onHome() ? 10 : 16 + editGuiW) - Theme.width(font, hint), y0 + totalHeight - FOOTER_HEIGHT, FOOTER_HEIGHT, Theme.ACCENT_LIGHT);
 			hoverJump = null;
 		}
 		if (mouseInContent) {
@@ -1035,12 +1126,8 @@ public class BarsMenuScreen extends Screen {
 	public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
 		if (dev.fancybars.util.gui.Dropdown.clickOverlay(click.x(), click.y())) return true;
 		if (inContent(click.x(), click.y())) {
-			if (super.mouseClicked(click, doubled)) return true;
-			for (Item item : items) {
-				if (item.mouseClicked(click.x(), click.y())) return true;
-			}
-			// clicking a search result (anywhere but its controls) takes you to where that setting lives
-			if (!search.isBlank()) {
+			// right-clicking a search result takes you to where that setting lives
+			if (!search.isBlank() && click.button() == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_RIGHT) {
 				for (Item item : items) {
 					Category origin = searchOrigin.get(item);
 					if (origin != null && itemHit(item, click.x(), click.y())) {
@@ -1048,6 +1135,10 @@ public class BarsMenuScreen extends Screen {
 						return true;
 					}
 				}
+			}
+			if (super.mouseClicked(click, doubled)) return true;
+			for (Item item : items) {
+				if (item.mouseClicked(click.x(), click.y())) return true;
 			}
 			return false;
 		}
@@ -1681,7 +1772,7 @@ public class BarsMenuScreen extends Screen {
 			this.height = 20;
 			this.searchable = true;
 			this.searchText = "held item name tooltip move position reset";
-			move = new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
+			move = new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HELD_ITEM)));
 			reset = new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), HeldItemName::reset);
 			widgets.add(move);
 			widgets.add(reset);
@@ -1804,6 +1895,41 @@ public class BarsMenuScreen extends Screen {
 	}
 
 	/** Live preview of the dungeon secrets display. */
+	/** A live sample of the chroma with the current settings. */
+	private class ChromaPreviewItem extends Item {
+		ChromaPreviewItem() {
+			this.height = 56;
+			this.searchable = true;
+			this.searchText = "chroma preview sample rainbow";
+		}
+
+		@Override
+		void layout(int x, int y, int w) {}
+
+		/** White, marked for the shader; or the rainbow colour of the moment when SkyHanni Chroma is off. */
+		private int color(int alpha, float offset) {
+			if (config.chromaShader) return dev.fancybars.util.gui.Chroma.mark(alpha << 24 | 0xFFFFFF);
+			return alpha << 24 | Theme.rgb(Theme.chromaHue(offset), 0.85f, 0.62f);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			row(graphics, x, y, w, height, false);
+			Theme.textInBox(graphics, font, Component.translatable("fancybars.chroma.preview"), x + 10, y + 4, 12, Theme.TEXT_MUTED);
+			// a filled bar, a hairline box and some text: the shapes chroma gets used on
+			float bx = x + 10;
+			float bw = w - 20;
+			dev.fancybars.util.gui.Ring.fillRounded(graphics, bx, y + 20, bw * 0.62f, 8, 4, color(255, 0));
+			dev.fancybars.util.gui.Ring.fillRounded(graphics, bx + bw * 0.62f + 6, y + 20, bw * 0.38f - 6, 8, 4, color(90, 0.3f));
+			float boxW = Math.min(150, bw * 0.45f);
+			dev.fancybars.util.gui.Ring.outlinePx(graphics, bx, y + 33, boxW, 17, 4, Math.max(1, Theme.guiScale()), color(255, 0.5f));
+			Component word = Theme.bold(Component.literal("SBCLIENT"));
+			Theme.drawAtCapTop(graphics, font, word, bx + boxW / 2f - font.width(word) / 2f, y + 33 + (17 - Theme.UI_CAP) / 2f, Theme.UI_CAP, color(255, 0.5f));
+			Component sample = Theme.styled(Component.literal("The quick brown fox jumps over the lazy dog"));
+			Theme.drawAtCapTop(graphics, font, sample, bx + boxW + 10, y + 33 + (17 - Theme.UI_CAP) / 2f, Theme.UI_CAP, color(255, 0.7f));
+		}
+	}
+
 	private class SecretsPreviewItem extends Item {
 		SecretsPreviewItem() {
 			this.height = 40;
@@ -1968,7 +2094,7 @@ public class BarsMenuScreen extends Screen {
 			field = new dev.fancybars.util.gui.SearchField(120, 16, getter.get(), Component.translatable("fancybars.config." + key), value -> {
 				setter.accept(value);
 				FancyBarsConfig.save();
-			}).maxLength(60);
+			}).maxLength(120);
 			widgets.add(field);
 		}
 

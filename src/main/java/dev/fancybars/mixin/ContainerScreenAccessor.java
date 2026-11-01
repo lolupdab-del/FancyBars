@@ -18,4 +18,7 @@ public interface ContainerScreenAccessor {
 
 	@Accessor("imageHeight")
 	int fancybars$getImageHeight();
+
+	@Accessor("hoveredSlot")
+	net.minecraft.world.inventory.@org.jspecify.annotations.Nullable Slot fancybars$getHoveredSlot();
 }

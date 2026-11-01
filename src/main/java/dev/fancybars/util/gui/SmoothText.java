@@ -254,7 +254,7 @@ public final class SmoothText {
 			pose.translate(lx, ly);
 			pose.scale(1 / pxPerUnit, 1 / pxPerUnit);
 		}
-		if (e.plain() != null) graphics.blit(RenderPipelines.GUI_TEXTURED, e.plain(), 0, 0, 0, 0, e.width(), e.height(), e.width(), e.height(), color);
+		if (e.plain() != null) graphics.blit(Chroma.textured(color), e.plain(), 0, 0, 0, 0, e.width(), e.height(), e.width(), e.height(), color);
 		if (e.colored() != null) {
 			int tint = shadow ? color : (color & 0xFF000000) | 0xFFFFFF;
 			graphics.blit(RenderPipelines.GUI_TEXTURED, e.colored(), 0, 0, 0, 0, e.width(), e.height(), e.width(), e.height(), tint);

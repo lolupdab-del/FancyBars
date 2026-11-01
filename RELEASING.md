@@ -11,3 +11,14 @@ Every release, before bumping `mod_version` in `gradle.properties`:
    # SBCLIENT vX.Y.Z
    **Added** — ...
    **Fixed** — ...
+
+## Values that are set instantly but also polled
+
+If a feature changes something right away (a click, a chat message) and also reads it from a slower source (Spotify,
+the tab list, the scoreboard, a menu), pass the slow readings through `dev.fancybars.util.Held`. Otherwise the display
+flicks between the new value and the stale one until the slow source catches up.
+
+## New HUDs
+
+Add every new HUD to `MovableElement.ALL`. Edit GUI then shows it, lets you move and scale it, and its toolbar
+(Done / Reset Layout / Snapping) automatically moves out of the way when the HUD is underneath it.

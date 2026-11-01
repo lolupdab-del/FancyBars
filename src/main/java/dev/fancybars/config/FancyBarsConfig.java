@@ -65,6 +65,9 @@ public class FancyBarsConfig {
 
 	public StarCorner protectionStarCorner = StarCorner.BOTTOM_RIGHT;
 
+	/** Draw the protection star on top of the item instead of behind it. */
+	public boolean protectionStarInFront = false;
+
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();
 
@@ -147,6 +150,64 @@ public class FancyBarsConfig {
 
 	/** Rainbow border around menus and HUDs. */
 	public boolean chromaBorder = false;
+
+	/** Draw the rainbow with SkyHanni's chroma shader (flows across the screen) instead of one colour at a time. */
+	public boolean chromaShader = true;
+	/** Width of one rainbow cycle in % of the screen width. */
+	public float chromaShaderSize = 30;
+	public float chromaShaderSpeed = 6;
+	public float chromaShaderSaturation = 0.75f;
+	/** 0 Forward + Right, 1 Forward + Left, 2 Backward + Right, 3 Backward + Left. */
+	public int chromaShaderDirection = 0;
+	/** Draw maxed enchants in item tooltips in chroma. */
+	public boolean chromaMaxEnchants = true;
+	/** Maxed enchants: 0 Chroma, 1 Custom Chroma, 2 Solid Colour, 3 Off. */
+	public int enchantMaxStyle = 0;
+	public int enchantMaxColor = 0xFFAA00;
+	public int enchantMaxCustom1 = 0xFF5555;
+	public int enchantMaxCustom2 = 0xFFAA00;
+	public int enchantMaxCustom3 = 0xFFFF55;
+	/** Ultimate enchants (any level): same choices, solid pink by default. */
+	public int enchantUltStyle = 2;
+	public int enchantUltColor = 0xFF55FF;
+	public int enchantUltCustom1 = 0xFF55FF;
+	public int enchantUltCustom2 = 0xAA00AA;
+	public int enchantUltCustom3 = 0x55FFFF;
+
+	/** Armor display (Devonian). */
+	public boolean armorEnabled = false;
+	public float armorX = -1;
+	public float armorY = -1;
+	public float armorScale = 1;
+	public boolean armorHorizontal = false;
+	public boolean armorBackground = true;
+	public boolean armorBorder = true;
+	public boolean armorBarrier = true;
+
+	/** Pet display (SkyHanni). */
+	public boolean petEnabled = false;
+	public float petX = -1;
+	public float petY = -1;
+	public float petScale = 1;
+	public boolean petBackground = false;
+	public boolean petShowIcon = true;
+	public boolean petRarityBackground = true;
+	public boolean petXpRing = true;
+	public boolean petRingRarity = false;
+	public int petRingColor = 0x00FFFF;
+	public int petRingUnfilled = 0xC0C0C0;
+	/** Rarity background size: 1 fills the inside of the XP ring (SkyHanni's default is 0.96). */
+	public float petBackgroundSize = 0.96f;
+	/** Fill the space between the rarity background and the XP ring (otherwise it's see-through). */
+	public boolean petSeparator = true;
+	public int petSeparatorColor = 0x808080;
+	/** Bumped when the pet display's defaults change to match SkyHanni. */
+	public int petStyleVersion = 0;
+	public boolean petShowLevel = true;
+	/** Show the ✦ after the name when the pet has a skin. */
+	public boolean petShowSkin = true;
+	public boolean petShowXp = false;
+	public boolean petShowHeldItem = false;
 
 	/** Rainbow speed (1 = about one full cycle every 10 seconds). */
 	public float chromaSpeed = 1;
@@ -319,6 +380,19 @@ public class FancyBarsConfig {
 
 	/** Mini player next to your inventory. */
 	public boolean spotifyInventory = true;
+
+	/** Where you dragged the inventory player, relative to the inventory's top-left corner. */
+	public boolean spotifyPanelMoved = false;
+	public int spotifyPanelDX = 0;
+	public int spotifyPanelDY = 0;
+
+	/** Item value tooltips (ported from Skyblocker). */
+	public boolean itemValueEnabled = true;
+	public boolean itemValueEstimated = true;
+	public boolean itemValueLowestBin = true;
+	public boolean itemValueAvgBin = true;
+	public boolean itemValueBazaar = true;
+	public boolean itemValueNpc = true;
 
 	/** Your own Spotify app's Client ID (developer.spotify.com). */
 	public String spotifyClientId = "";
@@ -520,6 +594,23 @@ public class FancyBarsConfig {
 	/** Keep SBCLIENT's HUDs on screen while chat or an inventory / chest is open. */
 	public boolean hudInScreens = false;
 
+	/** Keep SBCLIENT's HUDs on screen behind every screen (chat, inventories, /sbc, other mods). */
+	public boolean hudAlways = true;
+
+	/** Keep screen images visible while chat or an inventory / chest is open. */
+	public boolean screenImagesInScreens = false;
+
+	/** Show how many seconds were lost to server lag at the end of every dungeon run. */
+	public boolean lagReportEnabled = true;
+
+	/** Also send it to party chat automatically. */
+	public boolean lagReportParty = true;
+
+	/** Use your own wording for the lag report ({lost} = seconds lost, {tps} = average TPS). */
+	public boolean lagReportCustom = false;
+
+	public String lagReportFormat = "Server shit itself for {lost}s (avg {tps} TPS)";
+
 	public boolean perfEnabled = false;
 
 	public boolean perfShowFps = true;
@@ -542,6 +633,9 @@ public class FancyBarsConfig {
 	public float perfY = -1;
 
 	public float perfScale = 1;
+
+	/** Don't count licks while holding the Dungeonbreaker. */
+	public boolean wallLickerIgnoreDungeonbreaker = true;
 
 	public float wallLickerX = -1;
 
@@ -712,6 +806,16 @@ public class FancyBarsConfig {
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.petStyleVersion < 1) {
+				// match SkyHanni's pet display out of the box
+				instance.petBackground = false;
+				instance.petShowXp = false;
+				instance.petShowHeldItem = false;
+				instance.petRingRarity = false;
+				instance.petRingColor = 0x00FFFF;
+				instance.petRingUnfilled = 0xC0C0C0;
+				instance.petStyleVersion = 1;
+			}
 			if (instance.designVersion < 2) {
 				// Linear redesign: hairline borders
 				instance.borderThickness = 0.6f;

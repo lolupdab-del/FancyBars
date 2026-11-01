@@ -66,9 +66,47 @@ public class BarEditorScreen extends Screen {
 	private final List<AbstractWidget> toolbar = new ArrayList<>();
 	private boolean rebuildNextTick = false;
 
+	/** Which HUD elements this editor shows (null = all of them). */
+	private final java.util.function.@Nullable Predicate<MovableElement> filter;
+	/** Whether the status bars can be edited. */
+	private final boolean showBars;
+	/** The one element being edited on its own (for Reset). */
+	private final @Nullable MovableElement single;
+
+	/** Edits every GUI at once. */
 	public BarEditorScreen(@Nullable Screen parent) {
+		this(parent, null, true, null);
+	}
+
+	private BarEditorScreen(@Nullable Screen parent, java.util.function.@Nullable Predicate<MovableElement> filter, boolean showBars, @Nullable MovableElement single) {
 		super(Component.translatable("fancybars.editor.title"));
 		this.parent = parent;
+		this.filter = filter;
+		this.showBars = showBars;
+		this.single = single;
+	}
+
+	/** Edits just this one GUI. */
+	public static BarEditorScreen only(@Nullable Screen parent, MovableElement element) {
+		return new BarEditorScreen(parent, e -> e == element, false, element);
+	}
+
+	/** Edits just the status bars. */
+	public static BarEditorScreen barsOnly(@Nullable Screen parent) {
+		return new BarEditorScreen(parent, e -> false, true, null);
+	}
+
+	/** Edits just the screen images. */
+	public static BarEditorScreen screenImages(@Nullable Screen parent) {
+		return new BarEditorScreen(parent, e -> !java.util.Arrays.asList(MovableElement.ALL).contains(e), false, null);
+	}
+
+	private List<MovableElement> elements() {
+		List<MovableElement> all = MovableElement.all();
+		if (filter == null) return all;
+		List<MovableElement> out = new ArrayList<>();
+		for (MovableElement e : all) if (filter.test(e)) out.add(e);
+		return out;
 	}
 
 	@Override
@@ -80,6 +118,14 @@ public class BarEditorScreen extends Screen {
 		toolbar.clear();
 		ModernButton done = new ModernButton(56, 18, Component.translatable("gui.done"), ModernButton.Style.PRIMARY, this::onClose);
 		ModernButton reset = new ModernButton(80, 18, Component.translatable("fancybars.menu.resetLayout"), () -> {
+			if (single != null) {
+				single.reset();
+				return;
+			}
+			if (!showBars) {
+				for (MovableElement e : elements()) e.reset();
+				return;
+			}
 			bars.resetBarPositions();
 			bars.statusBars.values().forEach(bar -> {
 				bar.enabled = true;
@@ -116,6 +162,7 @@ public class BarEditorScreen extends Screen {
 		// Toolbar buttons disappear while dragging so they never get in the way
 		boolean busy = dragging != null || draggingElement != null;
 		for (AbstractWidget widget : toolbar) widget.visible = !busy;
+		if (!busy) placeToolbar();
 
 		// Hotbar for reference
 		// (the hotbar is drawn by its own movable element)
@@ -123,11 +170,11 @@ public class BarEditorScreen extends Screen {
 		// Bars
 		StatusBar hovered = dragging != null ? dragging : barAt(mouseX, mouseY);
 		for (StatusBar bar : bars.statusBars.values()) {
-			if (!bar.enabled) continue;
+			if (!bar.enabled || !showBars) continue;
 			bar.extractBar(graphics);
 		}
 		for (StatusBar bar : bars.statusBars.values()) {
-			if (!bar.enabled) continue;
+			if (!bar.enabled || !showBars) continue;
 			bar.extractText(graphics);
 		}
 
@@ -181,12 +228,47 @@ public class BarEditorScreen extends Screen {
 		dev.fancybars.util.gui.Dropdown.renderOverlay(graphics, mouseX, mouseY);
 	}
 
+	/**
+	 * Keeps Done / Reset Layout / Snapping off the HUDs: the toolbar sits at the top unless something you're editing
+	 * is underneath it there, then it moves to the bottom. Works for every HUD, including ones added later.
+	 */
+	private void placeToolbar() {
+		int top = 6;
+		int bottom = height - 6 - 18;
+		boolean topBlocked = toolbarCovers(top);
+		int y = topBlocked && !toolbarCovers(bottom) ? bottom : top;
+		for (AbstractWidget widget : toolbar) {
+			if (widget.getY() != y) widget.setY(y);
+		}
+	}
+
+	/** Whether the toolbar, placed at {@code y}, would sit on top of any HUD or bar. */
+	private boolean toolbarCovers(int y) {
+		List<float[]> rects = new ArrayList<>();
+		for (MovableElement element : elements()) rects.add(element.rect(width, height));
+		if (showBars) {
+			for (StatusBar bar : bars.statusBars.values()) {
+				if (bar.enabled) rects.add(new float[]{bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight()});
+			}
+		}
+		for (AbstractWidget widget : toolbar) {
+			float wx0 = widget.getX() - 2;
+			float wx1 = widget.getX() + widget.getWidth() + 2;
+			float wy0 = y - 2;
+			float wy1 = y + widget.getHeight() + 2;
+			for (float[] r : rects) {
+				if (r[0] < wx1 && r[0] + r[2] > wx0 && r[1] < wy1 && r[1] + r[3] > wy0) return true;
+			}
+		}
+		return false;
+	}
+
 	private static boolean isOver(float[] r, double mouseX, double mouseY) {
 		return mouseX >= r[0] - 3 && mouseX <= r[0] + r[2] + 3 && mouseY >= r[1] - 2 && mouseY <= r[1] + r[3] + 2;
 	}
 
 	private @Nullable MovableElement elementAt(double mouseX, double mouseY) {
-		for (MovableElement element : MovableElement.all()) {
+		for (MovableElement element : elements()) {
 			if (isOver(element.rect(width, height), mouseX, mouseY)) return element;
 		}
 		return null;
@@ -194,7 +276,7 @@ public class BarEditorScreen extends Screen {
 
 	private void extractElements(GuiGraphicsExtractor graphics, int mouseX, int mouseY, boolean canHover) {
 		MovableElement hoveredElement = draggingElement != null ? draggingElement : canHover ? elementAt(mouseX, mouseY) : null;
-		for (MovableElement element : MovableElement.all()) {
+		for (MovableElement element : elements()) {
 			element.drawPreview(graphics, width, height);
 		}
 		if (hoveredElement == null) return;
@@ -223,6 +305,7 @@ public class BarEditorScreen extends Screen {
 	// ---------------------------------------------------------------- Hit testing
 
 	private @Nullable StatusBar barAt(double mouseX, double mouseY) {
+		if (!showBars) return null;
 		StatusBar found = null;
 		for (StatusBar bar : bars.statusBars.values()) {
 			if (!bar.enabled) continue;
@@ -452,7 +535,7 @@ public class BarEditorScreen extends Screen {
 	/** Edges of the movable HUD elements other than {@code self}: {x0, y0, x1, y1}. */
 	private List<int[]> elementEdges(Object self) {
 		List<int[]> edges = new ArrayList<>();
-		for (MovableElement element : MovableElement.all()) {
+		for (MovableElement element : elements()) {
 			if (element == self || !element.enabled()) continue;
 			float[] r = element.rect(width, height);
 			edges.add(new int[]{Math.round(r[0]), Math.round(r[1]), Math.round(r[0] + r[2]), Math.round(r[1] + r[3])});

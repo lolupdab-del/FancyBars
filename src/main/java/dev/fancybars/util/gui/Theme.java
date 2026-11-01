@@ -320,7 +320,7 @@ public final class Theme {
 		int color;
 		if (c.chromaBorder) {
 			float baseAlpha = c.customBorder ? Math.clamp(c.borderOpacity, 0, 1) : 0.8f;
-			color = Math.round(baseAlpha * alpha) << 24 | rgb(chromaHue(0.5f), 0.85f, 0.62f);
+			color = Chroma.mark(Math.round(baseAlpha * alpha) << 24 | rgb(chromaHue(0.5f), 0.85f, 0.62f));
 		} else if (c.customBorder) color = Math.round(Math.clamp(c.borderOpacity, 0, 1) * alpha) << 24 | c.borderColor & 0xFFFFFF;
 		else {
 			int f = night(fallback);
@@ -596,7 +596,10 @@ public final class Theme {
 			if (alpha < 255 && !ACCENT_KEYS.contains(color & 0xFFFFFF) && !TEXT_KEYS.contains(color & 0xFFFFFF)) {
 				alpha = Math.round(Math.clamp(alpha * cfg().panelOpacity, 0, 255));
 			}
-			return alpha << 24 | mapped;
+			int out = alpha << 24 | mapped;
+			// rainbow accent: let the SkyHanni-style shader colour it
+			if (cfg().chromaAccent && ACCENT_KEYS.contains(color & 0xFFFFFF)) out = Chroma.mark(out);
+			return out;
 		}
 		if (shikiMode()) return color;
 		Integer mapped = NIGHT.get(color & 0xFFFFFF);

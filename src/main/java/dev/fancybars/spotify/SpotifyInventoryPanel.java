@@ -22,13 +22,25 @@ import dev.fancybars.util.gui.Theme;
  * volume slider. Everything is drawn with smooth sprites and pixel-exact album art.
  */
 public final class SpotifyInventoryPanel extends AbstractWidget {
+	private static long pausedHereAt = -1;
+	private static SpotifyInventoryPanel current;
+
+	/** Only shown while something is playing (or for a minute after you pause it from here). */
+	private static boolean shouldShow() {
+		Spotify.State s = Spotify.state();
+		if (!s.active) return false;
+		return s.playing || pausedHereAt > 0 && net.minecraft.util.Util.getMillis() - pausedHereAt < 60_000;
+	}
+
 	public static final int W = 132;
 	public static final int H = 96;
 	private final ContainerScreenAccessor screen;
 	private final Screen owner;
 	private float hoverPlay;
 	private long lastFrame = Util.getMillis();
-	private int dragging; // 0 none, 1 seek, 2 volume
+	private int dragging; // 0 none, 1 seek, 2 volume, 3 moving the panel
+	private double grabX;
+	private double grabY;
 	private float dragValue;
 
 	private SpotifyInventoryPanel(Screen owner, ContainerScreenAccessor screen) {
@@ -43,8 +55,13 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (!config.spotifyEnabled || !config.spotifyInventory || !Spotify.connected()) return;
 			if (screen instanceof InventoryScreen inventory) {
-				Screens.getWidgets(inventory).add(new SpotifyInventoryPanel(inventory, (ContainerScreenAccessor) inventory));
+				current = new SpotifyInventoryPanel(inventory, (ContainerScreenAccessor) inventory);
+				current.visible = shouldShow();
+				Screens.getWidgets(inventory).add(current);
 			}
+		});
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+			if (current != null && mc.gui.screen() instanceof InventoryScreen) current.visible = shouldShow();
 		});
 	}
 
@@ -53,6 +70,13 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		int left = screen.fancybars$getLeftPos();
 		int top = screen.fancybars$getTopPos();
 		int right = left + screen.fancybars$getImageWidth();
+		FancyBarsConfig config = FancyBarsConfig.get();
+		if (config.spotifyPanelMoved) {
+			int x = Math.clamp(left + config.spotifyPanelDX, 0, Math.max(0, owner.width - W));
+			int y = Math.clamp(top + config.spotifyPanelDY, 0, Math.max(0, owner.height - H));
+			setPosition(x, y);
+			return;
+		}
 		int x = right + 6 + W <= owner.width ? right + 6 : Math.max(2, left - 6 - W);
 		setPosition(x, top);
 	}
@@ -119,7 +143,7 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		float fraction = dragging == 1 ? dragValue : s.durationMs > 0 ? s.progressNow() / (float) s.durationMs : 0;
 		boolean overBar = inside(mouseX, mouseY, barX() - 2, barY() - 4, barW() + 4, 10);
 		SpotifyUi.progress(graphics, barX(), barY(), barW(), fraction, overBar || dragging == 1 ? SpotifyUi.green() : Theme.hudText(255));
-		if (overBar || dragging == 1) Theme.circle(graphics, barX() + Math.round(barW() * fraction) - 4, barY() - 2, 8, Theme.hudText(255));
+		if (overBar || dragging == 1) Theme.circle(graphics, barX() + barW() * fraction, barY() + 2f, 8f, Theme.hudText(255));
 		long shownMs = dragging == 1 ? (long) (dragValue * s.durationMs) : s.progressNow();
 		smallText(graphics, Spotify.time(shownMs), barX(), barY() + 5, false);
 		smallText(graphics, Spotify.time(s.durationMs), barX() + barW(), barY() + 5, true);
@@ -139,9 +163,10 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		SpotifyUi.icon(graphics, "speaker", x + PAD - 1, volumeY() - 4, 10, Theme.hudTextSoft(255));
 		boolean overVol = inside(mouseX, mouseY, volumeX() - 2, volumeY() - 4, volumeW() + 4, 10);
 		SpotifyUi.progress(graphics, volumeX(), volumeY(), volumeW(), volume, overVol || dragging == 2 ? SpotifyUi.green() : Theme.hudText(255));
-		if (overVol || dragging == 2) Theme.circle(graphics, volumeX() + Math.round(volumeW() * volume) - 4, volumeY() - 2, 8, Theme.hudText(255));
+		if (overVol || dragging == 2) Theme.circle(graphics, volumeX() + volumeW() * volume, volumeY() + 2f, 8f, Theme.hudText(255));
 
-		if (overBar || overVol || overPlay(mouseX, mouseY) || overSkip(mouseX, mouseY, true) || overSkip(mouseX, mouseY, false) || dragging != 0) {
+		if (dragging == 3) graphics.requestCursor(CursorTypes.RESIZE_ALL);
+		else if (overBar || overVol || overPlay(mouseX, mouseY) || overSkip(mouseX, mouseY, true) || overSkip(mouseX, mouseY, false) || dragging != 0) {
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 	}
@@ -170,7 +195,11 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 	public void onClick(MouseButtonEvent click, boolean doubled) {
 		double mx = click.x();
 		double my = click.y();
-		if (overPlay(mx, my)) Spotify.togglePlay();
+		if (overPlay(mx, my)) {
+			// pausing from here keeps the player up for a while so you can press play again
+			if (Spotify.state().playing) pausedHereAt = net.minecraft.util.Util.getMillis();
+			Spotify.togglePlay();
+		}
 		else if (overSkip(mx, my, true)) Spotify.next();
 		else if (overSkip(mx, my, false)) Spotify.previous();
 		else if (inside(mx, my, barX() - 2, barY() - 4, barW() + 4, 10) && Spotify.state().durationMs > 0) {
@@ -179,6 +208,11 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 		} else if (inside(mx, my, volumeX() - 2, volumeY() - 4, volumeW() + 4, 10)) {
 			dragging = 2;
 			dragValue = (float) Math.clamp((mx - volumeX()) / volumeW(), 0, 1);
+		} else {
+			// anywhere else: pick the panel up and move it
+			dragging = 3;
+			grabX = mx - getX();
+			grabY = my - getY();
 		}
 	}
 
@@ -186,12 +220,22 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 	protected void onDrag(MouseButtonEvent click, double dx, double dy) {
 		if (dragging == 1) dragValue = (float) Math.clamp((click.x() - barX()) / barW(), 0, 1);
 		else if (dragging == 2) dragValue = (float) Math.clamp((click.x() - volumeX()) / volumeW(), 0, 1);
+		else if (dragging == 3) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			int x = (int) Math.round(Math.clamp(click.x() - grabX, 0, Math.max(0, owner.width - W)));
+			int y = (int) Math.round(Math.clamp(click.y() - grabY, 0, Math.max(0, owner.height - H)));
+			config.spotifyPanelMoved = true;
+			config.spotifyPanelDX = x - screen.fancybars$getLeftPos();
+			config.spotifyPanelDY = y - screen.fancybars$getTopPos();
+			setPosition(x, y);
+		}
 	}
 
 	@Override
 	public void onRelease(MouseButtonEvent click) {
 		if (dragging == 1) Spotify.seek((long) (dragValue * Spotify.state().durationMs));
 		else if (dragging == 2) Spotify.setVolume(Math.round(dragValue * 100));
+		else if (dragging == 3) FancyBarsConfig.save();
 		dragging = 0;
 	}
 
