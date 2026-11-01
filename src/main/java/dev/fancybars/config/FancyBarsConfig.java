@@ -377,6 +377,8 @@ public class FancyBarsConfig {
 	public boolean spotifyEnabled = true;
 
 	public boolean spotifyHud = true;
+	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
+	public int spotifyHudTime = 0;
 
 	/** Mini player next to your inventory. */
 	public boolean spotifyInventory = true;

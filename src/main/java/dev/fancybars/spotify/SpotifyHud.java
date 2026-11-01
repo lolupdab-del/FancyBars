@@ -94,7 +94,25 @@ public final class SpotifyHud {
 		if (s.playing) SpotifyUi.pause(graphics, WIDTH - 10, 12, 8, SpotifyUi.green(a));
 		else SpotifyUi.play(graphics, WIDTH - 9, 12, 8, SpotifyUi.green(a));
 		float fraction = s.durationMs > 0 ? s.progressNow() / (float) s.durationMs : 0;
-		SpotifyUi.progress(graphics, tx, 34, WIDTH - tx - 6, fraction, SpotifyUi.green(a));
+		int barX = tx;
+		int barW = WIDTH - tx - 6;
+		int timeMode = FancyBarsConfig.get().spotifyHudTime;
+		if (timeMode != 0 && s.durationMs > 0) {
+			// time left until the song ends, next to the bar
+			net.minecraft.client.gui.Font font = net.minecraft.client.Minecraft.getInstance().font;
+			Component left = Theme.small(Component.literal("-" + Spotify.time(Math.max(0, s.durationMs - s.progressNow()))));
+			float w = font.width(left);
+			float textY = 35.5f - Theme.SMALL_CAP / 2f;
+			if (timeMode == 1) {
+				Theme.drawAtCapTop(graphics, font, left, tx, textY, Theme.SMALL_CAP, Theme.hudTextSoft(a));
+				barX += Math.round(w) + 5;
+				barW -= Math.round(w) + 5;
+			} else {
+				Theme.drawAtCapTop(graphics, font, left, WIDTH - 6 - w, textY, Theme.SMALL_CAP, Theme.hudTextSoft(a));
+				barW -= Math.round(w) + 5;
+			}
+		}
+		SpotifyUi.progress(graphics, barX, 34, barW, fraction, SpotifyUi.green(a));
 		pose.popMatrix();
 	}
 }

@@ -1,4 +1,7 @@
 [
+  {"version": "2.37.0", "date": "2026-11-01",
+   "added": ["Spotify Now Playing HUD: Time Left option shows how long until the song ends, bottom left or bottom right"],
+   "fixed": []},
   {"version": "2.36.1", "date": "2026-11-01",
    "added": [],
    "fixed": ["FPS / TPS display starts in the top-left corner", "Edit GUI's Done / Reset Layout / Snapping buttons move to the bottom when a HUD is under them, so nothing gets stuck behind them"]},
