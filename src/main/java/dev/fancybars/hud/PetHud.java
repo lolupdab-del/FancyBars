@@ -605,11 +605,8 @@ public final class PetHud {
 			if (c.petXpRing && c.petRarityBackground) disc(graphics, cx, cy, CIRCLE - XP_RING * 2, a << 24 | 0x808080);
 			if (c.petRarityBackground) disc(graphics, cx, cy, ICON_SIZE + BG_PAD * 2, a << 24 | color & 0xFFFFFF);
 			ItemStack stack = icon(useSample ? "golden dragon" : name, color);
-			pose.pushMatrix();
-			pose.translate(cx - ICON_SIZE / 2f, cy - ICON_SIZE / 2f);
-			pose.scale(ICON_SIZE / 16f, ICON_SIZE / 16f);
-			graphics.fakeItem(stack, 0, 0);
-			pose.popMatrix();
+			// rendered at full screen resolution, so the head is as smooth as SkyHanni's
+			dev.fancybars.util.gui.SharpItem.draw(graphics, stack, cx - ICON_SIZE / 2f, cy - ICON_SIZE / 2f, ICON_SIZE);
 			tx += CIRCLE + TEXT_GAP;
 		}
 		// Minecraft's own font with shadow, like SkyHanni

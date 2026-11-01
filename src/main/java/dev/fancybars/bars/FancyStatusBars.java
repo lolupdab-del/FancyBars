@@ -196,14 +196,23 @@ public class FancyStatusBars {
 		if (bar.anchor == null) return;
 		int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
 		int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
-		int x = bar.getX();
-		int y = bar.getY();
-		int w = bar.getWidth();
-		barPositioner.removeBar(bar.anchor, bar.gridY, bar); // also clears the anchor
-		bar.scale = 1;
-		bar.x = (float) x / screenWidth;
-		bar.y = (float) y / screenHeight;
-		bar.width = (float) w / screenWidth;
+		// Every bar snapped to the same spot is freed where it is, so taking one out doesn't make
+		// the others stretch to fill the gap or slide into its row.
+		BarPositioner.BarAnchor anchor = bar.anchor;
+		java.util.List<StatusBar> group = new java.util.ArrayList<>();
+		for (StatusBar other : statusBars.values()) {
+			if (other.anchor == anchor && (other.enabled || other == bar)) group.add(other);
+		}
+		java.util.Map<StatusBar, int[]> bounds = new java.util.HashMap<>();
+		for (StatusBar other : group) bounds.put(other, new int[]{other.getX(), other.getY(), other.getWidth()});
+		for (StatusBar other : group) {
+			if (other.anchor != null) barPositioner.removeBar(other.anchor, other.gridY, other); // also clears the anchor
+			int[] b = bounds.get(other);
+			other.scale = 1;
+			other.x = (float) b[0] / screenWidth;
+			other.y = (float) b[1] / screenHeight;
+			other.width = (float) b[2] / screenWidth;
+		}
 		updatePositions(true);
 	}
 

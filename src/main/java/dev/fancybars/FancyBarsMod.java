@@ -82,6 +82,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.hud.ArmorHud.init();
 		dev.fancybars.hud.PetHud.init();
 		dev.fancybars.util.gui.Chroma.init();
+		dev.fancybars.util.gui.SharpItem.init();
 		dev.fancybars.util.SkyblockLocation.onLocationChange(dev.fancybars.hud.PerformanceHud::reset);
 		dev.fancybars.mining.Commissions.init();
 		dev.fancybars.players.PlayerSizes.init();
