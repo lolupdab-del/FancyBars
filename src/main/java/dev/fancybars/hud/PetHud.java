@@ -250,8 +250,8 @@ public final class PetHud {
 			// legacy colour codes inside the text
 			for (int i = idx - 2; i >= 0; i--) {
 				if (raw.charAt(i) == '§') {
-					ChatFormatting f = ChatFormatting.getByCode(raw.charAt(i + 1));
-					if (f != null && f.isColor() && f.getColor() != null) return f.getColor();
+					int idx2 = "0123456789abcdef".indexOf(Character.toLowerCase(raw.charAt(i + 1)));
+					if (idx2 >= 0) return LEGACY[idx2];
 				}
 			}
 		}
@@ -264,6 +264,9 @@ public final class PetHud {
 		}, Style.EMPTY);
 		return found[0];
 	}
+
+	private static final int[] LEGACY = {0x000000, 0x0000AA, 0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
+			0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF};
 
 	private static int parseInt(String s) {
 		try {
