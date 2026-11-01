@@ -162,6 +162,7 @@ public class BarEditorScreen extends Screen {
 		// Toolbar buttons disappear while dragging so they never get in the way
 		boolean busy = dragging != null || draggingElement != null;
 		for (AbstractWidget widget : toolbar) widget.visible = !busy;
+		if (!busy) placeToolbar();
 
 		// Hotbar for reference
 		// (the hotbar is drawn by its own movable element)
@@ -225,6 +226,41 @@ public class BarEditorScreen extends Screen {
 
 		super.extractRenderState(graphics, mouseX, mouseY, a);
 		dev.fancybars.util.gui.Dropdown.renderOverlay(graphics, mouseX, mouseY);
+	}
+
+	/**
+	 * Keeps Done / Reset Layout / Snapping off the HUDs: the toolbar sits at the top unless something you're editing
+	 * is underneath it there, then it moves to the bottom. Works for every HUD, including ones added later.
+	 */
+	private void placeToolbar() {
+		int top = 6;
+		int bottom = height - 6 - 18;
+		boolean topBlocked = toolbarCovers(top);
+		int y = topBlocked && !toolbarCovers(bottom) ? bottom : top;
+		for (AbstractWidget widget : toolbar) {
+			if (widget.getY() != y) widget.setY(y);
+		}
+	}
+
+	/** Whether the toolbar, placed at {@code y}, would sit on top of any HUD or bar. */
+	private boolean toolbarCovers(int y) {
+		List<float[]> rects = new ArrayList<>();
+		for (MovableElement element : elements()) rects.add(element.rect(width, height));
+		if (showBars) {
+			for (StatusBar bar : bars.statusBars.values()) {
+				if (bar.enabled) rects.add(new float[]{bar.getX(), bar.getY(), bar.getWidth(), bar.getHeight()});
+			}
+		}
+		for (AbstractWidget widget : toolbar) {
+			float wx0 = widget.getX() - 2;
+			float wx1 = widget.getX() + widget.getWidth() + 2;
+			float wy0 = y - 2;
+			float wy1 = y + widget.getHeight() + 2;
+			for (float[] r : rects) {
+				if (r[0] < wx1 && r[0] + r[2] > wx0 && r[1] < wy1 && r[1] + r[3] > wy0) return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean isOver(float[] r, double mouseX, double mouseY) {

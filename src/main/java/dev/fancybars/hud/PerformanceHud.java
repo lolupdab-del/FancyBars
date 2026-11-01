@@ -96,7 +96,7 @@ public final class PerformanceHud {
 
 	public static float[] position(int screenW, int screenH) {
 		FancyBarsConfig c = FancyBarsConfig.get();
-		if (c.perfX < 0 || c.perfY < 0) return new float[]{screenW - size()[0] * c.perfScale - 6, 6};
+		if (c.perfX < 0 || c.perfY < 0) return new float[]{6, 6};
 		return new float[]{c.perfX * screenW, c.perfY * screenH};
 	}
 

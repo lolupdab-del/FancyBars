@@ -1,4 +1,7 @@
 [
+  {"version": "2.36.1", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["FPS / TPS display starts in the top-left corner", "Edit GUI's Done / Reset Layout / Snapping buttons move to the bottom when a HUD is under them, so nothing gets stuck behind them"]},
   {"version": "2.36.0", "date": "2026-11-01",
    "added": ["Ultimate enchants get their own colour in tooltips (pink by default)", "Custom Chroma: make your own flowing chroma from three colours, separately for maxed enchants and ultimate enchants", "Maxed and ultimate enchants can each be Chroma, Custom Chroma, a solid colour or off"],
    "fixed": []},
