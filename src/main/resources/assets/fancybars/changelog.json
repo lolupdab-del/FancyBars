@@ -1,4 +1,7 @@
 [
+  {"version": "2.31.2", "date": "2026-11-01",
+   "added": ["Edit GUI button in the bottom-right corner of the menu, on every tab"],
+   "fixed": []},
   {"version": "2.31.1", "date": "2026-11-01",
    "added": [],
    "fixed": ["Crash on startup from the Armor Display"]},

@@ -56,6 +56,7 @@ public class BarsMenuScreen extends Screen {
 	private int x0;
 	private int y0;
 	private int totalWidth;
+	private int editGuiW;
 	private int totalHeight;
 	private int contentX;
 	private int contentY;
@@ -171,6 +172,14 @@ public class BarsMenuScreen extends Screen {
 		tipFor(close, Component.translatable("gui.done"));
 		close.setPosition(x0 + totalWidth - 8 - 16, y0 + (HEADER_HEIGHT - 16) / 2);
 		addRenderableWidget(close);
+
+		// Edit GUI, always in the bottom-right of the footer
+		Component editLabel = Component.translatable("fancybars.menu.editGui");
+		editGuiW = Theme.width(font, editLabel) + 16;
+		ModernButton editGui = new ModernButton(editGuiW, 14, editLabel, ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new BarEditorScreen(BarsMenuScreen.this)));
+		tipFor(editGui, Component.translatable("fancybars.menu.editGui.@Tooltip"));
+		editGui.setPosition(x0 + totalWidth - 8 - editGuiW, y0 + totalHeight - FOOTER_HEIGHT + (FOOTER_HEIGHT - 14) / 2);
+		addRenderableWidget(editGui);
 
 		// Category tabs across the top, wrapping onto a second row when needed
 		int tx = x0 + 6;
@@ -1019,7 +1028,7 @@ public class BarsMenuScreen extends Screen {
 		graphics.disableScissor();
 		if (hoverJump != null) {
 			Component hint = Component.translatable("fancybars.menu.goTo", hoverJump.label());
-			Theme.textInBox(graphics, font, hint, x0 + totalWidth - 10 - Theme.width(font, hint), y0 + totalHeight - FOOTER_HEIGHT, FOOTER_HEIGHT, Theme.ACCENT_LIGHT);
+			Theme.textInBox(graphics, font, hint, x0 + totalWidth - 16 - editGuiW - Theme.width(font, hint), y0 + totalHeight - FOOTER_HEIGHT, FOOTER_HEIGHT, Theme.ACCENT_LIGHT);
 			hoverJump = null;
 		}
 		if (mouseInContent) {
