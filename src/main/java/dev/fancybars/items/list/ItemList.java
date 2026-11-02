@@ -306,7 +306,15 @@ public final class ItemList {
 			page = Math.min(pages(l) - 1, page + 1);
 			return true;
 		}
-		if (search != null && search.isMouseOver(click.x(), click.y())) return false;
+		if (search != null && search.isMouseOver(click.x(), click.y())) {
+			// right-click clears the search
+			if (click.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
+				search.setText("");
+				search.setFocused(true);
+				return true;
+			}
+			return false;
+		}
 		ItemRepo.Entry e = entryAt(screen, click.x(), click.y());
 		if (e != null) {
 			RecipeScreen.open(screen, e.id(), click.button() == InputConstants.MOUSE_BUTTON_RIGHT);
