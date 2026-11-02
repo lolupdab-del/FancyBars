@@ -175,7 +175,7 @@ public final class ItemList {
 		return mx >= x && mx < x + w && my >= y && my < y + h;
 	}
 
-	private static @Nullable ItemRepo.Entry entryAt(AbstractContainerScreen<?> screen, double mx, double my) {
+	private static ItemRepo.@Nullable Entry entryAt(AbstractContainerScreen<?> screen, double mx, double my) {
 		Layout l = layout(screen);
 		if (l == null) return null;
 		List<ItemRepo.Entry> results = results();
