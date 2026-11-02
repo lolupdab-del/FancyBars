@@ -1,2 +1,2 @@
-net.minecraft.client.renderer.SubmitNodeCollector$CustomGeometryRenderer
-net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
+net.minecraft.client.Minecraft
+net.minecraft.world.entity.Entity
