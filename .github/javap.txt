@@ -1,3 +1,4 @@
-net.minecraft.world.entity.player.Player
-net.minecraft.client.multiplayer.ClientPacketListener
-net.minecraft.client.renderer.SubmitNodeCollector
+net.minecraft.client.renderer.rendertype.RenderTypes
+net.minecraft.client.renderer.OrderedSubmitNodeCollector
+net.minecraft.client.renderer.ShapeRenderer
+net.minecraft.gizmos.Gizmos

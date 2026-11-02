@@ -28,7 +28,7 @@ jobs:
             for jar in $(cat /tmp/mcjars.txt); do
               if unzip -l "$jar" "${cls//.//}.class" >/dev/null 2>&1; then
                 echo "=== $cls ($jar)" >> javap-out.txt
-                javap -p -c -cp "$jar" "$cls" >> javap-out.txt 2>&1
+                javap -p -cp "$jar" "$cls" >> javap-out.txt 2>&1
                 break
               fi
             done
