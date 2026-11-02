@@ -1,1 +1,1 @@
-net.minecraft.client.gui.Hud
+net.minecraft.client.renderer.ItemInHandRenderer
