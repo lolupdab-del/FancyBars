@@ -28,6 +28,7 @@
 		"ModelManagerAccessor",
 		"SmoothTextMixin",
 		"StorageOverlayBackgroundMixin",
+		"SwordBlockMixin",
 		"StorageOverlayScreenMixin",
 		"SmoothTextWidthMixin",
 		"TimePacketMixin"

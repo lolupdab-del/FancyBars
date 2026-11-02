@@ -459,6 +459,10 @@ public class FancyBarsConfig {
 
 	/** No first-person swing animation. */
 	public boolean viewmodelNoSwing = false;
+	/** 1.8 Sword Blocking: right click with a sword shows the old blocking pose. */
+	public boolean swordBlock = false;
+	/** Keep swinging while blocking (1.7 block-hit look). */
+	public boolean swordBlockSwing = false;
 
 	/** Swing without the hand moving around (rotation only). */
 	public boolean viewmodelSwingInPlace = false;

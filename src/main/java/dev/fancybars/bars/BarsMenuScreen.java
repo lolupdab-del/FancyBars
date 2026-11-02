@@ -819,6 +819,9 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.swordBlock"), null));
+				list.add(new ToggleItem("swordBlock", () -> config.swordBlock, value -> config.swordBlock = value));
+				list.add(new ToggleItem("swordBlockSwing", () -> config.swordBlockSwing, value -> config.swordBlockSwing = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.viewmodel"), null));
 				list.add(new ToggleItem("viewmodelEnabled", () -> config.viewmodelEnabled, value -> config.viewmodelEnabled = value));
 				list.add(new ToggleItem("viewmodelIgnoreHaste", () -> config.viewmodelIgnoreHaste, value -> config.viewmodelIgnoreHaste = value));
