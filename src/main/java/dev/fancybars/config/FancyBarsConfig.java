@@ -396,6 +396,8 @@ public class FancyBarsConfig {
 	public int storageOverlayColumns = 3;
 	/** Draw the Storage Overlay like Minecraft's own chests instead of SBCLIENT's dark theme. */
 	public boolean storageVanillaStyle = false;
+	/** 0 SBCLIENT, 1 your resource pack, 2 Dark Glass (-1 = not chosen yet: taken from the old Vanilla Style toggle). */
+	public int storageStyle = -1;
 	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
 	public int spotifyHudTime = 0;
 
@@ -827,6 +829,7 @@ public class FancyBarsConfig {
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
+			if (instance.storageStyle < 0) instance.storageStyle = instance.storageVanillaStyle ? 1 : 0;
 			if (instance.petStyleVersion < 1) {
 				// match SkyHanni's pet display out of the box
 				instance.petBackground = false;

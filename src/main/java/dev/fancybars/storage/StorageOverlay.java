@@ -312,8 +312,9 @@ public final class StorageOverlay {
 		Font font = Minecraft.getInstance().font;
 		int active = activePage(screen);
 		graphics.fill(0, 0, screen.width, screen.height, Math.round(Math.clamp(FancyBarsConfig.get().backdropDarkness, 0, 1) * 255) << 24);
-		boolean vanilla = FancyBarsConfig.get().storageVanillaStyle;
-		if (vanilla) vanillaPanel(graphics, l.panelX, l.panelY, l.panelW, l.panelH);
+		int style = FancyBarsConfig.get().storageStyle;
+		boolean vanilla = style != 0;
+		if (vanilla) framePanel(graphics, style, l.panelX, l.panelY, l.panelW, l.panelH);
 		else Theme.panel(graphics, l.panelX, l.panelY, l.panelW, l.panelH);
 
 		graphics.enableScissor(l.viewX - 2, l.viewY, l.viewX + l.viewW + 2, l.viewY + l.viewH);
@@ -327,10 +328,11 @@ public final class StorageOverlay {
 			boolean overPage = !isActive && mouseX >= x && mouseX < x + PAGE_W && mouseY >= y && mouseY < y + box.h()
 					&& mouseY >= l.viewY && mouseY < l.viewY + l.viewH;
 			if (vanilla) {
-				vanillaPanel(graphics, x, y, PAGE_W, box.h());
+				framePanel(graphics, style, x, y, PAGE_W, box.h());
 				if (isActive || overPage) graphics.fill(x + 3, y + 3, x + PAGE_W - 3, y + box.h() - 3, isActive ? 0x30FFFFFF : 0x18FFFFFF);
-				// Minecraft's own label look: dark grey, no shadow
-				graphics.text(font, pageTitle(box.index()), x + 6, y + 4, isActive ? 0xFF202020 : 0xFF404040, false);
+				// Minecraft's own label look (dark grey, no shadow); light on Dark Glass
+				int titleColor = style == 2 ? (isActive ? 0xFFFFFFFF : 0xFFD8D8D8) : (isActive ? 0xFF202020 : 0xFF404040);
+				graphics.text(font, pageTitle(box.index()), x + 6, y + 4, titleColor, false);
 			} else {
 				Theme.roundedRect(graphics, x, y, PAGE_W, box.h(), 4, isActive ? Theme.SELECTED : overPage ? Theme.SURFACE_HOVER : Theme.SURFACE);
 				if (isActive) Theme.roundedOutline(graphics, x, y, PAGE_W, box.h(), 4, Theme.ACCENT);
@@ -341,7 +343,7 @@ public final class StorageOverlay {
 				for (int c = 0; c < 9; c++) {
 					int sx = x + 4 + c * SLOT;
 					int sy = y + TITLE_H + r * SLOT;
-					slotBg(graphics, sx, sy, vanilla);
+					slotBg(graphics, sx, sy, style);
 					if (isActive || s == null) continue;
 					int i = 9 + r * 9 + c;
 					if (i >= s.size()) continue;
@@ -372,8 +374,8 @@ public final class StorageOverlay {
 			int thumbH = Math.max(16, Math.round(l.viewH * l.viewH / (float) l.contentH));
 			int thumbY = l.viewY + Math.round((l.viewH - thumbH) * (scroll / max));
 			if (vanilla) {
-				graphics.fill(trackX, l.viewY, trackX + 3, l.viewY + l.viewH, 0xFF8B8B8B);
-				graphics.fill(trackX, thumbY, trackX + 3, thumbY + thumbH, 0xFFFFFFFF);
+				graphics.fill(trackX, l.viewY, trackX + 3, l.viewY + l.viewH, style == 2 ? 0x40FFFFFF : 0xFF8B8B8B);
+				graphics.fill(trackX, thumbY, trackX + 3, thumbY + thumbH, style == 2 ? 0xAAFFFFFF : 0xFFFFFFFF);
 			} else {
 				Theme.roundedRect(graphics, trackX, l.viewY, 3, l.viewH, 1, 0x30FFFFFF);
 				Theme.roundedRect(graphics, trackX, thumbY, 3, thumbH, 1, Theme.TEXT_MUTED);
@@ -393,13 +395,13 @@ public final class StorageOverlay {
 		}
 
 		// player inventory frame
-		if (vanilla) vanillaPanel(graphics, l.playerX - 6, l.playerY - 6, 9 * SLOT + 12, PLAYER_H + 12);
+		if (vanilla) framePanel(graphics, style, l.playerX - 6, l.playerY - 6, 9 * SLOT + 12, PLAYER_H + 12);
 		else Theme.panel(graphics, l.playerX - 6, l.playerY - 6, 9 * SLOT + 12, PLAYER_H + 12);
 		for (int r = 0; r < 4; r++) {
 			for (int c = 0; c < 9; c++) {
 				int sx = l.playerX + c * SLOT;
 				int sy = l.playerY + r * SLOT + (r == 3 ? 4 : 0);
-				slotBg(graphics, sx, sy, vanilla);
+				slotBg(graphics, sx, sy, style);
 			}
 		}
 		if (hovered != null) graphics.setTooltipForNextFrame(font, hovered, mouseX, mouseY);
@@ -431,10 +433,40 @@ public final class StorageOverlay {
 		piece(g, x + e, y + e, w - 2 * e, h - 2 * e, e + 4, e, TEX_W - 2 * e - 8, 12);
 	}
 
-	/** A slot: your pack's chest slot, or the dark theme square. */
-	private static void slotBg(GuiGraphicsExtractor g, int sx, int sy, boolean vanilla) {
-		if (!vanilla) {
+	/** Panel for style 1 (your resource pack) or 2 (Dark Glass). */
+	private static void framePanel(GuiGraphicsExtractor g, int style, int x, int y, int w, int h) {
+		if (style == 2) glassPanel(g, x, y, w, h);
+		else vanillaPanel(g, x, y, w, h);
+	}
+
+	/**
+	 * Dark Glass, modelled on the Dark Glass GUI resource pack: see-through dark panel, thin black outline and a
+	 * light grey inner edge.
+	 */
+	private static void glassPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		g.fill(x + 1, y, x + w - 1, y + 1, 0xBE000000);
+		g.fill(x + 1, y + h - 1, x + w - 1, y + h, 0xBE000000);
+		g.fill(x, y + 1, x + 1, y + h - 1, 0xBE000000);
+		g.fill(x + w - 1, y + 1, x + w, y + h - 1, 0xBE000000);
+		g.fill(x + 1, y + 1, x + w - 1, y + 3, 0xAA5F5F5F);
+		g.fill(x + 1, y + h - 3, x + w - 1, y + h - 1, 0xAA5F5F5F);
+		g.fill(x + 1, y + 3, x + 3, y + h - 3, 0xAA5F5F5F);
+		g.fill(x + w - 3, y + 3, x + w - 1, y + h - 3, 0xAA5F5F5F);
+		g.fill(x + 3, y + 3, x + w - 3, y + h - 3, 0x8C2C2C2C);
+	}
+
+	/** A slot: the dark theme square, your pack's chest slot, or a Dark Glass slot. */
+	private static void slotBg(GuiGraphicsExtractor g, int sx, int sy, int style) {
+		if (style == 0) {
 			g.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
+			return;
+		}
+		if (style == 2) {
+			g.fill(sx, sy, sx + SLOT - 1, sy + 1, 0xA0080808);
+			g.fill(sx, sy + 1, sx + 1, sy + SLOT - 1, 0xA0080808);
+			g.fill(sx + 1, sy + SLOT - 1, sx + SLOT, sy + SLOT, 0xAA5F5F5F);
+			g.fill(sx + SLOT - 1, sy, sx + SLOT, sy + SLOT - 1, 0xAA5F5F5F);
+			g.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x780C0C0C);
 			return;
 		}
 		// the chest's first slot, straight from your pack

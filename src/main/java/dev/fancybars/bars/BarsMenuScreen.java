@@ -514,7 +514,8 @@ public class BarsMenuScreen extends Screen {
 								})))));
 				list.add(new HeaderItem(Component.translatable("fancybars.storage.title"), null));
 				list.add(new ToggleItem("storageOverlay", () -> config.storageOverlay, value -> config.storageOverlay = value));
-				list.add(new ToggleItem("storageVanillaStyle", () -> config.storageVanillaStyle, value -> config.storageVanillaStyle = value));
+				list.add(new ValueCycleItem("storageStyle", new int[]{0, 1, 2}, () -> config.storageStyle,
+						value -> config.storageStyle = value, v -> Component.translatable("fancybars.storage.style." + v)));
 				list.add(new SliderItem("storageOverlayColumns", 1, 6, 1, false, () -> (float) config.storageOverlayColumns, value -> config.storageOverlayColumns = Math.round(value)));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
 				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
