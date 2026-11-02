@@ -1,4 +1,7 @@
 [
+  {"version": "2.48.5", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Storage Overlay is off by default for new installs (turn it on in the Items tab)"]},
   {"version": "2.48.4", "date": "2026-11-01",
    "added": ["Chat: Hide Profile ID toggle, hides the \"Profile ID: ...\" message you get every time you change worlds (Chat tab)"],
    "fixed": []},
