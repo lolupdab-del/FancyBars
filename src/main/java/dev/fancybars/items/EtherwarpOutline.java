@@ -28,9 +28,6 @@ import dev.fancybars.util.SkyblockLocation;
  * if the teleport will work and another if it won't.
  */
 public final class EtherwarpOutline {
-	/** Hypixel runs 1.8 rules: sneaking eye height is 1.54, not the modern 1.27. */
-	private static final double SNEAK_EYE = 1.54;
-
 	private EtherwarpOutline() {}
 
 	public static void init() {
@@ -43,8 +40,8 @@ public final class EtherwarpOutline {
 			int range = range(player.getMainHandItem());
 			if (range <= 0) return;
 			float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-			Vec3 feet = player.getPosition(partial);
-			Vec3 eye = new Vec3(feet.x, feet.y + SNEAK_EYE, feet.z);
+			// your real (modern) sneaking eye height: the 1.8 one (1.54) aims too high and goes over low blocks like stairs
+			Vec3 eye = player.getEyePosition(partial);
 			Vec3 look = player.getViewVector(partial);
 			BlockPos target = trace(mc.level, eye, look, range);
 			if (target == null) return;
