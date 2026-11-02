@@ -479,6 +479,8 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ValueCycleItem("rarityBackgroundStyle", new int[]{0, 1, 4, 2, 3}, () -> config.rarityBackgroundStyle,
 						value -> config.rarityBackgroundStyle = value, dev.fancybars.items.RarityBackground::styleName));
 				list.add(new SliderItem("rarityBackgroundOpacity", 0.05f, 1, 0.01f, true, () -> config.rarityBackgroundOpacity, value -> config.rarityBackgroundOpacity = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.glowingDroppedItems.title"), null));
+				list.add(new ToggleItem("glowingDroppedItems", () -> config.glowingDroppedItems, value -> config.glowingDroppedItems = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.etherwarp.title"), null));
 				list.add(new ToggleItem("etherwarpOutline", () -> config.etherwarpOutline, value -> config.etherwarpOutline = value));
 				list.add(new SwatchItem("etherwarpColor", () -> new Color(config.etherwarpColor, false), color -> config.etherwarpColor = color.getRGB() & 0xFFFFFF));

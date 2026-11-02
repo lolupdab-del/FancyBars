@@ -1,4 +1,7 @@
 [
+  {"version": "2.47.0", "date": "2026-11-01",
+   "added": ["Glowing Dropped Items (from SkyHanni): items on the ground glow in their rarity colour (Items tab)"],
+   "fixed": []},
   {"version": "2.46.0", "date": "2026-11-01",
    "added": ["Etherwarp outline: Style setting (Outline, Filled, Outline + Fill) with a Fill Opacity slider"],
    "fixed": ["Etherwarp outline colour is no longer muddied by Minecraft's own block outline (it's hidden while the etherwarp outline shows)"]},

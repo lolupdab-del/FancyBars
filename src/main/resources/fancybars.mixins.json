@@ -17,6 +17,8 @@
 		"EquipmentLayerRendererMixin",
 		"FontAccessor",
 		"GifInventoryScreenMixin",
+		"GlowingItemsEntityMixin",
+		"GlowingItemsMinecraftMixin",
 		"HudAccessor",
 		"HudProtectionMixin",
 		"ItemInHandRendererMixin",

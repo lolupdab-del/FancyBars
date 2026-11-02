@@ -82,6 +82,8 @@ public class FancyBarsConfig {
 	/** 0 outline, 1 filled, 2 outline + fill. */
 	public int etherwarpStyle = 0;
 	public float etherwarpFillOpacity = 0.3f;
+	/** Glowing Dropped Items (SkyHanni): items on the ground glow in their rarity colour. */
+	public boolean glowingDroppedItems = true;
 
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();
