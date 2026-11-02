@@ -28,7 +28,7 @@ import dev.fancybars.util.gui.Theme;
 public class RecipeScreen extends Screen {
 	private static final int SLOT = 18;
 	private static final int W = 240;
-	private static final int H = 150;
+	private static final int H = 170;
 
 	private final @Nullable Screen parent;
 	private String id;
@@ -59,10 +59,10 @@ public class RecipeScreen extends Screen {
 		px = (width - W) / 2;
 		py = (height - H) / 2;
 		ModernButton recipes = new ModernButton(70, 16, Component.translatable("fancybars.itemList.tabRecipes"), usages ? ModernButton.Style.SECONDARY : ModernButton.Style.PRIMARY, () -> switchTo(false));
-		recipes.setPosition(px + W - 8 - 142, py + 6);
+		recipes.setPosition(px + 8, py + 28);
 		addRenderableWidget(recipes);
 		ModernButton uses = new ModernButton(70, 16, Component.translatable("fancybars.itemList.tabUsages"), usages ? ModernButton.Style.PRIMARY : ModernButton.Style.SECONDARY, () -> switchTo(true));
-		uses.setPosition(px + W - 8 - 70, py + 6);
+		uses.setPosition(px + 82, py + 28);
 		addRenderableWidget(uses);
 		ModernButton prev = new ModernButton(18, 16, Component.literal("‹"), () -> step(-1));
 		prev.setPosition(px + 8, py + H - 22);
@@ -139,15 +139,23 @@ public class RecipeScreen extends Screen {
 		ItemRepo.Entry entry = ItemRepo.get(id);
 		if (entry != null) {
 			graphics.fakeItem(entry.stack(), px + 8, py + 6);
-			Theme.textInBox(graphics, font, Theme.bold(Component.literal(clip(entry.name(), 90))), px + 28, py + 6, 16, Theme.TEXT);
+			// the name gets the whole width (tabs are on the row below)
+			Component name = Theme.bold(Component.literal(entry.name()));
+			int room = W - 28 - 8;
+			if (font.width(name) > room) {
+				String n = entry.name();
+				while (n.length() > 1 && font.width(Theme.bold(Component.literal(n + "…"))) > room) n = n.substring(0, n.length() - 1);
+				name = Theme.bold(Component.literal(n + "…"));
+			}
+			Theme.textInBox(graphics, font, name, px + 28, py + 6, 16, Theme.TEXT);
 		}
 		List<ItemRepo.Recipe> list = list();
 		if (list.isEmpty()) {
-			Theme.textInBox(graphics, font, Component.translatable(usages ? "fancybars.itemList.noUsages" : "fancybars.itemList.noRecipes"), px + 10, py + 50, 14, Theme.TEXT_MUTED);
+			Theme.textInBox(graphics, font, Component.translatable(usages ? "fancybars.itemList.noUsages" : "fancybars.itemList.noRecipes"), px + 10, py + 62, 14, Theme.TEXT_MUTED);
 		} else {
 			index = Math.clamp(index, 0, list.size() - 1);
 			ItemRepo.Recipe r = list.get(index);
-			int top = py + 32;
+			int top = py + 52;
 			String kind = switch (r.type()) {
 				case "forge" -> "Forge" + (r.seconds() > 0 ? "  ·  " + duration(r.seconds()) : "");
 				case "shop" -> "Sold by " + ItemRepo.prettyNpc(r.npc()) + (r.coins() > 0 ? "  ·  " + String.format(Locale.ROOT, "%,d coins", r.coins()) : "");

@@ -153,7 +153,9 @@ public final class Customization {
 
 	/** Your own dye is set on dyeable armor: it should be drawn as plain leather so the dye is visible. */
 	public static boolean forcesPlainLeather(ItemStack stack) {
-		return stack.is(net.minecraft.tags.ItemTags.DYEABLE) && dye(stack) != null;
+		boolean dyeable = stack.has(net.minecraft.core.component.DataComponents.DYED_COLOR)
+				|| net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).getPath().startsWith("leather_");
+		return dyeable && dye(stack) != null;
 	}
 
 	public static @Nullable ArmorTrim trim(ItemStack stack) {
