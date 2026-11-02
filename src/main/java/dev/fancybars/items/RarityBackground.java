@@ -15,7 +15,6 @@ import net.minecraft.world.item.component.ItemLore;
 
 import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.util.SkyblockLocation;
-import dev.fancybars.util.gui.Theme;
 
 /**
  * Item Rarity Background: a coloured background behind SkyBlock items in their rarity's colour, read from the
@@ -64,7 +63,8 @@ public final class RarityBackground {
 		int alpha = Math.round(Math.clamp(c.rarityBackgroundOpacity, 0f, 1f) * 255);
 		int color = alpha << 24 | rgb;
 		switch (c.rarityBackgroundStyle) {
-			case 1 -> Theme.roundedRect(graphics, x, y, 16, 16, 3, color);
+			// drawn directly: the theme's Corner Roundness and colour mapping shouldn't change rarity backgrounds
+			case 1 -> dev.fancybars.util.gui.Ring.fillRounded(graphics, x, y, 16, 16, 3, color);
 			case 2 -> {
 				graphics.fill(x, y, x + 16, y + 1, color);
 				graphics.fill(x, y + 15, x + 16, y + 16, color);
@@ -75,7 +75,7 @@ public final class RarityBackground {
 				// fades from the colour at the bottom to clear at the top
 				graphics.fillGradient(x, y, x + 16, y + 16, rgb, color);
 			}
-			case 4 -> Theme.roundedRect(graphics, x, y, 16, 16, 8, color);
+			case 4 -> dev.fancybars.util.gui.SmoothShapes.draw(graphics, dev.fancybars.util.gui.SmoothShapes.Shape.CIRCLE, x, y, 16, color);
 			default -> graphics.fill(x, y, x + 16, y + 16, color);
 		}
 	}

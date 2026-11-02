@@ -1,4 +1,7 @@
 [
+  {"version": "2.44.1", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Item Rarity Background: Circle style is a real circle (it followed the theme's Corner Roundness and came out as a rounded square)", "Item Rarity Background colours are no longer changed by the theme"]},
   {"version": "2.44.0", "date": "2026-11-01",
    "added": ["1.8 Sword Blocking: holding right click with a sword shows the old 1.8 blocking animation, with an optional Swing While Blocking (1.7 block-hit) toggle (Player tab)"],
    "fixed": []},
