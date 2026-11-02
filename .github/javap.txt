@@ -1,6 +1,4 @@
-net.minecraft.client.renderer.OrderedSubmitNodeCollector
-com.mojang.blaze3d.vertex.VertexConsumer
-net.minecraft.client.renderer.state.level.LevelRenderState
-net.minecraft.world.item.DyeColor
-net.minecraft.client.multiplayer.ClientPacketListener
-net.minecraft.client.Minecraft
+net.minecraft.client.renderer.state.gui.GuiItemRenderState
+net.minecraft.client.gui.GuiGraphicsExtractor
+net.minecraft.client.renderer.state.gui.GuiRenderState
+net.minecraft.client.renderer.item.TrackingItemStackRenderState
