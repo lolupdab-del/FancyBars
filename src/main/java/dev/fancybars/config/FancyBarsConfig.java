@@ -394,6 +394,8 @@ public class FancyBarsConfig {
 	public float itemListX = -1;
 	public float itemListY = -1;
 	public int storageOverlayColumns = 3;
+	/** Draw the Storage Overlay like Minecraft's own chests instead of SBCLIENT's dark theme. */
+	public boolean storageVanillaStyle = false;
 	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
 	public int spotifyHudTime = 0;
 

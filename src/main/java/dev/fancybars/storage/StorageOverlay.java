@@ -312,7 +312,9 @@ public final class StorageOverlay {
 		Font font = Minecraft.getInstance().font;
 		int active = activePage(screen);
 		graphics.fill(0, 0, screen.width, screen.height, Math.round(Math.clamp(FancyBarsConfig.get().backdropDarkness, 0, 1) * 255) << 24);
-		Theme.panel(graphics, l.panelX, l.panelY, l.panelW, l.panelH);
+		boolean vanilla = FancyBarsConfig.get().storageVanillaStyle;
+		if (vanilla) vanillaPanel(graphics, l.panelX, l.panelY, l.panelW, l.panelH);
+		else Theme.panel(graphics, l.panelX, l.panelY, l.panelW, l.panelH);
 
 		graphics.enableScissor(l.viewX - 2, l.viewY, l.viewX + l.viewW + 2, l.viewY + l.viewH);
 		int sc = Math.round(scroll);
@@ -324,15 +326,22 @@ public final class StorageOverlay {
 			boolean isActive = box.index() == active;
 			boolean overPage = !isActive && mouseX >= x && mouseX < x + PAGE_W && mouseY >= y && mouseY < y + box.h()
 					&& mouseY >= l.viewY && mouseY < l.viewY + l.viewH;
-			Theme.roundedRect(graphics, x, y, PAGE_W, box.h(), 4, isActive ? Theme.SELECTED : overPage ? Theme.SURFACE_HOVER : Theme.SURFACE);
-			if (isActive) Theme.roundedOutline(graphics, x, y, PAGE_W, box.h(), 4, Theme.ACCENT);
-			Theme.textInBox(graphics, font, pageTitle(box.index()), x + 5, y + 1, TITLE_H, isActive ? Theme.ACCENT_LIGHT : Theme.TEXT_SOFT);
+			if (vanilla) {
+				vanillaPanel(graphics, x, y, PAGE_W, box.h());
+				if (isActive || overPage) graphics.fill(x + 3, y + 3, x + PAGE_W - 3, y + box.h() - 3, isActive ? 0x30FFFFFF : 0x18FFFFFF);
+				// Minecraft's own label look: dark grey, no shadow
+				graphics.text(font, pageTitle(box.index()), x + 6, y + 4, isActive ? 0xFF202020 : 0xFF404040, false);
+			} else {
+				Theme.roundedRect(graphics, x, y, PAGE_W, box.h(), 4, isActive ? Theme.SELECTED : overPage ? Theme.SURFACE_HOVER : Theme.SURFACE);
+				if (isActive) Theme.roundedOutline(graphics, x, y, PAGE_W, box.h(), 4, Theme.ACCENT);
+				Theme.textInBox(graphics, font, pageTitle(box.index()), x + 5, y + 1, TITLE_H, isActive ? Theme.ACCENT_LIGHT : Theme.TEXT_SOFT);
+			}
 			BackpackPreview.Storage s = BackpackPreview.storage(box.index());
 			for (int r = 0; r < box.rows(); r++) {
 				for (int c = 0; c < 9; c++) {
 					int sx = x + 4 + c * SLOT;
 					int sy = y + TITLE_H + r * SLOT;
-					graphics.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
+					slotBg(graphics, sx, sy, vanilla);
 					if (isActive || s == null) continue;
 					int i = 9 + r * 9 + c;
 					if (i >= s.size()) continue;
@@ -362,8 +371,13 @@ public final class StorageOverlay {
 			int trackX = l.panelX + l.panelW - PAD - 3;
 			int thumbH = Math.max(16, Math.round(l.viewH * l.viewH / (float) l.contentH));
 			int thumbY = l.viewY + Math.round((l.viewH - thumbH) * (scroll / max));
-			Theme.roundedRect(graphics, trackX, l.viewY, 3, l.viewH, 1, 0x30FFFFFF);
-			Theme.roundedRect(graphics, trackX, thumbY, 3, thumbH, 1, Theme.TEXT_MUTED);
+			if (vanilla) {
+				graphics.fill(trackX, l.viewY, trackX + 3, l.viewY + l.viewH, 0xFF8B8B8B);
+				graphics.fill(trackX, thumbY, trackX + 3, thumbY + thumbH, 0xFFFFFFFF);
+			} else {
+				Theme.roundedRect(graphics, trackX, l.viewY, 3, l.viewH, 1, 0x30FFFFFF);
+				Theme.roundedRect(graphics, trackX, thumbY, 3, thumbH, 1, Theme.TEXT_MUTED);
+			}
 		}
 
 		// dim the live page's items that don't match the search
@@ -379,15 +393,42 @@ public final class StorageOverlay {
 		}
 
 		// player inventory frame
-		Theme.panel(graphics, l.playerX - 6, l.playerY - 6, 9 * SLOT + 12, PLAYER_H + 12);
+		if (vanilla) vanillaPanel(graphics, l.playerX - 6, l.playerY - 6, 9 * SLOT + 12, PLAYER_H + 12);
+		else Theme.panel(graphics, l.playerX - 6, l.playerY - 6, 9 * SLOT + 12, PLAYER_H + 12);
 		for (int r = 0; r < 4; r++) {
 			for (int c = 0; c < 9; c++) {
 				int sx = l.playerX + c * SLOT;
 				int sy = l.playerY + r * SLOT + (r == 3 ? 4 : 0);
-				graphics.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
+				slotBg(graphics, sx, sy, vanilla);
 			}
 		}
 		if (hovered != null) graphics.setTooltipForNextFrame(font, hovered, mouseX, mouseY);
+	}
+
+	/** Minecraft's container look: light grey panel, black outline, white top-left and dark bottom-right edges. */
+	private static void vanillaPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		g.fill(x + 1, y, x + w - 1, y + 1, 0xFF000000);
+		g.fill(x + 1, y + h - 1, x + w - 1, y + h, 0xFF000000);
+		g.fill(x, y + 1, x + 1, y + h - 1, 0xFF000000);
+		g.fill(x + w - 1, y + 1, x + w, y + h - 1, 0xFF000000);
+		g.fill(x + 1, y + 1, x + w - 1, y + h - 1, 0xFFC6C6C6);
+		g.fill(x + 1, y + 1, x + w - 2, y + 3, 0xFFFFFFFF);
+		g.fill(x + 1, y + 1, x + 3, y + h - 2, 0xFFFFFFFF);
+		g.fill(x + 2, y + h - 3, x + w - 1, y + h - 1, 0xFF555555);
+		g.fill(x + w - 3, y + 2, x + w - 1, y + h - 1, 0xFF555555);
+	}
+
+	/** A slot: Minecraft's sunken grey square, or the dark theme square. */
+	private static void slotBg(GuiGraphicsExtractor g, int sx, int sy, boolean vanilla) {
+		if (!vanilla) {
+			g.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
+			return;
+		}
+		g.fill(sx, sy, sx + SLOT, sy + SLOT, 0xFF8B8B8B);
+		g.fill(sx, sy, sx + SLOT - 1, sy + 1, 0xFF373737);
+		g.fill(sx, sy, sx + 1, sy + SLOT - 1, 0xFF373737);
+		g.fill(sx + 1, sy + SLOT - 1, sx + SLOT, sy + SLOT, 0xFFFFFFFF);
+		g.fill(sx + SLOT - 1, sy + 1, sx + SLOT, sy + SLOT, 0xFFFFFFFF);
 	}
 
 	// ---------------------------------------------------------------- input

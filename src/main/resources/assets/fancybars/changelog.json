@@ -1,4 +1,7 @@
 [
+  {"version": "2.41.0", "date": "2026-11-01",
+   "added": ["Storage Overlay: Vanilla Style toggle to make it look like Minecraft's own chests"],
+   "fixed": []},
   {"version": "2.40.1", "date": "2026-11-01",
    "added": ["Spotify: background toggles for the Now Playing HUD and the inventory player, separately"],
    "fixed": ["Long item names in the recipe viewer are no longer covered by the Recipes / Used In tabs", "A custom dye (animated or not) now shows on armor that already has a real animated dye, worn and in your inventory"]},
