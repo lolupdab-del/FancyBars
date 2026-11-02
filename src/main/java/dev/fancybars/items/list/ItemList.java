@@ -107,9 +107,58 @@ public final class ItemList {
 		return l;
 	}
 
+	// ---------------------------------------------------------------- sorting
+
+	/** 0 Name A-Z, 1 Name Z-A, 2 Value high-low, 3 Value low-high, 4 Rarity high-low, 5 Rarity low-high. */
+	public static final int SORTS = 6;
+	private static int sortedBy = -1;
+	private static int sortedPrices = -1;
+	private static final String[] RARITIES = {"COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL", "VERY SPECIAL", "ULTIMATE", "ADMIN"};
+	private static final java.util.Map<String, Integer> RARITY = new java.util.HashMap<>();
+
+	/** Rarity rank from the item's last lore line ("LEGENDARY SWORD"), -1 if it has none. */
+	private static int rarity(ItemRepo.Entry e) {
+		return RARITY.computeIfAbsent(e.id(), id -> {
+			for (int i = e.lore().size() - 1; i >= 0; i--) {
+				String line = net.minecraft.ChatFormatting.stripFormatting(e.lore().get(i).getString());
+				if (line == null || line.isBlank()) continue;
+				line = line.trim().toUpperCase(Locale.ROOT);
+				int best = -1;
+				for (int r = 0; r < RARITIES.length; r++) if (line.startsWith(RARITIES[r] + " ") || line.equals(RARITIES[r])) best = r;
+				return best;
+			}
+			return -1;
+		});
+	}
+
+	private static java.util.Comparator<ItemRepo.Entry> comparator(int sort) {
+		java.util.Comparator<ItemRepo.Entry> byName = java.util.Comparator.comparing(ItemRepo.Entry::name, String.CASE_INSENSITIVE_ORDER);
+		return switch (sort) {
+			case 1 -> byName.reversed();
+			case 2, 3 -> (a, b) -> {
+				double va = dev.fancybars.items.ItemValue.valueOf(a.id());
+				double vb = dev.fancybars.items.ItemValue.valueOf(b.id());
+				// items without a price always go last
+				if (va < 0 || vb < 0) return va < 0 && vb < 0 ? byName.compare(a, b) : va < 0 ? 1 : -1;
+				int c = sort == 2 ? Double.compare(vb, va) : Double.compare(va, vb);
+				return c != 0 ? c : byName.compare(a, b);
+			};
+			case 4, 5 -> (a, b) -> {
+				int ra = rarity(a), rb = rarity(b);
+				if (ra < 0 || rb < 0) return ra < 0 && rb < 0 ? byName.compare(a, b) : ra < 0 ? 1 : -1;
+				int c = sort == 4 ? Integer.compare(rb, ra) : Integer.compare(ra, rb);
+				return c != 0 ? c : byName.compare(a, b);
+			};
+			default -> byName;
+		};
+	}
+
 	private static List<ItemRepo.Entry> results() {
 		List<ItemRepo.Entry> all = ItemRepo.entries();
-		if (query.equals(filteredFor) && all.size() == filteredSize) return filtered;
+		int sort = Math.floorMod(FancyBarsConfig.get().itemListSort, SORTS);
+		int prices = dev.fancybars.items.ItemValue.version;
+		boolean resort = sort != sortedBy || (sort == 2 || sort == 3) && prices != sortedPrices;
+		if (!resort && query.equals(filteredFor) && all.size() == filteredSize) return filtered;
 		String[] words = query.toLowerCase(Locale.ROOT).split("\\s+");
 		List<ItemRepo.Entry> out = new ArrayList<>();
 		for (ItemRepo.Entry e : all) {
@@ -122,6 +171,10 @@ public final class ItemList {
 			}
 			if (ok) out.add(e);
 		}
+		if (sort == 2 || sort == 3) dev.fancybars.items.ItemValue.ensureLoaded();
+		out.sort(comparator(sort));
+		sortedBy = sort;
+		sortedPrices = prices;
 		filtered = out;
 		filteredFor = query;
 		filteredSize = all.size();
@@ -159,9 +212,16 @@ public final class ItemList {
 		List<ItemRepo.Entry> results = results();
 		int pages = pages(l);
 		page = Math.clamp(page, 0, pages - 1);
-		// header: < page/pages >
-		Component label = Component.literal((page + 1) + " / " + pages);
-		Theme.centeredInBox(graphics, font, label, l.x + l.w / 2f, l.y + PAD, 12, Theme.TEXT_SOFT);
+		// header: < sort · page/pages >   (click the middle to change the sort)
+		Component label = Component.translatable("fancybars.itemList.sortShort." + Math.floorMod(FancyBarsConfig.get().itemListSort, SORTS))
+				.append("  " + (page + 1) + "/" + pages);
+		boolean overSort = over(mx, my, l.x + PAD + 16, l.y + PAD - 2, l.w - PAD * 2 - 32, 16);
+		Theme.centeredInBox(graphics, font, label, l.x + l.w / 2f, l.y + PAD, 12, overSort ? Theme.TEXT : Theme.TEXT_SOFT);
+		if (overSort) {
+			graphics.setTooltipForNextFrame(font, Component.translatable("fancybars.itemList.sortHint",
+					Component.translatable("fancybars.itemList.sort." + Math.floorMod(FancyBarsConfig.get().itemListSort, SORTS))), mx, my);
+			graphics.requestCursor(CursorTypes.POINTING_HAND);
+		}
 		boolean overPrev = over(mx, my, l.x + PAD, l.y + PAD - 2, 16, 16);
 		boolean overNext = over(mx, my, l.x + l.w - PAD - 16, l.y + PAD - 2, 16, 16);
 		Theme.centeredInBox(graphics, font, Component.literal("‹"), l.x + PAD + 8, l.y + PAD, 12, overPrev ? Theme.TEXT : Theme.TEXT_MUTED);
@@ -230,6 +290,14 @@ public final class ItemList {
 		if (!shown(screen)) return false;
 		Layout l = layout(screen);
 		if (l == null || !over(click.x(), click.y(), l.x, l.y, l.w, l.h)) return false;
+		if (over(click.x(), click.y(), l.x + PAD + 16, l.y + PAD - 2, l.w - PAD * 2 - 32, 16)) {
+			// cycle the sort (right-click goes backwards)
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.itemListSort = Math.floorMod(c.itemListSort + (click.button() == InputConstants.MOUSE_BUTTON_RIGHT ? -1 : 1), SORTS);
+			FancyBarsConfig.save();
+			page = 0;
+			return true;
+		}
 		if (over(click.x(), click.y(), l.x + PAD, l.y + PAD - 2, 16, 16)) {
 			page = Math.max(0, page - 1);
 			return true;

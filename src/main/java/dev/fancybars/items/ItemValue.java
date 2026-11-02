@@ -81,6 +81,14 @@ public final class ItemValue {
 		});
 	}
 
+	/** Starts loading prices now (they normally load on the first tick on SkyBlock). */
+	public static void ensureLoaded() {
+		if (lastRefresh == 0) {
+			lastRefresh = System.currentTimeMillis();
+			refresh();
+		}
+	}
+
 	// ---------------------------------------------------------------- data
 
 	private static void refresh() {
@@ -102,6 +110,7 @@ public final class ItemValue {
 					map.put(e.getKey(), new double[]{num(o, "buyPrice"), num(o, "sellPrice")});
 				}
 				bazaar = map;
+				version++;
 			}
 			if (itemData.isEmpty() && !loadingItems) {
 				loadingItems = true;
@@ -148,6 +157,17 @@ public final class ItemValue {
 	}
 
 	/** Bazaar buy price, else 3-day average BIN, else lowest BIN (what Skyblocker's networth uses). */
+	/** Bumped whenever new prices arrive (so lists sorted by value re-sort). */
+	public static volatile int version;
+
+	/** What an item is worth: bazaar / auction price, else what an NPC pays; -1 when unknown. */
+	public static double valueOf(String id) {
+		double p = price(id);
+		if (p > 0) return p;
+		Double npc = npcPrices.get(id);
+		return npc != null && npc > 0 ? npc : -1;
+	}
+
 	private static double price(String id) {
 		double[] bz = bazaar.get(id);
 		if (bz != null) return Double.isNaN(bz[0]) ? 0 : bz[0];

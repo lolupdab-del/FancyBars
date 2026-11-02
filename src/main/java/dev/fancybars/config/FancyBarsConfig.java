@@ -381,6 +381,8 @@ public class FancyBarsConfig {
 	public int itemListRows = 0;
 	public boolean itemListBackground = false;
 	public boolean itemListHideInDungeons = true;
+	/** 0 Name A-Z, 1 Name Z-A, 2 Value high-low, 3 Value low-high, 4 Rarity high-low, 5 Rarity low-high. */
+	public int itemListSort = 0;
 	/** Where you put the list in its Edit GUI (-1 = right of the menu). */
 	public float itemListX = -1;
 	public float itemListY = -1;
