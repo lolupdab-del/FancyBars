@@ -374,6 +374,11 @@ public class FancyBarsConfig {
 	public boolean spotifyHud = true;
 	/** Storage Overlay (Skysoft): every ender chest page and backpack in one searchable panel. */
 	public boolean storageOverlay = true;
+	/** Hide Minecraft's own hearts / hunger / armor / absorption hearts. */
+	public boolean hideVanillaHearts = false;
+	public boolean hideVanillaHunger = false;
+	public boolean hideVanillaArmor = false;
+	public boolean hideAbsorptionHearts = false;
 	/** Item List (Skysoft): every SkyBlock item beside your inventory, with recipes. */
 	public boolean itemListEnabled = true;
 	/** How many columns / rows of items (0 = as many as fit). */

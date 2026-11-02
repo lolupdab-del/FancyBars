@@ -1,6 +1,6 @@
 [
   {"version": "2.40.0", "date": "2026-11-01",
-   "added": ["Item List sorting: name A-Z / Z-A, value high to low / low to high, rarity high to low / low to high. Pick it in the Items tab or click the top of the list to switch"],
+   "added": ["Minecraft HUD toggles (Bars tab): hide hearts, absorption hearts, hunger and the armor bar", "Item List sorting: name A-Z / Z-A, value high to low / low to high, rarity high to low / low to high. Pick it in the Items tab or click the top of the list to switch"],
    "fixed": []},
   {"version": "2.39.2", "date": "2026-11-01",
    "added": ["Item List has its own Edit GUI (Items tab) to put it anywhere; it stays out of the main Edit GUI", "Item List: Hide in Dungeons toggle (on by default)"],

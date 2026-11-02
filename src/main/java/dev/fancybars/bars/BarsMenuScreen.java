@@ -447,6 +447,11 @@ public class BarsMenuScreen extends Screen {
 					StatusBar bar = bars.statusBars.get(type);
 					if (bar != null) list.add(new BarItem(bar));
 				}
+				list.add(new HeaderItem(Component.translatable("fancybars.vanillaHud.title"), null));
+				list.add(new ToggleItem("hideVanillaHearts", () -> config.hideVanillaHearts, value -> config.hideVanillaHearts = value));
+				list.add(new ToggleItem("hideAbsorptionHearts", () -> config.hideAbsorptionHearts, value -> config.hideAbsorptionHearts = value));
+				list.add(new ToggleItem("hideVanillaHunger", () -> config.hideVanillaHunger, value -> config.hideVanillaHunger = value));
+				list.add(new ToggleItem("hideVanillaArmor", () -> config.hideVanillaArmor, value -> config.hideVanillaArmor = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.bars.options"), null));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
