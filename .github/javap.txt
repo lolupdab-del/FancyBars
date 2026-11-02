@@ -1,4 +1,1 @@
-net.minecraft.client.renderer.state.gui.GuiItemRenderState
-net.minecraft.client.gui.GuiGraphicsExtractor
-net.minecraft.client.renderer.state.gui.GuiRenderState
-net.minecraft.client.renderer.item.TrackingItemStackRenderState
+net.minecraft.client.gui.Hud
