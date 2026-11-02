@@ -75,6 +75,7 @@ public final class RarityBackground {
 				// fades from the colour at the bottom to clear at the top
 				graphics.fillGradient(x, y, x + 16, y + 16, rgb, color);
 			}
+			case 4 -> Theme.roundedRect(graphics, x, y, 16, 16, 8, color);
 			default -> graphics.fill(x, y, x + 16, y + 16, color);
 		}
 	}

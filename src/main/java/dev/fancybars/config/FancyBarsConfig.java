@@ -70,7 +70,7 @@ public class FancyBarsConfig {
 	/** Item Rarity Background: rarity-coloured backgrounds behind SkyBlock items. */
 	public boolean rarityBackground = true;
 	public boolean rarityBackgroundHotbar = true;
-	/** 0 square, 1 rounded, 2 outline, 3 gradient. */
+	/** 0 square, 1 rounded, 2 outline, 3 gradient, 4 circle. */
 	public int rarityBackgroundStyle = 1;
 	public float rarityBackgroundOpacity = 0.45f;
 

@@ -476,7 +476,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.rarityBackground.title"), null));
 				list.add(new ToggleItem("rarityBackground", () -> config.rarityBackground, value -> config.rarityBackground = value));
 				list.add(new ToggleItem("rarityBackgroundHotbar", () -> config.rarityBackgroundHotbar, value -> config.rarityBackgroundHotbar = value));
-				list.add(new ValueCycleItem("rarityBackgroundStyle", new int[]{0, 1, 2, 3}, () -> config.rarityBackgroundStyle,
+				list.add(new ValueCycleItem("rarityBackgroundStyle", new int[]{0, 1, 4, 2, 3}, () -> config.rarityBackgroundStyle,
 						value -> config.rarityBackgroundStyle = value, dev.fancybars.items.RarityBackground::styleName));
 				list.add(new SliderItem("rarityBackgroundOpacity", 0.05f, 1, 0.01f, true, () -> config.rarityBackgroundOpacity, value -> config.rarityBackgroundOpacity = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.itemList.title"), null));
