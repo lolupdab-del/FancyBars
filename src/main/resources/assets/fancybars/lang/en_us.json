@@ -932,6 +932,7 @@
 	"fancybars.protection.howTo": "Press %s while holding an item, or while hovering it in your inventory or storage, to protect or unprotect it. /sbclient protect also works. Change the key in Options › Controls › SBCLIENT.",
 	"fancybars.protection.noUuid": "This item can't be protected (it has no SkyBlock UUID).",
 	"fancybars.protection.notOnSkyblock": "Item protection only works on SkyBlock.",
+	"fancybars.protection.search": "Search protected items...",
 	"fancybars.protection.remove": "Remove",
 	"fancybars.protection.removed": "Unprotected %s",
 	"fancybars.protection.star": "Protection Star",

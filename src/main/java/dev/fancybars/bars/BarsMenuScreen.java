@@ -260,6 +260,7 @@ public class BarsMenuScreen extends Screen {
 		for (Item item : items) {
 			item.y = y;
 			item.layout(contentX, y, contentW - 6);
+			if (item.height <= 0) continue; // collapsed (e.g. a closed dropdown's rows)
 			y += item.height + ITEM_GAP;
 			total += item.height + ITEM_GAP;
 		}
@@ -472,6 +473,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new StarItem());
 				list.add(new ToggleItem("protectionStarInFront", () -> config.protectionStarInFront, value -> config.protectionStarInFront = value));
 				list.add(new ProtectedItemsItem());
+				list.add(new ProtectedSearchItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
 				list.add(new HeaderItem(Component.translatable("fancybars.rarityBackground.title"), null));
 				list.add(new ToggleItem("rarityBackground", () -> config.rarityBackground, value -> config.rarityBackground = value));
@@ -1766,20 +1768,76 @@ public class BarsMenuScreen extends Screen {
 			widgets.add(clear);
 		}
 
+		private int lastX, lastW;
+
 		@Override
 		void layout(int x, int y, int w) {
+			lastX = x;
+			lastW = w;
 			clear.setPosition(x + w - clear.getWidth() - 4, y + (height - clear.getHeight()) / 2);
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (ItemProtection.protectedCount() == 0 || mouseX < lastX || mouseX >= clear.getX() - 2 || mouseY < y || mouseY >= y + height) return false;
+			protectedOpen = !protectedOpen;
+			layoutContent();
+			return true;
 		}
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
 			int count = ItemProtection.protectedCount();
+			if (count > 0) {
+				boolean hovered = mouseX >= x && mouseX < clear.getX() - 2 && mouseY >= y && mouseY < y + height;
+				row(graphics, x, y, w, height, hovered);
+				if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+				// chevron after the count
+				float cx = x + 2 + Theme.boldWidth(font, Component.translatable(count == 1 ? "fancybars.protection.countOne" : "fancybars.protection.count", count)) + 14;
+				float cy = y + height / 2f;
+				for (int i = 0; i < 3; i++) {
+					float dy = protectedOpen ? 1 - i : i - 1;
+					Theme.fillF(graphics, cx - i - 0.5f, cy + dy * 0.9f, i * 2 + 1, 0.9f, Theme.TEXT_MUTED);
+				}
+				x += 6;
+			}
 			Theme.boldInBox(graphics, font, Component.translatable(count == 1 ? "fancybars.protection.countOne" : "fancybars.protection.count", count), x + 2, y, height, Theme.TEXT);
 			if (count == 0) {
 				Component key = ItemProtection.protectKey != null ? ItemProtection.protectKey.getTranslatedKeyMessage() : Component.literal("V");
 				Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.protection.empty", key), w - 110), x + 2 + Theme.boldWidth(font, Component.translatable("fancybars.protection.count", 0)) + 8, y, height, Theme.TEXT_MUTED);
 			}
 		}
+	}
+
+	/** Protected items dropdown: open or closed, and what it's filtered by. */
+	private static boolean protectedOpen = false;
+	private static String protectedQuery = "";
+
+	/** Search box inside the open protected items dropdown. */
+	private class ProtectedSearchItem extends Item {
+		private final dev.fancybars.util.gui.SearchField field;
+
+		ProtectedSearchItem() {
+			this.height = 0;
+			this.searchable = false;
+			field = new dev.fancybars.util.gui.SearchField(160, 16, protectedQuery, Component.translatable("fancybars.protection.search"), value -> {
+				protectedQuery = value;
+				layoutContent();
+			}).maxLength(60);
+			widgets.add(field);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			boolean shown = protectedOpen && search.isBlank() && ItemProtection.protectedCount() > 0;
+			height = shown ? 22 : 0;
+			field.setWidth(w - 16);
+			if (shown) field.setPosition(x + 8, y + (height - field.getHeight()) / 2);
+			else field.setPosition(-10000, -10000);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {}
 	}
 
 	/** One protected item: icon, name and a remove button. */
@@ -1803,11 +1861,17 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void layout(int x, int y, int w) {
-			remove.setPosition(x + w - remove.getWidth() - 6, y + (height - remove.getHeight()) / 2);
+			FancyBarsConfig.ProtectedItem info = config.protectedItemInfo.get(uuid);
+			String name = info != null ? info.name.toLowerCase(Locale.ROOT) : "";
+			boolean shown = !search.isBlank() || protectedOpen && (protectedQuery.isBlank() || name.contains(protectedQuery.trim().toLowerCase(Locale.ROOT)));
+			height = shown ? 26 : 0;
+			if (shown) remove.setPosition(x + w - remove.getWidth() - 6, y + (height - remove.getHeight()) / 2);
+			else remove.setPosition(-10000, -10000);
 		}
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			if (height <= 0) return;
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			row(graphics, x, y, w, height, hovered);
 			graphics.item(ItemProtection.iconFor(uuid), x + 5, y + (height - 16) / 2);
