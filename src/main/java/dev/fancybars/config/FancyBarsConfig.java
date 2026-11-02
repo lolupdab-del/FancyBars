@@ -84,11 +84,6 @@ public class FancyBarsConfig {
 
 	public boolean gifsEnabled = true;
 
-	public boolean gifsHideCraftingGrid = true;
-
-	/** Hide the offhand (shield) slot in the inventory. */
-	public boolean hideOffhandSlot = false;
-
 	public boolean gifsHideRecipeBook = true;
 
 	// ---------------------------------------------------------------- Dungeon secrets display (from SkyblockAddons)

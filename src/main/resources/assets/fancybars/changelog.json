@@ -1,4 +1,7 @@
 [
+  {"version": "2.38.0", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Removed Hide Crafting Grid and Hide Offhand Slot: there's no way to hide them that looks right with every resource pack. Hide Recipe Book Button still works on its own"]},
   {"version": "2.37.1", "date": "2026-11-01",
    "added": [],
    "fixed": ["Spotify HUD progress bar keeps the same length while the Time Left countdown ticks"]},

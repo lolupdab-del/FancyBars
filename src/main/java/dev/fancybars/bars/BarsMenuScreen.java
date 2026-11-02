@@ -506,8 +506,6 @@ public class BarsMenuScreen extends Screen {
 			case GIFS -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.gifs"), null));
 				list.add(new ToggleItem("gifsEnabled", () -> config.gifsEnabled, value -> config.gifsEnabled = value));
-				list.add(new ToggleItem("gifsHideCraftingGrid", () -> config.gifsHideCraftingGrid, value -> config.gifsHideCraftingGrid = value));
-				list.add(new ToggleItem("hideOffhandSlot", () -> config.hideOffhandSlot, value -> config.hideOffhandSlot = value));
 				list.add(new ToggleItem("gifsHideRecipeBook", () -> config.gifsHideRecipeBook, value -> config.gifsHideRecipeBook = value));
 				list.add(new GifActionsItem());
 				List<dev.fancybars.gifs.GifStore.Gif> gifs = dev.fancybars.gifs.GifStore.all();
