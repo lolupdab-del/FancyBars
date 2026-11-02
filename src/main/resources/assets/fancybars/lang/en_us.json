@@ -950,6 +950,8 @@
 	"fancybars.rareDrops.resetCounts.title": "Reset Rare Drops?",
 	"fancybars.rareDrops.track.@Tooltip": "Count this item as a rare drop. Turn off the ones you don't care about.",
 	"fancybars.rareDrops.tracked": "Tracked Drops",
+	"fancybars.rareDrops.trackedCount": "Tracked Drops (%s/%s)",
+	"fancybars.rareDrops.search": "Search drops or floors (F7, M5)...",
 	"fancybars.screenImages.empty1": "Click Open Folder and drop in PNG, JPG or GIF files.",
 	"fancybars.screenImages.empty2": "Press Reload, then Move them where you want in the editor.",
 	"fancybars.screenImages.emptyTitle": "No images yet",

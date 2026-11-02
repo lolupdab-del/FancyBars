@@ -77,6 +77,38 @@ public final class RareDropTracker {
 			new RareItem("Fourth Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjU0MDA2NywKICAicHJvZmlsZUlkIiA6ICIyYWQwZDlmMGUxMTM0ODM0OGVmNDQ0OWRmNTRlYTFkNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJGaXJlQjB5IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2QzN2ExNTk2ODdiZTM2ODc3ZDRlM2IwNWY2MWJiNTk4ZDgzMzFjNzkxMDhhY2MzYzFhZjgwZjIyNTM4OTJiYjIiCiAgICB9CiAgfQp9")),
 			new RareItem("Fifth Master Star", "§5", () -> SkyblockItems.head("ewogICJ0aW1lc3RhbXAiIDogMTY0NTgwMjUyNDkxMywKICAicHJvZmlsZUlkIiA6ICJkZTE0MGFmM2NmMjM0ZmM0OTJiZTE3M2Y2NjA3MzViYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJTUlRlYW0iLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzFjODA0MjUyN2Y4MWM4ZTI5M2UyODEwMTEzNDg5ZjQzOTRjYzZlZmUxNWQxYWZhYzQzMTU3MWM3M2I2MmRjNCIKICAgIH0KICB9Cn0=")));
 
+	/** Where each drop comes from (F = normal floor, M = Master Mode; Any = every floor). */
+	private static final Map<String, String> FLOORS = Map.ofEntries(
+			Map.entry("Recombobulator 3000", "Any"), Map.entry("Fuming Potato Book", "Any"),
+			Map.entry("First Master Star", "M1"), Map.entry("Second Master Star", "M2"), Map.entry("Third Master Star", "M3"),
+			Map.entry("Spirit Wing", "F4/M4"), Map.entry("Spirit Bone", "F4/M4"), Map.entry("Spirit Mask", "F4/M4"),
+			Map.entry("Fourth Master Star", "M4"),
+			Map.entry("Shadow Fury", "F5/M5"), Map.entry("Last Breath", "F5/M5"), Map.entry("Fifth Master Star", "M5"),
+			Map.entry("Giant's Sword", "F6/M6"), Map.entry("Precursor Eye", "F6/M6"), Map.entry("Necromancer Lord Chestplate", "F6/M6"),
+			Map.entry("Necron's Handle", "F7/M7"), Map.entry("Implosion", "F7/M7"), Map.entry("Shadow Warp", "F7/M7"),
+			Map.entry("Wither Shield", "F7/M7"), Map.entry("Auto Recombobulator", "F7/M7"), Map.entry("Dark Claymore", "F7/M7"),
+			Map.entry("Shiny Necron's Handle", "M7"), Map.entry("Necron Dye", "M7"), Map.entry("Master Skull - Tier 5", "M7"));
+
+	public static String floorOf(String item) {
+		return FLOORS.getOrDefault(item, "?");
+	}
+
+	/** Sort key: Any first, then by floor number, normal floors before Master Mode only drops. */
+	private static int floorKey(String item) {
+		String f = floorOf(item);
+		if (f.equals("Any")) return 0;
+		if (f.equals("?")) return 99;
+		int n = f.charAt(f.length() - 1) - '0';
+		return n * 2 + (f.startsWith("M") ? 1 : 0);
+	}
+
+	/** The drops in floor order. */
+	public static List<RareItem> byFloor() {
+		List<RareItem> list = new java.util.ArrayList<>(ITEMS);
+		list.sort(java.util.Comparator.comparingInt(i -> floorKey(i.name())));
+		return list;
+	}
+
 	private static final Map<String, ItemStack> ICONS = new LinkedHashMap<>();
 
 	public static final class Drop {

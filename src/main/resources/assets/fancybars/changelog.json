@@ -1,6 +1,6 @@
 [
   {"version": "2.48.1", "date": "2026-11-01",
-   "added": ["Protected items list is now a dropdown (click the count to open it) with a search bar"],
+   "added": ["Protected items list is now a dropdown (click the count to open it) with a search bar", "Rare drop tracker: the list of tracked drops is a dropdown with a search bar, sorted by the floor each drop comes from (shown next to it)"],
    "fixed": []},
   {"version": "2.48.0", "date": "2026-11-01",
    "added": ["Chest Value (from SkyHanni): next to chests, backpacks, ender chest pages and minions, a list of what's inside and what it's worth with the total; hover a line to highlight those items (Items tab)", "Item List: right-click the search bar to clear it"],

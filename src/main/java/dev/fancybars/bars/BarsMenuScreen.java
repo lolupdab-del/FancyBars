@@ -473,7 +473,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new StarItem());
 				list.add(new ToggleItem("protectionStarInFront", () -> config.protectionStarInFront, value -> config.protectionStarInFront = value));
 				list.add(new ProtectedItemsItem());
-				list.add(new ProtectedSearchItem());
+				list.add(new DropdownSearchItem(() -> protectedOpen && ItemProtection.protectedCount() > 0, protectedQuery, v -> protectedQuery = v, "fancybars.protection.search"));
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
 				list.add(new HeaderItem(Component.translatable("fancybars.rarityBackground.title"), null));
 				list.add(new ToggleItem("rarityBackground", () -> config.rarityBackground, value -> config.rarityBackground = value));
@@ -653,8 +653,9 @@ public class BarsMenuScreen extends Screen {
 					}
 					list.add(new InfoCardItem(Component.translatable("fancybars.rareDrops.recent"), recent, false));
 				}
-				list.add(new HeaderItem(Component.translatable("fancybars.rareDrops.tracked"), null));
-				for (dev.fancybars.dungeons.RareDropTracker.RareItem item : dev.fancybars.dungeons.RareDropTracker.ITEMS) list.add(new RareDropRowItem(item));
+				list.add(new RareDropsHeaderItem());
+				list.add(new DropdownSearchItem(() -> rareDropsOpen, rareDropsQuery, v -> rareDropsQuery = v, "fancybars.rareDrops.search"));
+				for (dev.fancybars.dungeons.RareDropTracker.RareItem item : dev.fancybars.dungeons.RareDropTracker.byFloor()) list.add(new RareDropRowItem(item));
 			}
 			case ACTION_BAR -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.actionBar"), null));
@@ -1512,7 +1513,7 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		boolean mouseClicked(double mouseX, double mouseY) {
-			if (itemHit(this, mouseX, mouseY)) {
+			if (height > 0 && itemHit(this, mouseX, mouseY)) {
 				toggle.toggle();
 				return true;
 			}
@@ -1813,15 +1814,62 @@ public class BarsMenuScreen extends Screen {
 	private static boolean protectedOpen = false;
 	private static String protectedQuery = "";
 
-	/** Search box inside the open protected items dropdown. */
-	private class ProtectedSearchItem extends Item {
-		private final dev.fancybars.util.gui.SearchField field;
+	private static boolean rareDropsOpen = false;
+	private static String rareDropsQuery = "";
 
-		ProtectedSearchItem() {
+	/** "Tracked Drops (N)" — click to open or close the list. */
+	private class RareDropsHeaderItem extends Item {
+		private int lastX, lastW;
+
+		RareDropsHeaderItem() {
+			this.height = 26;
+			this.searchable = true;
+			this.searchText = "tracked drops rare drop dungeon list";
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			lastX = x;
+			lastW = w;
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (mouseX < lastX || mouseX >= lastX + lastW || mouseY < y || mouseY >= y + height) return false;
+			rareDropsOpen = !rareDropsOpen;
+			layoutContent();
+			return true;
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + height;
+			row(graphics, x, y, w, height, hovered);
+			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+			int tracked = 0;
+			for (var item : dev.fancybars.dungeons.RareDropTracker.ITEMS) if (dev.fancybars.dungeons.RareDropTracker.isTracked(item.name())) tracked++;
+			Component title = Component.translatable("fancybars.rareDrops.trackedCount", tracked, dev.fancybars.dungeons.RareDropTracker.ITEMS.size());
+			Theme.boldInBox(graphics, font, title, x + 8, y, height, Theme.TEXT);
+			float cx = x + w - 11;
+			float cy = y + height / 2f;
+			for (int i = 0; i < 3; i++) {
+				float dy = rareDropsOpen ? 1 - i : i - 1;
+				Theme.fillF(graphics, cx - i - 0.5f, cy + dy * 0.9f, i * 2 + 1, 0.9f, Theme.TEXT_MUTED);
+			}
+		}
+	}
+
+	/** Search box inside an open dropdown list. */
+	private class DropdownSearchItem extends Item {
+		private final dev.fancybars.util.gui.SearchField field;
+		private final java.util.function.BooleanSupplier open;
+
+		DropdownSearchItem(java.util.function.BooleanSupplier open, String query, Consumer<String> onChange, String placeholderKey) {
+			this.open = open;
 			this.height = 0;
 			this.searchable = false;
-			field = new dev.fancybars.util.gui.SearchField(160, 16, protectedQuery, Component.translatable("fancybars.protection.search"), value -> {
-				protectedQuery = value;
+			field = new dev.fancybars.util.gui.SearchField(160, 16, query, Component.translatable(placeholderKey), value -> {
+				onChange.accept(value);
 				layoutContent();
 			}).maxLength(60);
 			widgets.add(field);
@@ -1829,7 +1877,7 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void layout(int x, int y, int w) {
-			boolean shown = protectedOpen && search.isBlank() && ItemProtection.protectedCount() > 0;
+			boolean shown = open.getAsBoolean() && search.isBlank();
 			height = shown ? 22 : 0;
 			field.setWidth(w - 16);
 			if (shown) field.setPosition(x + 8, y + (height - field.getHeight()) / 2);
@@ -2114,15 +2162,25 @@ public class BarsMenuScreen extends Screen {
 
 		@Override
 		void layout(int x, int y, int w) {
-			toggle.setPosition(x + w - ModernToggle.SWITCH_WIDTH - 10, y + (height - ModernToggle.SWITCH_HEIGHT) / 2);
+			String floor = dev.fancybars.dungeons.RareDropTracker.floorOf(item.name());
+			String q = rareDropsQuery.trim().toLowerCase(Locale.ROOT);
+			boolean shown = !search.isBlank() || rareDropsOpen && (q.isEmpty() || item.name().toLowerCase(Locale.ROOT).contains(q) || floor.toLowerCase(Locale.ROOT).contains(q));
+			height = shown ? 26 : 0;
+			if (shown) toggle.setPosition(x + w - ModernToggle.SWITCH_WIDTH - 10, y + (height - ModernToggle.SWITCH_HEIGHT) / 2);
+			else toggle.setPosition(-10000, -10000);
 		}
 
 		@Override
 		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			if (height <= 0) return;
 			boolean hovered = isHovered(x, w, mouseX, mouseY);
 			row(graphics, x, y, w, height, hovered);
 			graphics.item(dev.fancybars.dungeons.RareDropTracker.icon(item.name()), x + 5, y + (height - 16) / 2);
-			Theme.textInBox(graphics, font, clip(Component.literal(item.color() + item.name()), w - 110), x + 27, y, height, 0xFFFFFFFF);
+			// floor tag, then the name
+			Component floor = Theme.mono(Component.literal(dev.fancybars.dungeons.RareDropTracker.floorOf(item.name())));
+			Theme.monoInBox(graphics, font, floor, x + 27 + 36, y, height, Theme.TEXT_MUTED); // right-aligned
+			int nameX = x + 27 + 44;
+			Theme.textInBox(graphics, font, clip(Component.literal(item.color() + item.name()), w - 110 - 46), nameX, y, height, 0xFFFFFFFF);
 			int count = dev.fancybars.dungeons.RareDropTracker.data().counts.getOrDefault(item.name(), 0);
 			Component countText = Component.literal("×" + count);
 			Theme.textInBox(graphics, font, countText, toggle.getX() - Theme.width(font, countText) - 10, y, height, count > 0 ? Theme.TEXT : Theme.TEXT_MUTED);
