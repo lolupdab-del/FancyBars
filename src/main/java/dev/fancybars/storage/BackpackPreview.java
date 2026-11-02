@@ -234,6 +234,11 @@ public final class BackpackPreview {
 		return new SimpleContainer(stacks);
 	}
 
+	/** Cached ender chest page (0-8) or backpack (9-26), or null if it's never been seen. */
+	public static @Nullable Storage storage(int index) {
+		return index >= 0 && index < STORAGE_SIZE ? storages[index] : null;
+	}
+
 	public static int getStorageIndexFromTitle(String title) {
 		Matcher echest = ECHEST_PATTERN.matcher(title);
 		if (echest.find()) return Integer.parseInt(echest.group(1)) - 1;

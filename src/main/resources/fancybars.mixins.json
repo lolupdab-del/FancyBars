@@ -26,6 +26,8 @@
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor",
 		"SmoothTextMixin",
+		"StorageOverlayBackgroundMixin",
+		"StorageOverlayScreenMixin",
 		"SmoothTextWidthMixin",
 		"TimePacketMixin"
 	],
