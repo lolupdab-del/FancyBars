@@ -1,4 +1,7 @@
 [
+  {"version": "2.48.0", "date": "2026-11-01",
+   "added": ["Chest Value (from SkyHanni): next to chests, backpacks, ender chest pages and minions, a list of what's inside and what it's worth with the total; hover a line to highlight those items (Items tab)"],
+   "fixed": []},
   {"version": "2.47.0", "date": "2026-11-01",
    "added": ["Glowing Dropped Items (from SkyHanni): items on the ground glow in their rarity colour (Items tab)"],
    "fixed": []},

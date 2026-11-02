@@ -23,6 +23,7 @@ public abstract class StorageOverlayScreenMixin {
 
 	@Inject(method = "extractContents", at = @At("TAIL"))
 	private void fancybars$itemList(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+		dev.fancybars.items.ChestValue.render((AbstractContainerScreen<?>) (Object) this, graphics, mouseX, mouseY);
 		dev.fancybars.items.list.ItemList.render((AbstractContainerScreen<?>) (Object) this, graphics, mouseX, mouseY);
 	}
 

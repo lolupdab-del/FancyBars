@@ -84,6 +84,17 @@ public class FancyBarsConfig {
 	public float etherwarpFillOpacity = 0.3f;
 	/** Glowing Dropped Items (SkyHanni): items on the ground glow in their rarity colour. */
 	public boolean glowingDroppedItems = true;
+	/** Chest Value (SkyHanni): what's in the open chest and what it's worth. */
+	public boolean chestValue = true;
+	public boolean chestValueOwnInventory = false;
+	public boolean chestValueInDungeons = false;
+	public boolean chestValueBackground = true;
+	public boolean chestValueHighlight = true;
+	public boolean chestValueCompact = true;
+	public boolean chestValueAscending = false;
+	public boolean chestValueIgnoreSoulbound = true;
+	public int chestValueItems = 15;
+	public int chestValueHideBelow = 100000;
 
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();

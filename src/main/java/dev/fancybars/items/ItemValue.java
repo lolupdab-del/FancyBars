@@ -168,6 +168,27 @@ public final class ItemValue {
 		return npc != null && npc > 0 ? npc : -1;
 	}
 
+	/**
+	 * What a whole stack is worth (Chest Value): bazaar price x count for bazaar items, otherwise the estimated value
+	 * with upgrades (like the Est. Item Value tooltip line), otherwise the plain price. -1 when unknown.
+	 */
+	public static double stackValue(ItemStack stack) {
+		if (stack.isEmpty()) return -1;
+		CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		String id = data.getStringOr("id", "");
+		if (id.isEmpty()) return -1;
+		String apiId = apiId(id, data);
+		int count = Math.max(1, stack.getCount());
+		double[] bz = bazaar.get(apiId);
+		if (bz != null) return Double.isNaN(bz[0]) ? -1 : bz[0] * count;
+		if (!itemData.isEmpty()) {
+			double est = networth(id, data, count).price();
+			if (est > 0) return est;
+		}
+		double each = valueOf(apiId);
+		return each > 0 ? each * count : -1;
+	}
+
 	private static double price(String id) {
 		double[] bz = bazaar.get(id);
 		if (bz != null) return Double.isNaN(bz[0]) ? 0 : bz[0];

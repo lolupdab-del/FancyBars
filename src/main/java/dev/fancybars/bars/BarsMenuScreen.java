@@ -479,6 +479,17 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ValueCycleItem("rarityBackgroundStyle", new int[]{0, 1, 4, 2, 3}, () -> config.rarityBackgroundStyle,
 						value -> config.rarityBackgroundStyle = value, dev.fancybars.items.RarityBackground::styleName));
 				list.add(new SliderItem("rarityBackgroundOpacity", 0.05f, 1, 0.01f, true, () -> config.rarityBackgroundOpacity, value -> config.rarityBackgroundOpacity = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.chestValue.title"), null));
+				list.add(new ToggleItem("chestValue", () -> config.chestValue, value -> config.chestValue = value));
+				list.add(new ToggleItem("chestValueOwnInventory", () -> config.chestValueOwnInventory, value -> config.chestValueOwnInventory = value));
+				list.add(new ToggleItem("chestValueInDungeons", () -> config.chestValueInDungeons, value -> config.chestValueInDungeons = value));
+				list.add(new ToggleItem("chestValueBackground", () -> config.chestValueBackground, value -> config.chestValueBackground = value));
+				list.add(new ToggleItem("chestValueHighlight", () -> config.chestValueHighlight, value -> config.chestValueHighlight = value));
+				list.add(new ToggleItem("chestValueCompact", () -> config.chestValueCompact, value -> config.chestValueCompact = value));
+				list.add(new ToggleItem("chestValueAscending", () -> config.chestValueAscending, value -> config.chestValueAscending = value));
+				list.add(new ToggleItem("chestValueIgnoreSoulbound", () -> config.chestValueIgnoreSoulbound, value -> config.chestValueIgnoreSoulbound = value));
+				list.add(new SliderItem("chestValueItems", 1, 50, 1, false, () -> (float) config.chestValueItems, value -> config.chestValueItems = Math.round(value)));
+				list.add(new SliderItem("chestValueHideBelow", 0, 10000000, 50000, false, () -> (float) config.chestValueHideBelow, value -> config.chestValueHideBelow = Math.round(value)));
 				list.add(new HeaderItem(Component.translatable("fancybars.glowingDroppedItems.title"), null));
 				list.add(new ToggleItem("glowingDroppedItems", () -> config.glowingDroppedItems, value -> config.glowingDroppedItems = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.etherwarp.title"), null));
