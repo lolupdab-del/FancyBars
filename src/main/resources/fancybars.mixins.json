@@ -23,6 +23,7 @@
 		"ItemModelResolverMixin",
 		"ItemStackNameMixin",
 		"LivingEntitySwingMixin",
+		"LocalEquipmentMixin",
 		"LocalPlayerProtectionMixin",
 		"MinecraftProtectionMixin",
 		"ModelManagerAccessor",
