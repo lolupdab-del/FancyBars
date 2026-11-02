@@ -621,16 +621,7 @@ public final class Theme {
 		if (shikiMode()) {
 			return Component.empty().append(Component.literal("Shiki").withColor(ACCENT & 0xFFFFFF)).append(Component.literal("Client").withColor(TEXT & 0xFFFFFF));
 		}
-		if (customColors()) {
-			int acc = night(ACCENT) & 0xFFFFFF;
-			int light = night(ACCENT_LIGHT) & 0xFFFFFF;
-			MutableComponent custom = Component.empty().append(Component.literal("Skyblock").withColor(light)).append(Component.literal("Gui").withColor(acc));
-			String rest = "Utils";
-			for (int i = 0; i < rest.length(); i++) {
-				custom.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(lerpColor(0xFF000000 | light, 0xFF000000 | acc, i / (float) (rest.length() - 1)) & 0xFFFFFF));
-			}
-			return custom;
-		}
+		// the name always uses the icon's colours (custom theme colours don't change it)
 		// default: a gradient taken from the snow leopard icon: snow white fur → silver → the slate blue background
 		String name = "SkyblockGuiUtils";
 		int[] stops = {0xFFF6F4F4, 0xFFB8B4B6, 0xFF7E93B8};

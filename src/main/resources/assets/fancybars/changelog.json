@@ -1,6 +1,6 @@
 [
-  {"version": "3.0.1", "date": "2026-11-02",
-   "added": ["The SkyblockGuiUtils name (top left, menu and chat) is a gradient matching the new icon: snow white to silver to slate blue"],
+  {"version": "3.0.2", "date": "2026-11-02",
+   "added": ["The SkyblockGuiUtils name (top left, menu and chat) is a gradient matching the new icon: snow white to silver to slate blue", "The name keeps the icon gradient even with Custom Colors on"],
    "fixed": []},
   {"version": "3.0.0", "date": "2026-11-02",
    "added": ["SBCLIENT is now SkyblockGuiUtils: new name, new icon, and the menu opens with /sgu (or /SGU). All the old subcommands work under it: /sgu edit, /sgu items, /sgu spotify, /sgu crosshair, /sgu config"],
