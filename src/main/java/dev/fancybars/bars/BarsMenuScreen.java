@@ -484,6 +484,9 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SwatchItem("etherwarpColor", () -> new Color(config.etherwarpColor, false), color -> config.etherwarpColor = color.getRGB() & 0xFFFFFF));
 				list.add(new ToggleItem("etherwarpShowInvalid", () -> config.etherwarpShowInvalid, value -> config.etherwarpShowInvalid = value));
 				list.add(new SwatchItem("etherwarpInvalidColor", () -> new Color(config.etherwarpInvalidColor, false), color -> config.etherwarpInvalidColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ValueCycleItem("etherwarpStyle", new int[]{0, 1, 2}, () -> config.etherwarpStyle,
+						value -> config.etherwarpStyle = value, v -> Component.translatable("fancybars.etherwarp.style." + v)));
+				list.add(new SliderItem("etherwarpFillOpacity", 0.05f, 1, 0.01f, true, () -> config.etherwarpFillOpacity, value -> config.etherwarpFillOpacity = value));
 				list.add(new SliderItem("etherwarpLineWidth", 1, 8, 0.5f, false, () -> config.etherwarpLineWidth, value -> config.etherwarpLineWidth = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.itemList.title"), null));
 				list.add(new ToggleItem("itemListEnabled", () -> config.itemListEnabled, value -> config.itemListEnabled = value));

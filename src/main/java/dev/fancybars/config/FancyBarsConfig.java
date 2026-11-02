@@ -79,6 +79,9 @@ public class FancyBarsConfig {
 	public int etherwarpColor = 0x55FF55;
 	public int etherwarpInvalidColor = 0xFF5555;
 	public float etherwarpLineWidth = 2.5f;
+	/** 0 outline, 1 filled, 2 outline + fill. */
+	public int etherwarpStyle = 0;
+	public float etherwarpFillOpacity = 0.3f;
 
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();

@@ -1,6 +1,7 @@
 package dev.fancybars.items;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
@@ -13,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -30,33 +32,72 @@ import dev.fancybars.util.SkyblockLocation;
 public final class EtherwarpOutline {
 	private EtherwarpOutline() {}
 
+	/** This frame's target: {x, y, z, valid}, or null. Worked out once per frame and shared by both hooks. */
+	private static int @Nullable [] target;
+	private static long targetFrame = -1;
+
+	private static int @Nullable [] target() {
+		Minecraft mc = Minecraft.getInstance();
+		long now = System.nanoTime();
+		if (now - targetFrame < 2_000_000L) return target;
+		targetFrame = now;
+		target = null;
+		FancyBarsConfig c = FancyBarsConfig.get();
+		LocalPlayer player = mc.player;
+		if (!c.etherwarpOutline || !SkyblockLocation.isOnSkyblock() || player == null || mc.level == null || !player.isShiftKeyDown()) return null;
+		int range = range(player.getMainHandItem());
+		if (range <= 0) return null;
+		float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+		// your real (modern) sneaking eye height: the 1.8 one (1.54) aims too high and goes over low blocks like stairs
+		BlockPos pos = trace(mc.level, player.getEyePosition(partial), player.getViewVector(partial), range);
+		if (pos == null) return null;
+		boolean valid = valid(mc.level, pos);
+		if (!valid && !c.etherwarpShowInvalid) return null;
+		target = new int[]{pos.getX(), pos.getY(), pos.getZ(), valid ? 1 : 0};
+		return target;
+	}
+
 	public static void init() {
+		// Minecraft's own black block outline would sit on top of ours and muddy the colour
+		LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register((context, outline) -> target() == null);
 		LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
+			int[] t = target();
+			if (t == null) return;
 			FancyBarsConfig c = FancyBarsConfig.get();
-			if (!c.etherwarpOutline || !SkyblockLocation.isOnSkyblock()) return;
 			Minecraft mc = Minecraft.getInstance();
-			LocalPlayer player = mc.player;
-			if (player == null || mc.level == null || !player.isShiftKeyDown()) return;
-			int range = range(player.getMainHandItem());
-			if (range <= 0) return;
-			float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-			// your real (modern) sneaking eye height: the 1.8 one (1.54) aims too high and goes over low blocks like stairs
-			Vec3 eye = player.getEyePosition(partial);
-			Vec3 look = player.getViewVector(partial);
-			BlockPos target = trace(mc.level, eye, look, range);
-			if (target == null) return;
-			boolean valid = valid(mc.level, target);
-			if (!valid && !c.etherwarpShowInvalid) return;
-			int color = 0xFF000000 | (valid ? c.etherwarpColor : c.etherwarpInvalidColor);
-			VoxelShape shape = mc.level.getBlockState(target).getShape(mc.level, target);
+			BlockPos pos = new BlockPos(t[0], t[1], t[2]);
+			int rgb = t[3] == 1 ? c.etherwarpColor : c.etherwarpInvalidColor;
+			VoxelShape shape = mc.level.getBlockState(pos).getShape(mc.level, pos);
 			if (shape.isEmpty()) shape = Shapes.block();
 			Vec3 cam = context.levelState().cameraRenderState.pos;
 			PoseStack pose = context.poseStack();
 			pose.pushPose();
-			pose.translate(target.getX() - cam.x, target.getY() - cam.y, target.getZ() - cam.z);
-			context.submitNodeCollector().submitShapeOutline(pose, shape, RenderTypes.lines(), color, Math.max(0.5f, c.etherwarpLineWidth), false);
+			pose.translate(pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z);
+			int style = c.etherwarpStyle; // 0 outline, 1 filled, 2 both
+			if (style >= 1) {
+				int fill = Math.round(Math.clamp(c.etherwarpFillOpacity, 0f, 1f) * 255) << 24 | rgb;
+				AABB box = shape.bounds().inflate(0.003);
+				context.submitNodeCollector().submitCustomGeometry(pose, RenderTypes.debugQuads(), (p, buffer) -> box(p, buffer, box, fill));
+			}
+			if (style != 1) {
+				context.submitNodeCollector().submitShapeOutline(pose, shape, RenderTypes.lines(), 0xFF000000 | rgb, Math.max(0.5f, c.etherwarpLineWidth), false);
+			}
 			pose.popPose();
 		});
+	}
+
+	private static void quad(PoseStack.Pose p, VertexConsumer b, int color, double... v) {
+		for (int i = 0; i < 12; i += 3) b.addVertex(p, (float) v[i], (float) v[i + 1], (float) v[i + 2]).setColor(color);
+	}
+
+	private static void box(PoseStack.Pose p, VertexConsumer b, AABB a, int c) {
+		double x0 = a.minX, y0 = a.minY, z0 = a.minZ, x1 = a.maxX, y1 = a.maxY, z1 = a.maxZ;
+		quad(p, b, c, x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1); // bottom
+		quad(p, b, c, x0, y1, z0, x0, y1, z1, x1, y1, z1, x1, y1, z0); // top
+		quad(p, b, c, x0, y0, z0, x0, y1, z0, x1, y1, z0, x1, y0, z0); // north
+		quad(p, b, c, x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1); // south
+		quad(p, b, c, x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0); // west
+		quad(p, b, c, x1, y0, z0, x1, y1, z0, x1, y1, z1, x1, y0, z1); // east
 	}
 
 	/** Etherwarp range for the held item (57 blocks + Tuned Transmission), 0 if it can't etherwarp. */

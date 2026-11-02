@@ -1,4 +1,7 @@
 [
+  {"version": "2.46.0", "date": "2026-11-01",
+   "added": ["Etherwarp outline: Style setting (Outline, Filled, Outline + Fill) with a Fill Opacity slider"],
+   "fixed": ["Etherwarp outline colour is no longer muddied by Minecraft's own block outline (it's hidden while the etherwarp outline shows)"]},
   {"version": "2.45.1", "date": "2026-11-01",
    "added": [],
    "fixed": ["Etherwarp outline aims from your real eye height, so it no longer goes over stairs and other low blocks and shows the block behind them"]},
