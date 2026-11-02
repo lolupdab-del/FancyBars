@@ -631,11 +631,25 @@ public final class Theme {
 			}
 			return custom;
 		}
-		// default: pink Skyblock, blue Gui, Utils in the text colour
-		return Component.empty()
-				.append(Component.literal("Skyblock").withColor(0xFF8FC8))
-				.append(Component.literal("Gui").withColor(0x6FA8FF))
-				.append(Component.literal("Utils").withColor(0xECECF1));
+		// default: a gradient taken from the snow leopard icon: snow white fur → silver → the slate blue background
+		String name = "SkyblockGuiUtils";
+		int[] stops = {0xFFF6F4F4, 0xFFB8B4B6, 0xFF7E93B8};
+		MutableComponent out = Component.empty();
+		for (int i = 0; i < name.length(); i++) {
+			float t = i / (float) (name.length() - 1) * (stops.length - 1);
+			int seg = Math.min(stops.length - 2, (int) t);
+			int c = lerpRgbRaw(stops[seg], stops[seg + 1], t - seg);
+			out.append(Component.literal(String.valueOf(name.charAt(i))).withColor(c & 0xFFFFFF));
+		}
+		return out;
+	}
+
+	/** Plain RGB blend (no theme mapping). */
+	private static int lerpRgbRaw(int a, int b, float t) {
+		int r = Math.round(((a >> 16) & 0xFF) + (((b >> 16) & 0xFF) - ((a >> 16) & 0xFF)) * t);
+		int g = Math.round(((a >> 8) & 0xFF) + (((b >> 8) & 0xFF) - ((a >> 8) & 0xFF)) * t);
+		int bl = Math.round((a & 0xFF) + ((b & 0xFF) - (a & 0xFF)) * t);
+		return 0xFF000000 | r << 16 | g << 8 | bl;
 	}
 
 	public static String brandName() {
