@@ -479,6 +479,12 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ValueCycleItem("rarityBackgroundStyle", new int[]{0, 1, 4, 2, 3}, () -> config.rarityBackgroundStyle,
 						value -> config.rarityBackgroundStyle = value, dev.fancybars.items.RarityBackground::styleName));
 				list.add(new SliderItem("rarityBackgroundOpacity", 0.05f, 1, 0.01f, true, () -> config.rarityBackgroundOpacity, value -> config.rarityBackgroundOpacity = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.etherwarp.title"), null));
+				list.add(new ToggleItem("etherwarpOutline", () -> config.etherwarpOutline, value -> config.etherwarpOutline = value));
+				list.add(new SwatchItem("etherwarpColor", () -> new Color(config.etherwarpColor, false), color -> config.etherwarpColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("etherwarpShowInvalid", () -> config.etherwarpShowInvalid, value -> config.etherwarpShowInvalid = value));
+				list.add(new SwatchItem("etherwarpInvalidColor", () -> new Color(config.etherwarpInvalidColor, false), color -> config.etherwarpInvalidColor = color.getRGB() & 0xFFFFFF));
+				list.add(new SliderItem("etherwarpLineWidth", 1, 8, 0.5f, false, () -> config.etherwarpLineWidth, value -> config.etherwarpLineWidth = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.itemList.title"), null));
 				list.add(new ToggleItem("itemListEnabled", () -> config.itemListEnabled, value -> config.itemListEnabled = value));
 				list.add(new SliderItem("itemListColumns", 0, 20, 1, false, () -> (float) config.itemListColumns, value -> config.itemListColumns = Math.round(value)));

@@ -73,6 +73,12 @@ public class FancyBarsConfig {
 	/** 0 square, 1 rounded, 2 outline, 3 gradient, 4 circle. */
 	public int rarityBackgroundStyle = 1;
 	public float rarityBackgroundOpacity = 0.45f;
+	/** Ether Transmission outline: outlines where etherwarp will take you while sneaking. */
+	public boolean etherwarpOutline = true;
+	public boolean etherwarpShowInvalid = true;
+	public int etherwarpColor = 0x55FF55;
+	public int etherwarpInvalidColor = 0xFF5555;
+	public float etherwarpLineWidth = 2.5f;
 
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();

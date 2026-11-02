@@ -1,4 +1,7 @@
 [
+  {"version": "2.45.0", "date": "2026-11-01",
+   "added": ["Ether Transmission outline (like Odin's): while sneaking with an etherwarp item, outlines the block you'll teleport to, green if it works and red if it won't, with colour and line width settings (Items tab)"],
+   "fixed": []},
   {"version": "2.44.1", "date": "2026-11-01",
    "added": [],
    "fixed": ["Item Rarity Background: Circle style is a real circle (it followed the theme's Corner Roundness and came out as a rounded square)", "Item Rarity Background colours are no longer changed by the theme", "Heads in the Item List and Storage Overlay show their real skin as soon as it loads instead of a default Steve / Alex head for a while"]},

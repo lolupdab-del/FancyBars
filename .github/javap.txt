@@ -1,1 +1,3 @@
-net.minecraft.client.renderer.ItemInHandRenderer
+net.minecraft.world.entity.player.Player
+net.minecraft.client.multiplayer.ClientPacketListener
+net.minecraft.client.renderer.SubmitNodeCollector

@@ -81,6 +81,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.items.ItemValue.init();
 		dev.fancybars.items.MaxEnchantChroma.init();
 		dev.fancybars.storage.StorageOverlay.init();
+		dev.fancybars.items.EtherwarpOutline.init();
 		dev.fancybars.items.list.ItemList.init();
 		dev.fancybars.hud.VanillaHudToggles.init();
 		dev.fancybars.hud.ArmorHud.init();
