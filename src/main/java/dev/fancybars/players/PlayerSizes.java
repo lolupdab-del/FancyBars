@@ -24,7 +24,7 @@ import dev.fancybars.config.FancyBarsConfig;
 /**
  * Custom player sizes. Your own size is set in the menu and applies instantly for you. Sizes for everyone who uses
  * the mod come from a shared list ({@code sizes.json} in the mod's GitHub repo), downloaded every few minutes, so
- * every SBCLIENT user sees the same sizes. Purely visual: hitboxes don't change.
+ * every SkyblockGuiUtils user sees the same sizes. Purely visual: hitboxes don't change.
  */
 public final class PlayerSizes {
 	public static final String LIST_URL = "https://raw.githubusercontent.com/lolupdab-del/FancyBars/main/sizes.json";
@@ -73,7 +73,7 @@ public final class PlayerSizes {
 				SHARED.clear();
 				SHARED.putAll(fresh);
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read the shared player size list", e);
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read the shared player size list", e);
 			}
 		}).exceptionally(e -> null);
 	}

@@ -49,7 +49,7 @@ public final class Ring {
 			}
 		}
 		id = FancyBarsMod.id("ui/ring_" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT border", image);
+		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils border", image);
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 		texture.upload();
 		CORNERS.put(key, id);

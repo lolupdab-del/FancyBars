@@ -118,7 +118,7 @@ public final class Capes {
 			Files.createDirectories(CACHE);
 			Files.createDirectories(CUSTOM_DIR);
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't create cape folders", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't create cape folders", e);
 		}
 	}
 
@@ -164,7 +164,7 @@ public final class Capes {
 				}
 				Minecraft.getInstance().execute(() -> upload(id, bytes));
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't load cape {}", id, e);
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't load cape {}", id, e);
 			}
 		});
 	}
@@ -175,10 +175,10 @@ public final class Capes {
 		Path cached = CACHE.resolve(id + ".png");
 		if (Files.isRegularFile(cached)) return Files.readAllBytes(cached);
 		HttpRequest request = HttpRequest.newBuilder(URI.create(cape.url())).timeout(Duration.ofSeconds(20))
-				.header("User-Agent", "SBCLIENT Minecraft mod").GET().build();
+				.header("User-Agent", "SkyblockGuiUtils Minecraft mod").GET().build();
 		HttpResponse<byte[]> response = HTTP.send(request, HttpResponse.BodyHandlers.ofByteArray());
 		if (response.statusCode() != 200) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Cape {} download failed: HTTP {}", id, response.statusCode());
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Cape {} download failed: HTTP {}", id, response.statusCode());
 			return null;
 		}
 		Files.createDirectories(CACHE);
@@ -206,16 +206,16 @@ public final class Capes {
 			Identifier texture = FancyBarsMod.id("capes/" + id + "_" + Integer.toHexString(java.util.Arrays.hashCode(bytes)));
 			int w = image.getWidth();
 			int h = image.getHeight();
-			Minecraft.getInstance().getTextureManager().register(texture, new DynamicTexture(() -> "SBCLIENT cape " + id, image));
+			Minecraft.getInstance().getTextureManager().register(texture, new DynamicTexture(() -> "SkyblockGuiUtils cape " + id, image));
 			LOADED.put(id, new Loaded(texture, w, h));
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Cape {} isn't a valid PNG", id, e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Cape {} isn't a valid PNG", id, e);
 		}
 	}
 
 	private static void uploadImage(String id, NativeImage image, String suffix) {
 		Identifier texture = FancyBarsMod.id("capes/" + id + "_" + suffix);
-		Minecraft.getInstance().getTextureManager().register(texture, new DynamicTexture(() -> "SBCLIENT cape " + id, image));
+		Minecraft.getInstance().getTextureManager().register(texture, new DynamicTexture(() -> "SkyblockGuiUtils cape " + id, image));
 		Loaded old = LOADED.put(id, new Loaded(texture, image.getWidth(), image.getHeight()));
 		if (old != null && !old.texture().equals(texture)) Minecraft.getInstance().getTextureManager().release(old.texture());
 	}

@@ -15,7 +15,7 @@ import dev.fancybars.FancyBarsMod;
 import dev.fancybars.config.FancyBarsConfig;
 import dev.fancybars.util.gui.Theme;
 
-/** SBCLIENT / ShikiClient logo in the top-left corner of the HUD. Movable / scalable in the editor. */
+/** SkyblockGuiUtils / ShikiClient logo in the top-left corner of the HUD. Movable / scalable in the editor. */
 public final class Watermark {
 	private static final int ICON_SIZE = 12;
 	private static final int ICON_GAP = 4;

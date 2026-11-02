@@ -25,7 +25,7 @@ import dev.fancybars.util.SkyblockLocation;
 
 /**
  * Item customisation from Skyblocker: make any SkyBlock item (anything with a UUID) look like any other item.
- * Purely visual and only for you. Open it with the paintbrush in your inventory or /sbclient items.
+ * Purely visual and only for you. Open it with the paintbrush in your inventory or /sgu items.
  */
 public final class ItemChanger {
 	public static final Identifier PAINTBRUSH = FancyBarsMod.id("paintbrush");

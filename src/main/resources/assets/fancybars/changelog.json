@@ -1,4 +1,7 @@
 [
+  {"version": "3.0.0", "date": "2026-11-02",
+   "added": ["SBCLIENT is now SkyblockGuiUtils: new name, new icon, and the menu opens with /sgu (or /SGU). All the old subcommands work under it: /sgu edit, /sgu items, /sgu spotify, /sgu crosshair, /sgu config"],
+   "fixed": []},
   {"version": "2.48.5", "date": "2026-11-01",
    "added": [],
    "fixed": ["Storage Overlay is off by default for new installs (turn it on in the Items tab)"]},

@@ -200,7 +200,7 @@ public class CapeEditorScreen extends Screen {
 			image = CapeComposer.toNative(src, CapeComposer.PANEL_X * sx, CapeComposer.PANEL_Y * sy, CapeComposer.PANEL_W * sx, CapeComposer.PANEL_H * sy);
 		}
 		Identifier id = FancyBarsMod.id("capes/editor_" + previewCounter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT cape editor", image);
+		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils cape editor", image);
 		minecraft.getTextureManager().register(id, texture);
 		texture.upload();
 		Identifier old = preview;

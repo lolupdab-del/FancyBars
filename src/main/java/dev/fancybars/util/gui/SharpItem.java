@@ -78,7 +78,7 @@ public final class SharpItem {
 
 		@Override
 		protected String getTextureLabel() {
-			return "sbclient sharp item";
+			return "sgu sharp item";
 		}
 	}
 }

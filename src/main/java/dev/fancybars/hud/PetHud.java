@@ -371,7 +371,7 @@ public final class PetHud {
 				});
 			}
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read pet icons", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read pet icons", e);
 		}
 	}
 
@@ -387,7 +387,7 @@ public final class PetHud {
 			Files.createDirectories(iconFile().getParent());
 			Files.writeString(iconFile(), root.toString());
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't save pet icons", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't save pet icons", e);
 		}
 	}
 
@@ -470,7 +470,7 @@ public final class PetHud {
 			try (var in = PetHud.class.getResourceAsStream("/assets/fancybars/data/pet_heads.json")) {
 				if (in != null) bundled = JsonParser.parseString(new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject();
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read bundled pet heads", e);
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read bundled pet heads", e);
 			}
 		}
 		return bundled;
@@ -523,7 +523,7 @@ public final class PetHud {
 						}
 					}
 				} catch (Exception e) {
-					FancyBarsMod.LOGGER.debug("[SBCLIENT] Pet head fetch failed for {}", key, e);
+					FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Pet head fetch failed for {}", key, e);
 				}
 				FETCHED.put(key, found);
 			});
@@ -542,7 +542,7 @@ public final class PetHud {
 				head.set(DataComponents.PROFILE, net.minecraft.world.item.component.ResolvableProfile.createResolved(
 						new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes(h.getBytes(java.nio.charset.StandardCharsets.UTF_8)), "pet", map)));
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.debug("[SBCLIENT] Couldn't build pet head", e);
+				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Couldn't build pet head", e);
 			}
 			return head;
 		});
@@ -591,7 +591,7 @@ public final class PetHud {
 			}
 		}
 		id = FancyBarsMod.id("hud/pet_arc_" + arcCounter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT pet XP ring", image);
+		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils pet XP ring", image);
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 		texture.upload();
 		ARCS.put(key, id);

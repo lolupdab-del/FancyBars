@@ -76,7 +76,7 @@ public final class ItemValue {
 			try {
 				addLines(stack, lines);
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.debug("[SBCLIENT] Item value tooltip failed", e);
+				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Item value tooltip failed", e);
 			}
 		});
 	}
@@ -121,7 +121,7 @@ public final class ItemValue {
 						itemData = SkyblockItemData.MAP_CODEC.parse(JsonOps.INSTANCE, array).getOrThrow();
 					}
 				} catch (Exception e) {
-					FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't load SkyBlock item data", e);
+					FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't load SkyBlock item data", e);
 				} finally {
 					loadingItems = false;
 				}
@@ -132,12 +132,12 @@ public final class ItemValue {
 	private static JsonElement get(String url) {
 		try {
 			HttpResponse<String> response = HTTP.send(HttpRequest.newBuilder(URI.create(url))
-					.header("User-Agent", "SBCLIENT/" + FancyBarsMod.VERSION)
+					.header("User-Agent", "SkyblockGuiUtils/" + FancyBarsMod.VERSION)
 					.timeout(Duration.ofSeconds(20)).GET().build(), HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) return null;
 			return JsonParser.parseString(response.body());
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.debug("[SBCLIENT] Price fetch failed: {}", url, e);
+			FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Price fetch failed: {}", url, e);
 			return null;
 		}
 	}

@@ -42,7 +42,7 @@ public final class MaxEnchantChroma {
 			try {
 				apply(stack, lines);
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.debug("[SBCLIENT] Max enchant chroma failed", e);
+				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Max enchant chroma failed", e);
 			}
 		});
 	}
@@ -59,7 +59,7 @@ public final class MaxEnchantChroma {
 					}
 				}
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read enchant list", e);
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read enchant list", e);
 			}
 		}
 		return enchants;

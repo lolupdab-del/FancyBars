@@ -100,9 +100,9 @@ public final class Customization {
 				for (JsonElement c : e.getValue().getAsJsonArray()) colors.add(parseHex(c.getAsString()));
 				REPO_ANIMATED_DYES.put(e.getKey(), colors);
 			}
-			FancyBarsMod.LOGGER.info("[SBCLIENT] Loaded {} heads, {} animated heads, {} dyes", HEADS.size(), ANIMATED_HEADS.size(), REPO_DYES.size() + REPO_ANIMATED_DYES.size());
+			FancyBarsMod.LOGGER.info("[SkyblockGuiUtils] Loaded {} heads, {} animated heads, {} dyes", HEADS.size(), ANIMATED_HEADS.size(), REPO_DYES.size() + REPO_ANIMATED_DYES.size());
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.error("[SBCLIENT] Couldn't load bundled SkyBlock data", e);
+			FancyBarsMod.LOGGER.error("[SkyblockGuiUtils] Couldn't load bundled SkyBlock data", e);
 		}
 	}
 

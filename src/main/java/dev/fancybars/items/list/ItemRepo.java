@@ -105,7 +105,7 @@ public final class ItemRepo {
 				if (recipes != null) parseRecipes(JsonParser.parseString(recipes).getAsJsonArray());
 				status = "";
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Item list failed to load", e);
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Item list failed to load", e);
 				status = "Couldn't load the item list";
 			} finally {
 				loading = false;
@@ -124,14 +124,14 @@ public final class ItemRepo {
 		try {
 			HttpClient http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
 			HttpResponse<String> res = http.send(HttpRequest.newBuilder(URI.create(BASE + name))
-					.header("User-Agent", "SBCLIENT/" + FancyBarsMod.VERSION).timeout(Duration.ofSeconds(90)).GET().build(),
+					.header("User-Agent", "SkyblockGuiUtils/" + FancyBarsMod.VERSION).timeout(Duration.ofSeconds(90)).GET().build(),
 					HttpResponse.BodyHandlers.ofString());
 			if (res.statusCode() == 200) {
 				Files.writeString(file, res.body());
 				return res.body();
 			}
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.debug("[SBCLIENT] Item repo download failed: {}", name, e);
+			FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Item repo download failed: {}", name, e);
 		}
 		try {
 			return Files.exists(file) ? Files.readString(file) : null;

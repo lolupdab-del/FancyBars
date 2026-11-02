@@ -1083,7 +1083,7 @@ public class BarsMenuScreen extends Screen {
 
 		// Footer
 		if (editGuiButton != null) editGuiButton.visible = !onHome();
-		Component footer = Theme.mono(Component.literal("v" + FancyBarsMod.VERSION + "  ·  /sbc  ·  R reset  ·  shift-scroll 10%"));
+		Component footer = Theme.mono(Component.literal("v" + FancyBarsMod.VERSION + "  ·  /sgu  ·  R reset  ·  shift-scroll 10%"));
 		Theme.drawAtCapTop(graphics, font, footer, x0 + 10, y0 + totalHeight - FOOTER_HEIGHT + (FOOTER_HEIGHT - Theme.MONO_CAP) / 2f, Theme.MONO_CAP, Theme.TEXT_DISABLED);
 
 		// Fixed widgets (search, nav, sidebar)
@@ -2098,7 +2098,7 @@ public class BarsMenuScreen extends Screen {
 			dev.fancybars.util.gui.Ring.fillRounded(graphics, bx + bw * 0.62f + 6, y + 20, bw * 0.38f - 6, 8, 4, color(90, 0.3f));
 			float boxW = Math.min(150, bw * 0.45f);
 			dev.fancybars.util.gui.Ring.outlinePx(graphics, bx, y + 33, boxW, 17, 4, Math.max(1, Theme.guiScale()), color(255, 0.5f));
-			Component word = Theme.bold(Component.literal("SBCLIENT"));
+			Component word = Theme.bold(Component.literal("SkyblockGuiUtils"));
 			Theme.drawAtCapTop(graphics, font, word, bx + boxW / 2f - font.width(word) / 2f, y + 33 + (17 - Theme.UI_CAP) / 2f, Theme.UI_CAP, color(255, 0.5f));
 			Component sample = Theme.styled(Component.literal("The quick brown fox jumps over the lazy dog"));
 			Theme.drawAtCapTop(graphics, font, sample, bx + boxW + 10, y + 33 + (17 - Theme.UI_CAP) / 2f, Theme.UI_CAP, color(255, 0.7f));

@@ -39,7 +39,7 @@ public final class ScreenImages {
 	public static final int BASE = 96;
 	private static final Map<String, Image> IMAGES = new LinkedHashMap<>();
 	private static final ExecutorService DECODER = Executors.newSingleThreadExecutor(runnable -> {
-		Thread thread = new Thread(runnable, "SBCLIENT screen image decoder");
+		Thread thread = new Thread(runnable, "SkyblockGuiUtils screen image decoder");
 		thread.setDaemon(true);
 		return thread;
 	});
@@ -117,7 +117,7 @@ public final class ScreenImages {
 				decode(image, path);
 			}
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.error("[SBCLIENT] Couldn't read the screen image folder", e);
+			FancyBarsMod.LOGGER.error("[SkyblockGuiUtils] Couldn't read the screen image folder", e);
 		}
 	}
 
@@ -143,7 +143,7 @@ public final class ScreenImages {
 				Minecraft.getInstance().execute(() -> upload(image, done));
 			} catch (Throwable t) {
 				image.error = String.valueOf(t.getMessage());
-				FancyBarsMod.LOGGER.error("[SBCLIENT] Couldn't load screen image {}", image.name, t);
+				FancyBarsMod.LOGGER.error("[SkyblockGuiUtils] Couldn't load screen image {}", image.name, t);
 			}
 		});
 	}
@@ -193,7 +193,7 @@ public final class ScreenImages {
 			}
 		}
 		Identifier id = FancyBarsMod.id("screen_image/" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT screen image " + image.name, atlas);
+		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils screen image " + image.name, atlas);
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 		texture.upload();
 		image.texture = id;

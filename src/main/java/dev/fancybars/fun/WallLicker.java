@@ -58,7 +58,7 @@ public final class WallLicker {
 		try {
 			Files.createDirectories(SOUND_DIR);
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't create {}", SOUND_DIR, e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't create {}", SOUND_DIR, e);
 		}
 		ClientTickEvents.END_CLIENT_TICK.register(WallLicker::tick);
 		// the boss fight starts when a boss speaks ("[BOSS] Maxor: ..."); The Watcher also speaks during the clear, so he doesn't count
@@ -175,7 +175,7 @@ public final class WallLicker {
 			});
 			clip.start();
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't play wall licker sound {}", file, e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't play wall licker sound {}", file, e);
 		}
 	}
 

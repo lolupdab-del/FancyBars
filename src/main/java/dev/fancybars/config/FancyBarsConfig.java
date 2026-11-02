@@ -278,7 +278,7 @@ public class FancyBarsConfig {
 	/** Snap things to each other / the screen centre in the editor. */
 	public boolean editorSnapping = true;
 
-	/** SHIKIMODE: the pink ShikiClient look and logo instead of SBCLIENT's pink → blue gradient. */
+	/** SHIKIMODE: the pink ShikiClient look and logo instead of SkyblockGuiUtils's pink → blue gradient. */
 	public boolean shikiMode = false;
 
 	// ---------------------------------------------------------------- Player
@@ -295,7 +295,7 @@ public class FancyBarsConfig {
 
 	public float playerSizeLength = 1;
 
-	/** Show other SBCLIENT users at the sizes in the shared list. */
+	/** Show other SkyblockGuiUtils users at the sizes in the shared list. */
 	public boolean playerSizeShowOthers = true;
 
 	public boolean ownNametagInF5 = false;
@@ -428,9 +428,9 @@ public class FancyBarsConfig {
 	public int storageOverlayColumns = 3;
 	/** Shortest time between opening two pages, in ms (Hypixel kicks you for opening menus too fast). */
 	public int storageSwitchDelay = 400;
-	/** Draw the Storage Overlay like Minecraft's own chests instead of SBCLIENT's dark theme. */
+	/** Draw the Storage Overlay like Minecraft's own chests instead of SkyblockGuiUtils's dark theme. */
 	public boolean storageVanillaStyle = false;
-	/** 0 SBCLIENT, 1 your resource pack, 2 Dark Glass (-1 = not chosen yet: taken from the old Vanilla Style toggle). */
+	/** 0 SkyblockGuiUtils, 1 your resource pack, 2 Dark Glass (-1 = not chosen yet: taken from the old Vanilla Style toggle). */
 	public int storageStyle = -1;
 	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
 	public int spotifyHudTime = 0;
@@ -660,10 +660,10 @@ public class FancyBarsConfig {
 
 	// ---------------------------------------------------------------- FPS / TPS display
 
-	/** Keep SBCLIENT's HUDs on screen while chat or an inventory / chest is open. */
+	/** Keep SkyblockGuiUtils's HUDs on screen while chat or an inventory / chest is open. */
 	public boolean hudInScreens = false;
 
-	/** Keep SBCLIENT's HUDs on screen behind every screen (chat, inventories, /sbc, other mods). */
+	/** Keep SkyblockGuiUtils's HUDs on screen behind every screen (chat, inventories, /sgu, other mods). */
 	public boolean hudAlways = true;
 
 	/** Keep screen images visible while chat or an inventory / chest is open. */

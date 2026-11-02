@@ -13,7 +13,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 import dev.fancybars.util.gui.SmoothText;
 
-/** Routes text in SBCLIENT's fonts through {@link SmoothText} for crisp, browser-quality edges. */
+/** Routes text in SkyblockGuiUtils's fonts through {@link SmoothText} for crisp, browser-quality edges. */
 @Mixin(GuiGraphicsExtractor.class)
 public abstract class SmoothTextMixin {
 	@Inject(method = "text(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;IIIZ)V", at = @At("HEAD"), cancellable = true, require = 0)

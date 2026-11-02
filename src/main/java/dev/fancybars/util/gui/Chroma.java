@@ -23,7 +23,7 @@ import dev.fancybars.config.FancyBarsConfig;
  * flows diagonally across the screen, done in a shader so every pixel gets its own hue.
  * <p>
  * Colours that should be drawn with it are "marked" (two low bits per channel set to a fixed pattern, which is
- * invisible). SBCLIENT's own drawing helpers check for the mark and switch to the chroma pipeline.
+ * invisible). SkyblockGuiUtils's own drawing helpers check for the mark and switch to the chroma pipeline.
  */
 public final class Chroma {
 	public static final String UNIFORM = "SbclientChromaUniforms";
@@ -112,7 +112,7 @@ public final class Chroma {
 		return FancyBarsConfig.get().chromaShader;
 	}
 
-	/** Marks a colour so SBCLIENT draws it with the shader chroma (no visible change otherwise). */
+	/** Marks a colour so SkyblockGuiUtils draws it with the shader chroma (no visible change otherwise). */
 	public static int mark(int argb) {
 		if (!shaderEnabled()) return argb;
 		return argb & ~MARK_MASK | MARK;
@@ -150,7 +150,7 @@ public final class Chroma {
 	/** Writes this frame's settings before a draw starts (writing them mid-draw leaves the shader with zeros). */
 	public static void prepare() {
 		if (slice == null) {
-			if (storage == null) storage = new DynamicUniformStorage<>("SBCLIENT Chroma UBO", SIZE, 2);
+			if (storage == null) storage = new DynamicUniformStorage<>("SkyblockGuiUtils Chroma UBO", SIZE, 2);
 			FancyBarsConfig c = FancyBarsConfig.get();
 			float size = Math.max(1, c.chromaShaderSize) * Minecraft.getInstance().getWindow().getWidth() / 100f;
 			float ticks = Util.getMillis() / 50f;

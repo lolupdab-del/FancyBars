@@ -7,13 +7,13 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 
 import dev.fancybars.config.FancyBarsConfig;
 
-/** Whether SBCLIENT's on-screen HUDs should draw right now. */
+/** Whether SkyblockGuiUtils's on-screen HUDs should draw right now. */
 public final class HudVisibility {
 	private HudVisibility() {}
 
 	/**
 	 * No screen open, or "Show HUDs Always" is on: then they stay up behind every screen (chat, inventories,
-	 * /sbc, other mods' menus). The Edit GUI screen draws its own copies, so the real ones hide there.
+	 * /sgu, other mods' menus). The Edit GUI screen draws its own copies, so the real ones hide there.
 	 */
 	public static boolean allowed() {
 		Screen screen = Minecraft.getInstance().gui.screen();

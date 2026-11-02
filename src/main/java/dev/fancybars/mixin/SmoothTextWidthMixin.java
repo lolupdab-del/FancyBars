@@ -12,7 +12,7 @@ import net.minecraft.util.FormattedCharSequence;
 
 import dev.fancybars.util.gui.SmoothText;
 
-/** Text in SBCLIENT's fonts is measured with the same engine that draws it, so centring is exact. */
+/** Text in SkyblockGuiUtils's fonts is measured with the same engine that draws it, so centring is exact. */
 @Mixin(Font.class)
 public abstract class SmoothTextWidthMixin {
 	@Inject(method = "width(Lnet/minecraft/util/FormattedCharSequence;)I", at = @At("HEAD"), cancellable = true, require = 0)

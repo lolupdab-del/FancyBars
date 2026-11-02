@@ -32,7 +32,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 
 /**
- * Browser-quality text for SBCLIENT's own fonts. Minecraft draws TrueType fonts from a glyph atlas that gets
+ * Browser-quality text for SkyblockGuiUtils's own fonts. Minecraft draws TrueType fonts from a glyph atlas that gets
  * resampled onto the screen, which leaves jagged edges. Instead, each line of text is rendered with Java2D's
  * anti-aliasing (fractional metrics, grayscale AA) straight at the exact on-screen pixel size, cached as a
  * texture and drawn 1:1 on the real screen pixel grid. Text in any other font is left to Minecraft.
@@ -72,7 +72,7 @@ public final class SmoothText {
 	/** Set while handing symbols back to Minecraft, so the mixin doesn't send them straight back here. */
 	private static boolean bypass;
 
-	/** Splits text into runs of the same look; returns null if it isn't (only) in SBCLIENT's fonts. */
+	/** Splits text into runs of the same look; returns null if it isn't (only) in SkyblockGuiUtils's fonts. */
 	private static @Nullable Collected collect(FormattedCharSequence text) {
 		List<Segment> segments = new ArrayList<>();
 		String[] kind = new String[1];
@@ -136,7 +136,7 @@ public final class SmoothText {
 			BASE_FONTS.put(file, f);
 			return f;
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Smooth text unavailable, using Minecraft's text", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Smooth text unavailable, using Minecraft's text", e);
 			failed = true;
 			return null;
 		}
@@ -144,7 +144,7 @@ public final class SmoothText {
 
 	/**
 	 * Draws {@code text} like {@code GuiGraphicsExtractor.text} would. Returns false (and draws nothing) when the
-	 * text isn't in one of SBCLIENT's fonts, so Minecraft draws it as usual.
+	 * text isn't in one of SkyblockGuiUtils's fonts, so Minecraft draws it as usual.
 	 */
 	public static boolean draw(GuiGraphicsExtractor graphics, FormattedCharSequence text, int x, int y, int color, boolean shadow) {
 		if (failed || bypass) return false;
@@ -196,8 +196,8 @@ public final class SmoothText {
 	};
 
 	/**
-	 * Width in GUI units of text in SBCLIENT's fonts, measured exactly the way it is drawn.
-	 * Returns -1 when the text isn't (only) in SBCLIENT's fonts.
+	 * Width in GUI units of text in SkyblockGuiUtils's fonts, measured exactly the way it is drawn.
+	 * Returns -1 when the text isn't (only) in SkyblockGuiUtils's fonts.
 	 */
 	public static float width(FormattedCharSequence text) {
 		if (failed || bypass) return -1;
@@ -362,7 +362,7 @@ public final class SmoothText {
 		NativeImage n = new NativeImage(img.getWidth(), img.getHeight(), false);
 		for (int y = 0; y < img.getHeight(); y++) for (int x = 0; x < img.getWidth(); x++) n.setPixel(x, y, img.getRGB(x, y));
 		Identifier id = FancyBarsMod.id("text/t" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT text", n);
+		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils text", n);
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 		texture.upload();
 		return id;

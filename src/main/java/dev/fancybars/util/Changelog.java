@@ -22,7 +22,7 @@ public final class Changelog {
 			try (var reader = new InputStreamReader(Changelog.class.getResourceAsStream("/assets/fancybars/changelog.json"), StandardCharsets.UTF_8)) {
 				entries = new Gson().fromJson(reader, new TypeToken<List<Entry>>() {}.getType());
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read the changelog", e);
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read the changelog", e);
 				entries = List.of();
 			}
 		}

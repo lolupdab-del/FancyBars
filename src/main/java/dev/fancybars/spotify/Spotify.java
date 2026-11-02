@@ -176,7 +176,7 @@ public final class Spotify {
 			server.setSoTimeout(180_000);
 		} catch (Exception e) {
 			status = "Port " + PORT + " is busy. Restart Minecraft and press Connect once.";
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't open the Spotify login port", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't open the Spotify login port", e);
 			return;
 		}
 		pendingLogin = server;
@@ -212,7 +212,7 @@ public final class Spotify {
 					}
 					boolean ok = exchange("grant_type=authorization_code&code=" + enc(params.get("code")) + "&redirect_uri=" + enc(REDIRECT)
 							+ "&client_id=" + enc(clientId) + "&code_verifier=" + enc(verifier));
-					respond(socket, 200, ok ? "<h2>SBCLIENT is connected to Spotify!</h2><p>You can close this tab and go back to Minecraft.</p>"
+					respond(socket, 200, ok ? "<h2>SkyblockGuiUtils is connected to Spotify!</h2><p>You can close this tab and go back to Minecraft.</p>"
 							: "<h2>Couldn't finish the Spotify login.</h2><p>Check the Client ID and redirect URI, then try again.</p>");
 					status = ok ? "Connected" : "Login failed (check the Client ID / redirect URI)";
 					nextPoll = 0;
@@ -225,7 +225,7 @@ public final class Spotify {
 			// closed because Connect was pressed again: the new login takes over
 		} catch (Exception e) {
 			status = "Login failed: " + e.getMessage();
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Spotify login failed", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Spotify login failed", e);
 		} finally {
 			if (pendingLogin == server) pendingLogin = null;
 		}
@@ -247,7 +247,7 @@ public final class Spotify {
 					.POST(HttpRequest.BodyPublishers.ofString(form)).build();
 			HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) {
-				FancyBarsMod.LOGGER.warn("[SBCLIENT] Spotify token request failed: {} {}", response.statusCode(), response.body());
+				FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Spotify token request failed: {} {}", response.statusCode(), response.body());
 				if (response.statusCode() == 400 && form.startsWith("grant_type=refresh_token")) disconnect();
 				return false;
 			}
@@ -258,7 +258,7 @@ public final class Spotify {
 			saveTokens();
 			return true;
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Spotify token request failed", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Spotify token request failed", e);
 			return false;
 		}
 	}
@@ -289,7 +289,7 @@ public final class Spotify {
 			JsonObject json = JsonParser.parseString(Files.readString(TOKEN_FILE)).getAsJsonObject();
 			if (json.has("refresh_token")) refreshToken = json.get("refresh_token").getAsString();
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't read Spotify login", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read Spotify login", e);
 		}
 	}
 
@@ -300,7 +300,7 @@ public final class Spotify {
 			Files.createDirectories(TOKEN_FILE.getParent());
 			Files.writeString(TOKEN_FILE, json.toString());
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Couldn't save Spotify login", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't save Spotify login", e);
 		}
 	}
 
@@ -378,7 +378,7 @@ public final class Spotify {
 			state = applyHolds(s);
 			status = "Connected";
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.debug("[SBCLIENT] Spotify poll failed", e);
+			FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Spotify poll failed", e);
 		}
 	}
 
@@ -406,7 +406,7 @@ public final class Spotify {
 				// refresh soon so the GUI catches up
 				nextPoll = Util.getMillis() + 350;
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.debug("[SBCLIENT] Spotify command failed", e);
+				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Spotify command failed", e);
 			}
 		});
 	}
@@ -536,7 +536,7 @@ public final class Spotify {
 						java.awt.image.BufferedImage image = javax.imageio.ImageIO.read(new ByteArrayInputStream(response.body()));
 						if (image != null) ORIGINALS.put(url, image);
 					} catch (Exception e) {
-						FancyBarsMod.LOGGER.debug("[SBCLIENT] Album art download failed", e);
+						FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Album art download failed", e);
 					} finally {
 						ART_PENDING.remove(url);
 					}
@@ -552,7 +552,7 @@ public final class Spotify {
 						NativeImage tex = new NativeImage(pixels, pixels, false);
 						for (int y = 0; y < pixels; y++) for (int x = 0; x < pixels; x++) tex.setPixel(x, y, argb[y * pixels + x]);
 						Identifier texId = FancyBarsMod.id("spotify/art_" + artCounter++);
-						DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT album art", tex);
+						DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils album art", tex);
 						Minecraft.getInstance().getTextureManager().register(texId, texture);
 						texture.upload();
 						ART_TEXTURES.put(key, texId);

@@ -73,7 +73,7 @@ public final class SmoothShapes {
 			}
 		}
 		id = FancyBarsMod.id("ui/shape_" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SBCLIENT shape", image);
+		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils shape", image);
 		Minecraft.getInstance().getTextureManager().register(id, texture);
 		texture.upload();
 		CACHE.put(key, id);

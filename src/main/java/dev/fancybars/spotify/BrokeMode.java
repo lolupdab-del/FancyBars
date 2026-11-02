@@ -68,7 +68,7 @@ public final class BrokeMode {
 				case LINUX -> pollLinux();
 			};
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.debug("[SBCLIENT] Broke Mode poll failed", e);
+			FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Broke Mode poll failed", e);
 			return previous;
 		}
 	}
@@ -106,7 +106,7 @@ public final class BrokeMode {
 				}
 			});
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.warn("[SBCLIENT] Broke Mode couldn't watch Spotify", e);
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Broke Mode couldn't watch Spotify", e);
 		}
 	}
 
@@ -175,7 +175,7 @@ public final class BrokeMode {
 		try {
 			String term = URLEncoder.encode(artist + " " + title, StandardCharsets.UTF_8);
 			HttpRequest request = HttpRequest.newBuilder(URI.create("https://itunes.apple.com/search?entity=song&limit=1&term=" + term))
-					.timeout(Duration.ofSeconds(8)).header("User-Agent", "SBCLIENT Minecraft mod").GET().build();
+					.timeout(Duration.ofSeconds(8)).header("User-Agent", "SkyblockGuiUtils Minecraft mod").GET().build();
 			HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
 			JsonArray results = JsonParser.parseString(response.body()).getAsJsonObject().getAsJsonArray("results");
 			if (results != null && !results.isEmpty()) {
@@ -186,7 +186,7 @@ public final class BrokeMode {
 				result = new Lookup(art, length, album);
 			}
 		} catch (Exception e) {
-			FancyBarsMod.LOGGER.debug("[SBCLIENT] Broke Mode song lookup failed", e);
+			FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Broke Mode song lookup failed", e);
 		}
 		LOOKUPS.put(key, result);
 		return result;
@@ -328,7 +328,7 @@ public final class BrokeMode {
 			try {
 				run(5, command);
 			} catch (Exception e) {
-				FancyBarsMod.LOGGER.debug("[SBCLIENT] Broke Mode command failed", e);
+				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Broke Mode command failed", e);
 			}
 		});
 	}

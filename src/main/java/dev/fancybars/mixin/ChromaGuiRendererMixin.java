@@ -11,7 +11,7 @@ import net.minecraft.client.gui.render.GuiRenderer;
 
 import dev.fancybars.util.gui.Chroma;
 
-/** Gives SBCLIENT's chroma shader its settings for every GUI draw (same injection point as SkyHanni). */
+/** Gives SkyblockGuiUtils's chroma shader its settings for every GUI draw (same injection point as SkyHanni). */
 @Mixin(GuiRenderer.class)
 public abstract class ChromaGuiRendererMixin {
 	@Inject(method = "executeDrawRange", at = @At("HEAD"))

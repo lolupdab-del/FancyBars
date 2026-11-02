@@ -611,12 +611,12 @@ public final class Theme {
 		return night(color);
 	}
 
-	/** Pink → blue at {@code fraction}, opaque (used for the SBCLIENT title letters). */
+	/** Pink → blue at {@code fraction}, opaque (used for the SkyblockGuiUtils title letters). */
 	public static int brandGradient(float fraction) {
 		return lerpColor(BRAND_PINK, BRAND_BLUE, fraction);
 	}
 
-	/** SBCLIENT / ShikiClient name, coloured for the current mode (vanilla font). */
+	/** SkyblockGuiUtils / ShikiClient name, coloured for the current mode (vanilla font). */
 	public static MutableComponent brand() {
 		if (shikiMode()) {
 			return Component.empty().append(Component.literal("Shiki").withColor(ACCENT & 0xFFFFFF)).append(Component.literal("Client").withColor(TEXT & 0xFFFFFF));
@@ -624,25 +624,25 @@ public final class Theme {
 		if (customColors()) {
 			int acc = night(ACCENT) & 0xFFFFFF;
 			int light = night(ACCENT_LIGHT) & 0xFFFFFF;
-			MutableComponent custom = Component.empty().append(Component.literal("S").withColor(light)).append(Component.literal("B").withColor(acc));
-			String rest = "CLIENT";
+			MutableComponent custom = Component.empty().append(Component.literal("Skyblock").withColor(light)).append(Component.literal("Gui").withColor(acc));
+			String rest = "Utils";
 			for (int i = 0; i < rest.length(); i++) {
 				custom.append(Component.literal(String.valueOf(rest.charAt(i))).withColor(lerpColor(0xFF000000 | light, 0xFF000000 | acc, i / (float) (rest.length() - 1)) & 0xFFFFFF));
 			}
 			return custom;
 		}
-		// default: pink S, blue B, CLIENT in the text colour
+		// default: pink Skyblock, blue Gui, Utils in the text colour
 		return Component.empty()
-				.append(Component.literal("S").withColor(0xFF8FC8))
-				.append(Component.literal("B").withColor(0x6FA8FF))
-				.append(Component.literal("CLIENT").withColor(0xECECF1));
+				.append(Component.literal("Skyblock").withColor(0xFF8FC8))
+				.append(Component.literal("Gui").withColor(0x6FA8FF))
+				.append(Component.literal("Utils").withColor(0xECECF1));
 	}
 
 	public static String brandName() {
-		return shikiMode() ? "ShikiClient" : "SBCLIENT";
+		return shikiMode() ? "ShikiClient" : "SkyblockGuiUtils";
 	}
 
-	/** "[SBCLIENT] " chat prefix. */
+	/** "[SkyblockGuiUtils] " chat prefix. */
 	public static MutableComponent chatPrefix() {
 		return Component.literal("[").withStyle(net.minecraft.ChatFormatting.DARK_GRAY)
 				.append(brand())
