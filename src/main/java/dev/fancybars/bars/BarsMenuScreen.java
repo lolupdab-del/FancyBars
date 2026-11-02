@@ -516,6 +516,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("storageOverlay", () -> config.storageOverlay, value -> config.storageOverlay = value));
 				list.add(new ValueCycleItem("storageStyle", new int[]{0, 1, 2}, () -> config.storageStyle,
 						value -> config.storageStyle = value, v -> Component.translatable("fancybars.storage.style." + v)));
+				list.add(new SliderItem("storageSwitchDelay", 150, 1500, 10, false, () -> (float) config.storageSwitchDelay, value -> config.storageSwitchDelay = Math.round(value)));
 				list.add(new SliderItem("storageOverlayColumns", 1, 6, 1, false, () -> (float) config.storageOverlayColumns, value -> config.storageOverlayColumns = Math.round(value)));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
 				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));

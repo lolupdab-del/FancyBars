@@ -495,6 +495,8 @@
 	"fancybars.storage.style.0": "SBCLIENT",
 	"fancybars.storage.style.1": "Resource Pack",
 	"fancybars.storage.style.2": "Dark Glass",
+	"fancybars.config.storageSwitchDelay": "Page Switch Delay (ms)",
+	"fancybars.config.storageSwitchDelay.@Tooltip": "Shortest time between opening two pages, so clicking through pages fast doesn't get you kicked. Clicks while waiting are remembered and the last one opens when the wait is over.",
 	"fancybars.config.storageOverlayColumns": "Columns",
 	"fancybars.config.storageOverlayColumns.@Tooltip": "How many pages side by side (fewer if your screen is too narrow).",
 	"fancybars.storage.search": "Search storage",

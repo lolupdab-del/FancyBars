@@ -64,6 +64,7 @@ public final class StorageOverlay {
 	private StorageOverlay() {}
 
 	public static void init() {
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> tickPending());
 		ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
 			if (!(screen instanceof AbstractContainerScreen<?> container) || !active(container)) return;
 			current = container;
@@ -506,10 +507,47 @@ public final class StorageOverlay {
 	}
 
 	/** Opens ender chest page / backpack {@code index}: through the Storage menu if it's open, else by command. */
+	// ---------------------------------------------------------------- page switching speed limit
+
+	/** Last time a page was asked for, and the page clicked while waiting (only the latest click is kept). */
+	private static long lastOpenAt;
+	private static int pendingPage = -1;
+
+	/**
+	 * Opens a page, but never faster than the Page Switch Delay: Hypixel kicks you for opening menus too quickly.
+	 * Clicks during the wait are remembered and the last one is opened when it's over.
+	 */
 	private static void openPage(AbstractContainerScreen<?> screen, int index) {
+		scrollToPage = index;
+		long wait = Math.max(0, FancyBarsConfig.get().storageSwitchDelay);
+		if (System.currentTimeMillis() - lastOpenAt < wait) {
+			pendingPage = index;
+			return;
+		}
+		pendingPage = -1;
+		lastOpenAt = System.currentTimeMillis();
+		sendOpen(screen, index);
+	}
+
+	/** Every tick: open the page you clicked while waiting, once the delay is over. */
+	private static void tickPending() {
+		if (pendingPage < 0) return;
+		Minecraft mc = Minecraft.getInstance();
+		if (!(mc.gui.screen() instanceof AbstractContainerScreen<?> screen) || !active(screen)) {
+			pendingPage = -1;
+			return;
+		}
+		if (System.currentTimeMillis() - lastOpenAt < Math.max(0, FancyBarsConfig.get().storageSwitchDelay)) return;
+		int index = pendingPage;
+		pendingPage = -1;
+		if (index == activePage(screen)) return;
+		lastOpenAt = System.currentTimeMillis();
+		sendOpen(screen, index);
+	}
+
+	private static void sendOpen(AbstractContainerScreen<?> screen, int index) {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.player == null || mc.getConnection() == null) return;
-		scrollToPage = index;
 		if (activePage(screen) < 0 && mc.gameMode != null) {
 			int slot = index < 9 ? 9 + index : 27 + (index - 9);
 			if (slot < screen.getMenu().slots.size()) {

@@ -1,4 +1,7 @@
 [
+  {"version": "2.42.1", "date": "2026-11-01",
+   "added": ["Storage Overlay: Page Switch Delay (400 ms by default) so switching pages fast can't get you kicked; the last page you click during the wait still opens"],
+   "fixed": []},
   {"version": "2.42.0", "date": "2026-11-01",
    "added": ["Storage Overlay: Style setting (replaces Vanilla Style) with SBCLIENT, Resource Pack and a new Dark Glass look based on the Dark Glass GUI pack"],
    "fixed": []},

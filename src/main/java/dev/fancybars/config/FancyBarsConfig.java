@@ -394,6 +394,8 @@ public class FancyBarsConfig {
 	public float itemListX = -1;
 	public float itemListY = -1;
 	public int storageOverlayColumns = 3;
+	/** Shortest time between opening two pages, in ms (Hypixel kicks you for opening menus too fast). */
+	public int storageSwitchDelay = 400;
 	/** Draw the Storage Overlay like Minecraft's own chests instead of SBCLIENT's dark theme. */
 	public boolean storageVanillaStyle = false;
 	/** 0 SBCLIENT, 1 your resource pack, 2 Dark Glass (-1 = not chosen yet: taken from the old Vanilla Style toggle). */
