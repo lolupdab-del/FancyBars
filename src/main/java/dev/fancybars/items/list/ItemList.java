@@ -85,10 +85,17 @@ public final class ItemList {
 		l.y = 6;
 		l.w = screen.width - l.x - 6;
 		l.h = screen.height - 12;
-		l.cols = (l.w - PAD * 2) / SLOT;
-		l.rows = (l.h - PAD * 2 - HEADER - SEARCH_H - 6) / SLOT;
-		if (l.cols < 3 || l.rows < 2) return null;
+		int maxCols = (l.w - PAD * 2) / SLOT;
+		int maxRows = (l.h - PAD * 2 - HEADER - SEARCH_H - 6) / SLOT;
+		FancyBarsConfig c = FancyBarsConfig.get();
+		// Columns / Rows settings (0 = as many as fit)
+		l.cols = c.itemListColumns > 0 ? Math.min(c.itemListColumns, maxCols) : maxCols;
+		l.rows = c.itemListRows > 0 ? Math.min(c.itemListRows, maxRows) : maxRows;
+		if (l.cols < 1 || l.rows < 1) return null;
 		l.w = l.cols * SLOT + PAD * 2;
+		l.h = PAD * 2 + HEADER + l.rows * SLOT + 6 + SEARCH_H;
+		// keep it vertically centred when it's shorter than the screen
+		l.y = Math.max(6, (screen.height - l.h) / 2);
 		l.gridX = l.x + PAD;
 		l.gridY = l.y + PAD + HEADER;
 		return l;
@@ -128,7 +135,7 @@ public final class ItemList {
 		if (l == null) return;
 		Font font = Minecraft.getInstance().font;
 		graphics.nextStratum();
-		Theme.panel(graphics, l.x, l.y, l.w, l.h);
+		if (FancyBarsConfig.get().itemListBackground) Theme.panel(graphics, l.x, l.y, l.w, l.h);
 		if (search != null) search.setPosition(l.x + PAD, l.y + l.h - PAD - SEARCH_H);
 
 		List<ItemRepo.Entry> results = results();
@@ -166,9 +173,20 @@ public final class ItemList {
 			graphics.fakeItem(stack, sx + 1, sy + 1);
 		}
 		if (hovered != null) {
-			graphics.setTooltipForNextFrame(font, hovered, mx, my);
+			graphics.setTooltipForNextFrame(font, tooltip(hovered), java.util.Optional.empty(), mx, my);
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
+	}
+
+	/** The full tooltip: name, lore (from the item, or straight from the item data if the item lost it) and prices. */
+	static List<Component> tooltip(ItemStack stack) {
+		Minecraft mc = Minecraft.getInstance();
+		List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(mc, stack));
+		if (stack.get(net.minecraft.core.component.DataComponents.LORE) == null) {
+			ItemRepo.Entry e = ItemRepo.get(ItemRepo.idOf(stack));
+			if (e != null && !e.lore().isEmpty()) lines.addAll(1, e.lore());
+		}
+		return lines;
 	}
 
 	private static boolean over(double mx, double my, int x, int y, int w, int h) {

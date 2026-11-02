@@ -125,7 +125,22 @@ public final class StorageOverlay {
 		return index == activePage(screen) || BackpackPreview.storage(index) != null;
 	}
 
+	/** The layout is worked out once per frame (it was being rebuilt several times a frame). */
+	private static @Nullable Layout cachedLayout;
+	private static @Nullable AbstractContainerScreen<?> cachedFor;
+	private static long cachedAt = -1;
+
 	private static Layout layout(AbstractContainerScreen<?> screen) {
+		long frame = net.minecraft.util.Util.getMillis() / 8;
+		if (cachedLayout != null && cachedFor == screen && cachedAt == frame) return cachedLayout;
+		Layout l = computeLayout(screen);
+		cachedLayout = l;
+		cachedFor = screen;
+		cachedAt = frame;
+		return l;
+	}
+
+	private static Layout computeLayout(AbstractContainerScreen<?> screen) {
 		Layout l = new Layout();
 		int maxColumns = Math.max(1, (screen.width - PAD * 4 - 8) / (PAGE_W + GAP));
 		l.columns = Math.clamp(FancyBarsConfig.get().storageOverlayColumns, 1, maxColumns);
@@ -230,9 +245,35 @@ public final class StorageOverlay {
 
 	// ---------------------------------------------------------------- search
 
+	/** Search results per item, worked out once per search instead of every frame. */
+	private static final java.util.Map<ItemStack, Boolean> MATCHES = new java.util.IdentityHashMap<>();
+	private static final java.util.Map<Integer, Boolean> PAGE_MATCHES = new java.util.HashMap<>();
+	private static String matchesFor = "";
+	/** Protection stars per item (checking means reading the item's data). */
+	private static final java.util.Map<ItemStack, Boolean> PROTECTED = new java.util.IdentityHashMap<>();
+
+	private static void checkQuery() {
+		if (!query.equals(matchesFor)) {
+			matchesFor = query;
+			MATCHES.clear();
+			PAGE_MATCHES.clear();
+		}
+		if (MATCHES.size() > 4000) MATCHES.clear();
+		if (PROTECTED.size() > 4000) PROTECTED.clear();
+	}
+
+	private static boolean isProtected(ItemStack stack) {
+		return PROTECTED.computeIfAbsent(stack, ItemProtection::isItemProtected);
+	}
+
 	private static boolean matches(ItemStack stack) {
 		if (query.isEmpty()) return true;
 		if (stack.isEmpty()) return false;
+		checkQuery();
+		return MATCHES.computeIfAbsent(stack, StorageOverlay::computeMatches);
+	}
+
+	private static boolean computeMatches(ItemStack stack) {
 		String q = query.toLowerCase(Locale.ROOT);
 		String name = ChatFormatting.stripFormatting(stack.getHoverName().getString());
 		if (name != null && name.toLowerCase(Locale.ROOT).contains(q)) return true;
@@ -248,10 +289,13 @@ public final class StorageOverlay {
 
 	private static boolean matchesPage(int index) {
 		if (query.isEmpty()) return true;
-		BackpackPreview.Storage s = BackpackPreview.storage(index);
-		if (s == null) return false;
-		for (int i = 9; i < s.size(); i++) if (matches(s.getStack(i))) return true;
-		return false;
+		checkQuery();
+		return PAGE_MATCHES.computeIfAbsent(index, i -> {
+			BackpackPreview.Storage s = BackpackPreview.storage(i);
+			if (s == null) return false;
+			for (int j = 9; j < s.size(); j++) if (matches(s.getStack(j))) return true;
+			return false;
+		});
 	}
 
 	private static Component pageTitle(int index) {
@@ -287,15 +331,15 @@ public final class StorageOverlay {
 				for (int c = 0; c < 9; c++) {
 					int sx = x + 4 + c * SLOT;
 					int sy = y + TITLE_H + r * SLOT;
-					Theme.roundedRect(graphics, sx + 1, sy + 1, SLOT - 2, SLOT - 2, 2, 0x55000000);
+					graphics.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
 					if (isActive || s == null) continue;
 					int i = 9 + r * 9 + c;
 					if (i >= s.size()) continue;
 					ItemStack stack = s.getStack(i);
 					if (stack.isEmpty()) continue;
 					graphics.item(stack, sx + 1, sy + 1);
-					graphics.itemDecorations(font, stack, sx + 1, sy + 1);
-					if (ItemProtection.isItemProtected(stack)) ItemProtection.drawStar(graphics, sx + 1, sy + 1);
+					if (stack.getCount() > 1 || stack.isBarVisible()) graphics.itemDecorations(font, stack, sx + 1, sy + 1);
+					if (isProtected(stack)) ItemProtection.drawStar(graphics, sx + 1, sy + 1);
 					if (!matches(stack)) graphics.fill(sx + 1, sy + 1, sx + 17, sy + 17, 0xB0101014);
 					if (mouseX >= sx && mouseX < sx + SLOT && mouseY >= sy && mouseY < sy + SLOT && mouseY >= l.viewY && mouseY < l.viewY + l.viewH) {
 						hovered = stack;
@@ -339,7 +383,7 @@ public final class StorageOverlay {
 			for (int c = 0; c < 9; c++) {
 				int sx = l.playerX + c * SLOT;
 				int sy = l.playerY + r * SLOT + (r == 3 ? 4 : 0);
-				Theme.roundedRect(graphics, sx + 1, sy + 1, SLOT - 2, SLOT - 2, 2, 0x55000000);
+				graphics.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
 			}
 		}
 		if (hovered != null) graphics.setTooltipForNextFrame(font, hovered, mouseX, mouseY);

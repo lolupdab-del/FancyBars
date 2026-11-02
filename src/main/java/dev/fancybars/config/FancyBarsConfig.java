@@ -376,6 +376,10 @@ public class FancyBarsConfig {
 	public boolean storageOverlay = true;
 	/** Item List (Skysoft): every SkyBlock item beside your inventory, with recipes. */
 	public boolean itemListEnabled = true;
+	/** How many columns / rows of items (0 = as many as fit). */
+	public int itemListColumns = 0;
+	public int itemListRows = 0;
+	public boolean itemListBackground = false;
 	public int storageOverlayColumns = 3;
 	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
 	public int spotifyHudTime = 0;

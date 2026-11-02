@@ -40,7 +40,7 @@ public final class ItemRepo {
 	private static final String BASE = "https://raw.githubusercontent.com/SkyblockAPI/Repo/main/cloudflare/1_21_5/";
 	private static final Duration REFRESH = Duration.ofHours(24);
 
-	public record Entry(String id, ItemStack stack, String name, String search) {}
+	public record Entry(String id, ItemStack stack, String name, String search, List<net.minecraft.network.chat.Component> lore) {}
 
 	/** A recipe: ingredients (id, count) laid out for its type, and the result. */
 	public record Recipe(String type, List<Ingredient> grid, List<Ingredient> inputs, Ingredient result, String npc, int coins, int seconds) {}
@@ -150,13 +150,28 @@ public final class ItemRepo {
 			if (id.isEmpty() || map.containsKey(id)) continue;
 			String name = ChatFormatting.stripFormatting(stack.getHoverName().getString());
 			if (name == null) name = id;
-			Entry entry = new Entry(id, stack, name, (name + " " + id.replace('_', ' ')).toLowerCase(Locale.ROOT));
+			Entry entry = new Entry(id, stack, name, (name + " " + id.replace('_', ' ')).toLowerCase(Locale.ROOT), rawLore(el));
 			list.add(entry);
 			map.put(id, entry);
 		}
 		list.sort(Comparator.comparing(Entry::name, String.CASE_INSENSITIVE_ORDER));
 		entries = Collections.unmodifiableList(list);
 		byId = map;
+	}
+
+	/** Lore lines straight from the item data (kept in case the item couldn't be built with them). */
+	private static List<net.minecraft.network.chat.Component> rawLore(JsonElement el) {
+		List<net.minecraft.network.chat.Component> out = new ArrayList<>();
+		try {
+			JsonObject components = el.getAsJsonObject().getAsJsonObject("components");
+			if (components == null || !components.has("minecraft:lore")) return out;
+			for (JsonElement line : components.getAsJsonArray("minecraft:lore")) {
+				String text = line.isJsonObject() && line.getAsJsonObject().has("text") ? line.getAsJsonObject().get("text").getAsString()
+						: line.isJsonPrimitive() ? line.getAsString() : "";
+				out.add(net.minecraft.network.chat.Component.literal(text));
+			}
+		} catch (Exception ignored) {}
+		return out;
 	}
 
 	private static @Nullable ItemStack decode(JsonElement el, DynamicOps<JsonElement> ops) {

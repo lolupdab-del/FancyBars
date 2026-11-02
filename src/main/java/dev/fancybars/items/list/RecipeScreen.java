@@ -167,7 +167,7 @@ public class RecipeScreen extends Screen {
 		}
 		super.extractRenderState(graphics, mouseX, mouseY, a);
 		if (hovered != null) {
-			graphics.setTooltipForNextFrame(font, hovered, mouseX, mouseY);
+			graphics.setTooltipForNextFrame(font, ItemList.tooltip(hovered), java.util.Optional.empty(), mouseX, mouseY);
 			graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 	}
