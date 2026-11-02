@@ -462,11 +462,11 @@ public final class StorageOverlay {
 			return;
 		}
 		if (style == 2) {
-			g.fill(sx, sy, sx + SLOT - 1, sy + 1, 0xA0080808);
-			g.fill(sx, sy + 1, sx + 1, sy + SLOT - 1, 0xA0080808);
+			g.fill(sx, sy, sx + SLOT - 1, sy + 1, 0x90080808);
+			g.fill(sx, sy + 1, sx + 1, sy + SLOT - 1, 0x90080808);
 			g.fill(sx + 1, sy + SLOT - 1, sx + SLOT, sy + SLOT, 0xAA5F5F5F);
 			g.fill(sx + SLOT - 1, sy, sx + SLOT, sy + SLOT - 1, 0xAA5F5F5F);
-			g.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x780C0C0C);
+			g.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x300C0C0C);
 			return;
 		}
 		// the chest's first slot, straight from your pack
