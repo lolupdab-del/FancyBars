@@ -1,4 +1,4 @@
-# SBCLIENT
+# SkyblockGuiUtils
 
 Skyblocker's **Fancy Status Bars** for Hypixel SkyBlock, pulled out into a standalone Fabric mod.
 

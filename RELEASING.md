@@ -1,4 +1,4 @@
-# Releasing SBCLIENT
+# Releasing SkyblockGuiUtils
 
 Every release, before bumping `mod_version` in `gradle.properties`:
 
@@ -8,7 +8,7 @@ Every release, before bumping `mod_version` in `gradle.properties`:
 3. After every release, give the owner Discord patch notes for their releases channel: short, simple, no emojis,
    one message, in this shape:
 
-   # SBCLIENT vX.Y.Z
+   # SkyblockGuiUtils vX.Y.Z
    **Added** — ...
    **Fixed** — ...
 
