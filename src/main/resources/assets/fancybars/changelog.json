@@ -1,4 +1,7 @@
 [
+  {"version": "2.41.1", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Storage Overlay Vanilla Style uses your resource pack's chest look (panel frame and slots)"]},
   {"version": "2.41.0", "date": "2026-11-01",
    "added": ["Storage Overlay: Vanilla Style toggle to make it look like Minecraft's own chests"],
    "fixed": []},

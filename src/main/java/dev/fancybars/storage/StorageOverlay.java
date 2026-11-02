@@ -405,30 +405,40 @@ public final class StorageOverlay {
 		if (hovered != null) graphics.setTooltipForNextFrame(font, hovered, mouseX, mouseY);
 	}
 
-	/** Minecraft's container look: light grey panel, black outline, white top-left and dark bottom-right edges. */
-	private static void vanillaPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
-		g.fill(x + 1, y, x + w - 1, y + 1, 0xFF000000);
-		g.fill(x + 1, y + h - 1, x + w - 1, y + h, 0xFF000000);
-		g.fill(x, y + 1, x + 1, y + h - 1, 0xFF000000);
-		g.fill(x + w - 1, y + 1, x + w, y + h - 1, 0xFF000000);
-		g.fill(x + 1, y + 1, x + w - 1, y + h - 1, 0xFFC6C6C6);
-		g.fill(x + 1, y + 1, x + w - 2, y + 3, 0xFFFFFFFF);
-		g.fill(x + 1, y + 1, x + 3, y + h - 2, 0xFFFFFFFF);
-		g.fill(x + 2, y + h - 3, x + w - 1, y + h - 1, 0xFF555555);
-		g.fill(x + w - 3, y + 2, x + w - 1, y + h - 1, 0xFF555555);
+	/** Your resource pack's chest screen: the panel frame and slots are cut from it, so Vanilla Style matches your pack. */
+	private static final net.minecraft.resources.Identifier CHEST = net.minecraft.resources.Identifier.withDefaultNamespace("textures/gui/container/generic_54.png");
+	private static final int TEX_W = 176;
+	private static final int TEX_H = 222;
+	private static final int EDGE = 4;
+
+	private static void piece(GuiGraphicsExtractor g, int x, int y, int w, int h, int u, int v, int uw, int vh) {
+		if (w <= 0 || h <= 0) return;
+		g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, CHEST, x, y, u, v, w, h, uw, vh, 256, 256);
 	}
 
-	/** A slot: Minecraft's sunken grey square, or the dark theme square. */
+	/** A panel of any size stretched from the chest screen's frame (corners kept, edges and inside stretched). */
+	private static void vanillaPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+		int e = EDGE;
+		piece(g, x, y, e, e, 0, 0, e, e);
+		piece(g, x + w - e, y, e, e, TEX_W - e, 0, e, e);
+		piece(g, x, y + h - e, e, e, 0, TEX_H - e, e, e);
+		piece(g, x + w - e, y + h - e, e, e, TEX_W - e, TEX_H - e, e, e);
+		piece(g, x + e, y, w - 2 * e, e, e, 0, TEX_W - 2 * e, e);
+		piece(g, x + e, y + h - e, w - 2 * e, e, e, TEX_H - e, TEX_W - 2 * e, e);
+		piece(g, x, y + e, e, h - 2 * e, 0, e, e, 12);
+		piece(g, x + w - e, y + e, e, h - 2 * e, TEX_W - e, e, e, 12);
+		// the strip under the chest's title is plain background: stretch it over the inside
+		piece(g, x + e, y + e, w - 2 * e, h - 2 * e, e + 4, e, TEX_W - 2 * e - 8, 12);
+	}
+
+	/** A slot: your pack's chest slot, or the dark theme square. */
 	private static void slotBg(GuiGraphicsExtractor g, int sx, int sy, boolean vanilla) {
 		if (!vanilla) {
 			g.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x55000000);
 			return;
 		}
-		g.fill(sx, sy, sx + SLOT, sy + SLOT, 0xFF8B8B8B);
-		g.fill(sx, sy, sx + SLOT - 1, sy + 1, 0xFF373737);
-		g.fill(sx, sy, sx + 1, sy + SLOT - 1, 0xFF373737);
-		g.fill(sx + 1, sy + SLOT - 1, sx + SLOT, sy + SLOT, 0xFFFFFFFF);
-		g.fill(sx + SLOT - 1, sy + 1, sx + SLOT, sy + SLOT, 0xFFFFFFFF);
+		// the chest's first slot, straight from your pack
+		piece(g, sx, sy, SLOT, SLOT, 7, 17, SLOT, SLOT);
 	}
 
 	// ---------------------------------------------------------------- input
