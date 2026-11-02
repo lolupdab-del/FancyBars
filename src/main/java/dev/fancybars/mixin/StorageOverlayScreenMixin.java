@@ -6,7 +6,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
@@ -46,12 +45,8 @@ public abstract class StorageOverlayScreenMixin {
 	}
 
 	@Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)
-	private void fancybars$storageOutside(CallbackInfoReturnable<Boolean> cir) {
+	private void fancybars$storageOutside(double mouseX, double mouseY, int left, int top, CallbackInfoReturnable<Boolean> cir) {
 		AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) (Object) this;
-		if (!StorageOverlay.active(screen)) return;
-		Minecraft mc = Minecraft.getInstance();
-		double mx = mc.mouseHandler.xpos() * screen.width / mc.getWindow().getScreenWidth();
-		double my = mc.mouseHandler.ypos() * screen.height / mc.getWindow().getScreenHeight();
-		cir.setReturnValue(StorageOverlay.isOutside(screen, mx, my));
+		if (StorageOverlay.active(screen)) cir.setReturnValue(StorageOverlay.isOutside(screen, mouseX, mouseY));
 	}
 }
