@@ -1152,5 +1152,61 @@ public interface MovableElement {
 	};
 
 
+	/** The Item List: has its own Edit GUI (it's too big for the main one), so it's not in {@link #ALL}. */
+	MovableElement ITEM_LIST = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			return dev.fancybars.items.list.ItemList.previewRect(screenW, screenH);
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			dev.fancybars.items.list.ItemList.drawPreview(graphics, screenW, screenH);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.itemListX = Math.clamp(x, 0, screenW - 30) / screenW;
+			c.itemListY = Math.clamp(y, 0, screenH - 30) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return 1;
+		}
+
+		@Override
+		public void setScale(float scale) {}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().itemListEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().itemListEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.itemListX = -1;
+			c.itemListY = -1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.itemList.title");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
 	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
 }

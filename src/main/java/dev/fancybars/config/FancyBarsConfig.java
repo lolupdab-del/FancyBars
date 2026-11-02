@@ -380,6 +380,10 @@ public class FancyBarsConfig {
 	public int itemListColumns = 0;
 	public int itemListRows = 0;
 	public boolean itemListBackground = false;
+	public boolean itemListHideInDungeons = true;
+	/** Where you put the list in its Edit GUI (-1 = right of the menu). */
+	public float itemListX = -1;
+	public float itemListY = -1;
 	public int storageOverlayColumns = 3;
 	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
 	public int spotifyHudTime = 0;

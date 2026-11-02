@@ -21,6 +21,11 @@ public abstract class StorageOverlayScreenMixin {
 		StorageOverlay.beforeRender((AbstractContainerScreen<?>) (Object) this);
 	}
 
+	@Inject(method = "extractContents", at = @At("TAIL"))
+	private void fancybars$itemList(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a, CallbackInfo ci) {
+		dev.fancybars.items.list.ItemList.render((AbstractContainerScreen<?>) (Object) this, graphics, mouseX, mouseY);
+	}
+
 	@Inject(method = "extractLabels", at = @At("HEAD"), cancellable = true)
 	private void fancybars$noStorageLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY, CallbackInfo ci) {
 		if (StorageOverlay.active((AbstractContainerScreen<?>) (Object) this)) ci.cancel();

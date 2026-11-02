@@ -73,6 +73,7 @@ public final class StorageOverlay {
 			Screens.getWidgets(screen).add(search);
 			ScreenEvents.remove(screen).register(s -> {
 				if (current == s) current = null;
+				dev.fancybars.util.gui.CachedItems.clear();
 			});
 		});
 	}
@@ -337,7 +338,7 @@ public final class StorageOverlay {
 					if (i >= s.size()) continue;
 					ItemStack stack = s.getStack(i);
 					if (stack.isEmpty()) continue;
-					graphics.item(stack, sx + 1, sy + 1);
+					dev.fancybars.util.gui.CachedItems.draw(graphics, stack, sx + 1, sy + 1);
 					if (stack.getCount() > 1 || stack.isBarVisible()) graphics.itemDecorations(font, stack, sx + 1, sy + 1);
 					if (isProtected(stack)) ItemProtection.drawStar(graphics, sx + 1, sy + 1);
 					if (!matches(stack)) graphics.fill(sx + 1, sy + 1, sx + 17, sy + 17, 0xB0101014);

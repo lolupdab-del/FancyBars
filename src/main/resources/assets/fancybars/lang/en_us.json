@@ -450,6 +450,8 @@
 	"fancybars.config.itemListColumns.@Tooltip": "How many items across. 0 fits as many as there's room for.",
 	"fancybars.config.itemListRows": "Rows",
 	"fancybars.config.itemListRows.@Tooltip": "How many rows of items. 0 fits as many as there's room for.",
+	"fancybars.config.itemListHideInDungeons": "Hide in Dungeons",
+	"fancybars.config.itemListHideInDungeons.@Tooltip": "Don't show the item list while you're in a dungeon.",
 	"fancybars.config.itemListBackground": "Background",
 	"fancybars.config.itemListBackground.@Tooltip": "Draw a panel behind the item list.",
 	"fancybars.itemList.search": "Search items",

@@ -60,13 +60,13 @@ public final class ItemList {
 			});
 			search.setPosition(l.x + PAD, l.y + l.h - PAD - SEARCH_H);
 			Screens.getWidgets(screen).add(search);
-			ScreenEvents.afterExtract(screen).register((s, graphics, mx, my, a) -> render(container, graphics, mx, my));
 		});
 	}
 
 	public static boolean shown(Screen screen) {
 		if (!(screen instanceof AbstractContainerScreen<?>)) return false;
 		if (!FancyBarsConfig.get().itemListEnabled || !SkyblockLocation.isOnSkyblock()) return false;
+		if (FancyBarsConfig.get().itemListHideInDungeons && SkyblockLocation.isInDungeons()) return false;
 		return !dev.fancybars.storage.StorageOverlay.active(screen);
 	}
 
@@ -79,12 +79,18 @@ public final class ItemList {
 
 	private static @Nullable Layout layout(AbstractContainerScreen<?> screen) {
 		ContainerScreenAccessor acc = (ContainerScreenAccessor) screen;
-		int right = acc.fancybars$getLeftPos() + acc.fancybars$getImageWidth();
+		return layout(screen.width, screen.height, acc.fancybars$getLeftPos() + acc.fancybars$getImageWidth());
+	}
+
+	/** Where the list goes: right of the menu, or where you put it in its Edit GUI. */
+	private static @Nullable Layout layout(int screenW, int screenH, int containerRight) {
+		FancyBarsConfig cfg = FancyBarsConfig.get();
+		boolean custom = cfg.itemListX >= 0 && cfg.itemListY >= 0;
 		Layout l = new Layout();
-		l.x = right + 8;
-		l.y = 6;
-		l.w = screen.width - l.x - 6;
-		l.h = screen.height - 12;
+		l.x = custom ? Math.round(cfg.itemListX * screenW) : containerRight + 8;
+		l.y = custom ? Math.round(cfg.itemListY * screenH) : 6;
+		l.w = screenW - l.x - 6;
+		l.h = screenH - l.y - 6;
 		int maxCols = (l.w - PAD * 2) / SLOT;
 		int maxRows = (l.h - PAD * 2 - HEADER - SEARCH_H - 6) / SLOT;
 		FancyBarsConfig c = FancyBarsConfig.get();
@@ -94,8 +100,8 @@ public final class ItemList {
 		if (l.cols < 1 || l.rows < 1) return null;
 		l.w = l.cols * SLOT + PAD * 2;
 		l.h = PAD * 2 + HEADER + l.rows * SLOT + 6 + SEARCH_H;
-		// keep it vertically centred when it's shorter than the screen
-		l.y = Math.max(6, (screen.height - l.h) / 2);
+		// keep it vertically centred when it's shorter than the screen (unless you placed it)
+		if (!custom) l.y = Math.max(6, (screenH - l.h) / 2);
 		l.gridX = l.x + PAD;
 		l.gridY = l.y + PAD + HEADER;
 		return l;
@@ -129,10 +135,22 @@ public final class ItemList {
 
 	// ---------------------------------------------------------------- drawing
 
-	private static void render(AbstractContainerScreen<?> screen, GuiGraphicsExtractor graphics, int mx, int my) {
+	/** Drawn from inside the menu's own drawing (so its tooltip isn't thrown away). */
+	public static void render(AbstractContainerScreen<?> screen, GuiGraphicsExtractor graphics, int mx, int my) {
 		if (!shown(screen)) return;
 		Layout l = layout(screen);
 		if (l == null) return;
+		// draw in plain screen coordinates whatever the menu's drawing left the pose at
+		graphics.pose().pushMatrix();
+		graphics.pose().identity();
+		try {
+			draw(screen, graphics, mx, my, l);
+		} finally {
+			graphics.pose().popMatrix();
+		}
+	}
+
+	private static void draw(AbstractContainerScreen<?> screen, GuiGraphicsExtractor graphics, int mx, int my, Layout l) {
 		Font font = Minecraft.getInstance().font;
 		graphics.nextStratum();
 		if (FancyBarsConfig.get().itemListBackground) Theme.panel(graphics, l.x, l.y, l.w, l.h);
@@ -170,7 +188,7 @@ public final class ItemList {
 				Theme.roundedRect(graphics, sx, sy, SLOT, SLOT, 3, Theme.SURFACE_HOVER);
 				hovered = stack;
 			}
-			graphics.fakeItem(stack, sx + 1, sy + 1);
+			dev.fancybars.util.gui.CachedItems.draw(graphics, stack, sx + 1, sy + 1);
 		}
 		if (hovered != null) {
 			graphics.setTooltipForNextFrame(font, tooltip(hovered), java.util.Optional.empty(), mx, my);
@@ -264,5 +282,29 @@ public final class ItemList {
 		if (id == null || id.isEmpty() || ItemRepo.get(id) == null) return false;
 		RecipeScreen.open(screen, id, usage);
 		return true;
+	}
+
+	// ---------------------------------------------------------------- its own Edit GUI
+
+	/** {x, y, w, h} of the list for an ordinary inventory on a screen this size. */
+	public static float[] previewRect(int screenW, int screenH) {
+		Layout l = layout(screenW, screenH, screenW / 2 + 88);
+		if (l == null) return new float[]{screenW - 60, 6, 54, 54};
+		return new float[]{l.x, l.y, l.w, l.h};
+	}
+
+	public static void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+		Layout l = layout(screenW, screenH, screenW / 2 + 88);
+		if (l == null) return;
+		ItemRepo.ensureLoaded();
+		Theme.panel(graphics, l.x, l.y, l.w, l.h);
+		List<ItemRepo.Entry> all = ItemRepo.entries();
+		for (int i = 0; i < l.cols * l.rows; i++) {
+			int sx = l.gridX + i % l.cols * SLOT;
+			int sy = l.gridY + i / l.cols * SLOT;
+			if (i < all.size()) dev.fancybars.util.gui.CachedItems.draw(graphics, all.get(i).stack(), sx + 1, sy + 1);
+			else graphics.fill(sx + 1, sy + 1, sx + SLOT - 1, sy + SLOT - 1, 0x33FFFFFF);
+		}
+		Theme.textInBox(graphics, Minecraft.getInstance().font, Component.translatable("fancybars.itemList.search"), l.x + PAD + 4, l.y + l.h - PAD - SEARCH_H, SEARCH_H, Theme.TEXT_MUTED);
 	}
 }

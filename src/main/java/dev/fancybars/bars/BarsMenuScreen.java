@@ -473,6 +473,10 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("itemListColumns", 0, 20, 1, false, () -> (float) config.itemListColumns, value -> config.itemListColumns = Math.round(value)));
 				list.add(new SliderItem("itemListRows", 0, 30, 1, false, () -> (float) config.itemListRows, value -> config.itemListRows = Math.round(value)));
 				list.add(new ToggleItem("itemListBackground", () -> config.itemListBackground, value -> config.itemListBackground = value));
+				list.add(new ToggleItem("itemListHideInDungeons", () -> config.itemListHideInDungeons, value -> config.itemListHideInDungeons = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.ITEM_LIST))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.ITEM_LIST.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.itemValue"), null));
 				list.add(new ToggleItem("itemValueEnabled", () -> config.itemValueEnabled, value -> config.itemValueEnabled = value));
 				list.add(new ToggleItem("itemValueEstimated", () -> config.itemValueEstimated, value -> config.itemValueEstimated = value));

@@ -1,4 +1,7 @@
 [
+  {"version": "2.39.2", "date": "2026-11-01",
+   "added": ["Item List has its own Edit GUI (Items tab) to put it anywhere; it stays out of the main Edit GUI", "Item List: Hide in Dungeons toggle (on by default)"],
+   "fixed": ["Storage Overlay and Item List draw their items much faster (each item's model is worked out once instead of every frame)", "Hovering an item in the Item List shows its tooltip"]},
   {"version": "2.39.1", "date": "2026-11-01",
    "added": ["Item List: Columns and Rows settings for how many items it shows", "Item List: Background toggle (off by default)"],
    "fixed": ["Opening backpacks / ender chest pages with the Storage Overlay no longer drops your FPS", "Item List tooltips show the item's lore"]},

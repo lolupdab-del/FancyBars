@@ -102,6 +102,8 @@ public class BarEditorScreen extends Screen {
 	}
 
 	private List<MovableElement> elements() {
+		// a GUI that has its own editor and isn't in the main one (the Item List)
+		if (single != null && !MovableElement.all().contains(single)) return List.of(single);
 		List<MovableElement> all = MovableElement.all();
 		if (filter == null) return all;
 		List<MovableElement> out = new ArrayList<>();
