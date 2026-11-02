@@ -1,4 +1,2 @@
-net.minecraft.client.renderer.rendertype.RenderTypes
-net.minecraft.client.renderer.OrderedSubmitNodeCollector
-net.minecraft.client.renderer.ShapeRenderer
-net.minecraft.gizmos.Gizmos
+net.minecraft.client.renderer.SubmitNodeCollector$CustomGeometryRenderer
+net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents
