@@ -181,17 +181,23 @@ public class ItemProtection {
 		}
 	}
 
+	/** Protecting only works from your inventory now, so the command just says how. */
 	public static int protectHeldCommand() {
 		LocalPlayer player = Minecraft.getInstance().player;
-		if (player != null) toggle(player.getMainHandItem());
+		if (player != null) player.sendSystemMessage(prefix().append(inventoryOnly().withStyle(ChatFormatting.YELLOW)));
 		return Command.SINGLE_SUCCESS;
 	}
 
-	/** Called from the keybind handler when no screen is open. */
+	private static MutableComponent inventoryOnly() {
+		Component key = protectKey != null ? protectKey.getTranslatedKeyMessage() : Component.literal("V");
+		return Component.translatable("fancybars.protection.inventoryOnly", key);
+	}
+
+	/** Called from the keybind handler when no screen is open: protecting only works in your inventory, so the press is ignored. */
 	public static void handleHotbarKey(LocalPlayer player) {
-		while (protectKey.consumeClick()) {
-			toggle(player.getMainHandItem());
-		}
+		boolean pressed = false;
+		while (protectKey.consumeClick()) pressed = true;
+		if (pressed && !player.getMainHandItem().isEmpty()) player.sendSystemMessage(prefix().append(inventoryOnly().withStyle(ChatFormatting.YELLOW)));
 	}
 
 	private static MutableComponent prefix() {

@@ -1,4 +1,7 @@
 [
+  {"version": "2.48.3", "date": "2026-11-01",
+   "added": [],
+   "fixed": ["Item protection: items can only be protected or unprotected from your inventory or storage now (not by pressing the key while holding one, or with /sbclient protect), so you can't change it by accident"]},
   {"version": "2.48.2", "date": "2026-11-01",
    "added": ["Chest Value has its own Edit GUI button (Items tab) to move and resize it anywhere; Reset puts it back next to the chest"],
    "fixed": []},
