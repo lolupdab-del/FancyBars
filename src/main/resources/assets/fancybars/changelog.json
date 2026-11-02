@@ -1,4 +1,7 @@
 [
+  {"version": "2.39.0", "date": "2026-11-01",
+   "added": ["Storage Overlay (from Skysoft): opening /storage, an ender chest page or a backpack shows every page in one panel you can scroll and search; click a page to open it (Items tab, on by default, with a Columns setting)", "Item List (from Skysoft): every SkyBlock item beside your inventory and menus with search and pages; hover for the tooltip and prices, click or R for recipes, right-click or U for what it's used in (crafting, forge and NPC shops)"],
+   "fixed": []},
   {"version": "2.38.0", "date": "2026-11-01",
    "added": [],
    "fixed": ["Removed Hide Crafting Grid and Hide Offhand Slot: there's no way to hide them that looks right with every resource pack. Hide Recipe Book Button still works on its own"]},

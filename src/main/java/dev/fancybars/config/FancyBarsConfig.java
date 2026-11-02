@@ -374,6 +374,8 @@ public class FancyBarsConfig {
 	public boolean spotifyHud = true;
 	/** Storage Overlay (Skysoft): every ender chest page and backpack in one searchable panel. */
 	public boolean storageOverlay = true;
+	/** Item List (Skysoft): every SkyBlock item beside your inventory, with recipes. */
+	public boolean itemListEnabled = true;
 	public int storageOverlayColumns = 3;
 	/** Time left in the song on the Now Playing HUD: 0 off, 1 bottom left, 2 bottom right. */
 	public int spotifyHudTime = 0;

@@ -29,17 +29,20 @@ public abstract class StorageOverlayScreenMixin {
 
 	@Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
 	private void fancybars$storageClick(MouseButtonEvent click, boolean doubled, CallbackInfoReturnable<Boolean> cir) {
-		if (StorageOverlay.mouseClicked((AbstractContainerScreen<?>) (Object) this, click)) cir.setReturnValue(true);
+		AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) (Object) this;
+		if (StorageOverlay.mouseClicked(screen, click) || dev.fancybars.items.list.ItemList.mouseClicked(screen, click)) cir.setReturnValue(true);
 	}
 
 	@Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
 	private void fancybars$storageScroll(double mouseX, double mouseY, double horizontal, double vertical, CallbackInfoReturnable<Boolean> cir) {
-		if (StorageOverlay.mouseScrolled((AbstractContainerScreen<?>) (Object) this, mouseX, mouseY, vertical)) cir.setReturnValue(true);
+		AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) (Object) this;
+		if (StorageOverlay.mouseScrolled(screen, mouseX, mouseY, vertical) || dev.fancybars.items.list.ItemList.mouseScrolled(screen, mouseX, mouseY, vertical)) cir.setReturnValue(true);
 	}
 
 	@Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
 	private void fancybars$storageKeys(KeyEvent key, CallbackInfoReturnable<Boolean> cir) {
-		if (StorageOverlay.keyPressed((AbstractContainerScreen<?>) (Object) this, key)) cir.setReturnValue(true);
+		AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) (Object) this;
+		if (StorageOverlay.keyPressed(screen, key) || dev.fancybars.items.list.ItemList.keyPressed(screen, key)) cir.setReturnValue(true);
 	}
 
 	@Inject(method = "hasClickedOutside", at = @At("HEAD"), cancellable = true)

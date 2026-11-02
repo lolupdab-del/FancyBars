@@ -468,6 +468,8 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("protectionStarInFront", () -> config.protectionStarInFront, value -> config.protectionStarInFront = value));
 				list.add(new ProtectedItemsItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.itemList.title"), null));
+				list.add(new ToggleItem("itemListEnabled", () -> config.itemListEnabled, value -> config.itemListEnabled = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.itemValue"), null));
 				list.add(new ToggleItem("itemValueEnabled", () -> config.itemValueEnabled, value -> config.itemValueEnabled = value));
 				list.add(new ToggleItem("itemValueEstimated", () -> config.itemValueEstimated, value -> config.itemValueEstimated = value));
