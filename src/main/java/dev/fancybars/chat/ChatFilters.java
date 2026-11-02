@@ -40,6 +40,7 @@ public final class ChatFilters {
 	public static final List<Filter> ALL = List.of(
 			// General
 			new Filter("profile", "general", (s, d) -> s.startsWith("You are playing on profile:")),
+			new Filter("profileId", "general", (s, d) -> s.startsWith("Profile ID: ")),
 			new Filter("autopet", "general", (s, d) -> s.startsWith("Autopet equipped your")),
 			new Filter("cooldown", "general", (s, d) -> s.contains(" cooldown") && !s.contains(":")),
 			new Filter("notEnoughMana", "general", (s, d) -> s.contains("You do not have enough mana to do this!") || s.startsWith("Not enough mana!")),

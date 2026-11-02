@@ -1,4 +1,7 @@
 [
+  {"version": "2.48.4", "date": "2026-11-01",
+   "added": ["Chat: Hide Profile ID toggle, hides the \"Profile ID: ...\" message you get every time you change worlds (Chat tab)"],
+   "fixed": []},
   {"version": "2.48.3", "date": "2026-11-01",
    "added": [],
    "fixed": ["Item protection: items can only be protected or unprotected from your inventory or storage now (not by pressing the key while holding one, or with /sbclient protect), so you can't change it by accident"]},

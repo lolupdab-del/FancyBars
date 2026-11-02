@@ -249,6 +249,8 @@
 	"fancybars.config.chat.ownOrbs.@Tooltip": "Hides: \"You picked up a ... Orb\"",
 	"fancybars.config.chat.pristine": "Hide Pristine",
 	"fancybars.config.chat.pristine.@Tooltip": "Hides: \"PRISTINE! You found ...\"",
+	"fancybars.config.chat.profileId": "Hide Profile ID",
+	"fancybars.config.chat.profileId.@Tooltip": "Hides: \"Profile ID: ...\" (shown every time you change worlds)",
 	"fancybars.config.chat.profile": "Hide Profile Message",
 	"fancybars.config.chat.profile.@Tooltip": "Hides: \"You are playing on profile: ...\"",
 	"fancybars.config.chat.rayOfHope": "Hide Ray of Hope Damage",
