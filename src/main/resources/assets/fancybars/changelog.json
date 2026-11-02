@@ -1,4 +1,7 @@
 [
+  {"version": "2.40.1", "date": "2026-11-01",
+   "added": ["Spotify: background toggles for the Now Playing HUD and the inventory player, separately"],
+   "fixed": ["A custom dye (animated or not) now shows on armor that already has a real animated dye, worn and in your inventory"]},
   {"version": "2.40.0", "date": "2026-11-01",
    "added": ["Minecraft HUD toggles (Bars tab): hide hearts, absorption hearts, hunger and the armor bar", "Item List sorting: name A-Z / Z-A, value high to low / low to high, rarity high to low / low to high. Pick it in the Items tab or click the top of the list to switch"],
    "fixed": []},

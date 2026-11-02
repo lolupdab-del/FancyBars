@@ -19,6 +19,11 @@ public class ItemModelResolverMixin {
 	private Object fancybars$customModel(Object original, @Local(argsOnly = true) ItemStack stack) {
 		if (!(original instanceof net.minecraft.resources.Identifier)) return original;
 		net.minecraft.resources.Identifier custom = ItemChanger.modelFor(stack);
-		return custom != null ? custom : original;
+		if (custom != null) return custom;
+		// your dye on armor that has its own model (like a real animated dye): use the plain leather model
+		if (dev.fancybars.items.Customization.forcesPlainLeather(stack) && !((net.minecraft.resources.Identifier) original).getNamespace().equals("minecraft")) {
+			return net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+		}
+		return original;
 	}
 }

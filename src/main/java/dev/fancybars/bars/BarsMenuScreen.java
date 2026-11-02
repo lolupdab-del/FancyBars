@@ -756,9 +756,11 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("spotifyEnabled", () -> config.spotifyEnabled, value -> config.spotifyEnabled = value));
 				list.add(new ToggleItem("spotifyBrokeMode", () -> config.spotifyBrokeMode, value -> config.spotifyBrokeMode = value));
 				list.add(new ToggleItem("spotifyHud", () -> config.spotifyHud, value -> config.spotifyHud = value));
+				list.add(new ToggleItem("spotifyHudBackground", () -> config.spotifyHudBackground, value -> config.spotifyHudBackground = value));
 				list.add(new ValueCycleItem("spotifyHudTime", new int[]{0, 1, 2}, () -> config.spotifyHudTime,
 						value -> config.spotifyHudTime = value, v -> Component.translatable("fancybars.spotify.hudTime." + v)));
 				list.add(new ToggleItem("spotifyInventory", () -> config.spotifyInventory, value -> config.spotifyInventory = value));
+				list.add(new ToggleItem("spotifyPanelBackground", () -> config.spotifyPanelBackground, value -> config.spotifyPanelBackground = value));
 				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.spotify.resetPanel"), () -> {
 					config.spotifyPanelMoved = false;
 					FancyBarsConfig.save();

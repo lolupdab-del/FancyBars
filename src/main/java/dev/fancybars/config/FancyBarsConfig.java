@@ -372,6 +372,8 @@ public class FancyBarsConfig {
 	public boolean spotifyEnabled = true;
 
 	public boolean spotifyHud = true;
+	public boolean spotifyHudBackground = true;
+	public boolean spotifyPanelBackground = true;
 	/** Storage Overlay (Skysoft): every ender chest page and backpack in one searchable panel. */
 	public boolean storageOverlay = true;
 	/** Hide Minecraft's own hearts / hunger / armor / absorption hearts. */

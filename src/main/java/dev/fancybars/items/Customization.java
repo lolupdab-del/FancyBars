@@ -151,6 +151,11 @@ public final class Customization {
 		return config.customDyeColors.get(uuid);
 	}
 
+	/** Your own dye is set on dyeable armor: it should be drawn as plain leather so the dye is visible. */
+	public static boolean forcesPlainLeather(ItemStack stack) {
+		return stack.is(net.minecraft.tags.ItemTags.DYEABLE) && dye(stack) != null;
+	}
+
 	public static @Nullable ArmorTrim trim(ItemStack stack) {
 		FancyBarsConfig config = FancyBarsConfig.get();
 		if (config.customArmorTrims.isEmpty() || !active()) return null;

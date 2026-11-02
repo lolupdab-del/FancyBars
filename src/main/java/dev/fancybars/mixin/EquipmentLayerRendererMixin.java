@@ -22,6 +22,11 @@ public abstract class EquipmentLayerRendererMixin {
 			at = @At("HEAD"), argsOnly = true, require = 0)
 	private ResourceKey<EquipmentAsset> fancybars$armorModel(ResourceKey<EquipmentAsset> asset, @Local(argsOnly = true) ItemStack stack) {
 		Identifier custom = Customization.armorModel(stack);
-		return custom == null ? asset : ResourceKey.create(EquipmentAssets.ROOT_ID, custom);
+		if (custom != null) return ResourceKey.create(EquipmentAssets.ROOT_ID, custom);
+		// your dye on armor that has its own look (like a real animated dye): use plain leather so the dye shows
+		if (Customization.forcesPlainLeather(stack) && asset != null && !asset.identifier().getNamespace().equals("minecraft")) {
+			return ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.withDefaultNamespace("leather"));
+		}
+		return asset;
 	}
 }

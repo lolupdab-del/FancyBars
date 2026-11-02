@@ -84,8 +84,10 @@ public final class SpotifyHud {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(scale, scale);
-		Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudBg(0.88f, a));
-		if (dev.fancybars.config.FancyBarsConfig.get().hudBorders) Theme.border(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudLine(), a);
+		if (FancyBarsConfig.get().spotifyHudBackground) {
+			Theme.roundedRect(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudBg(0.88f, a));
+			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, 0, 0, WIDTH, HEIGHT, 6, Theme.hudLine(), a);
+		}
 		SpotifyUi.art(graphics, s.artUrl, 5, 5, 34);
 		int tx = 45;
 		int tw = WIDTH - tx - 18;
