@@ -67,6 +67,12 @@ public class FancyBarsConfig {
 
 	/** Draw the protection star on top of the item instead of behind it. */
 	public boolean protectionStarInFront = false;
+	/** Item Rarity Background: rarity-coloured backgrounds behind SkyBlock items. */
+	public boolean rarityBackground = true;
+	public boolean rarityBackgroundHotbar = true;
+	/** 0 square, 1 rounded, 2 outline, 3 gradient. */
+	public int rarityBackgroundStyle = 1;
+	public float rarityBackgroundOpacity = 0.45f;
 
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();
@@ -513,6 +519,14 @@ public class FancyBarsConfig {
 
 	public float hotbarScale = 1;
 
+	public boolean bossBarShown = true;
+
+	public int bossBarX = 0;
+
+	public int bossBarY = 0;
+
+	public float bossBarScale = 1;
+
 	// ---------------------------------------------------------------- Chat filters (from Skytils' spam hider)
 
 	/** Skytils chat tabs: All / Party / Guild / DMs / Co-op buttons in the chat screen. */
@@ -825,6 +839,7 @@ public class FancyBarsConfig {
 			if (instance.customAnimatedHelmetTextures == null) instance.customAnimatedHelmetTextures = new java.util.HashMap<>();
 			if (instance.titleScale <= 0) instance.titleScale = 1;
 			if (instance.hotbarScale <= 0) instance.hotbarScale = 1;
+			if (instance.bossBarScale <= 0) instance.bossBarScale = 1;
 			if (instance.crosshairSize < 5 || instance.crosshairSize % 2 == 0) instance.crosshairSize = 15;
 			if (instance.crosshairScale <= 0) instance.crosshairScale = 1;
 			if (instance.spotifyScale <= 0) instance.spotifyScale = 1;

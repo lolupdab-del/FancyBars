@@ -702,6 +702,64 @@ public interface MovableElement {
 		}
 	};
 
+	MovableElement BOSS_BAR = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] b = dev.fancybars.hud.TitlesAndHotbar.bossBox();
+			float cx = screenW / 2f + c.bossBarX;
+			float cy = c.bossBarY;
+			return new float[]{cx + b[0] * c.bossBarScale, cy + b[1] * c.bossBarScale, (b[2] - b[0]) * c.bossBarScale, (b[3] - b[1]) * c.bossBarScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			dev.fancybars.hud.TitlesAndHotbar.drawBossBarPreview(graphics, enabled() ? 0.85f : 0.3f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			float[] b = dev.fancybars.hud.TitlesAndHotbar.bossBox();
+			c.bossBarX = Math.round(x - b[0] * c.bossBarScale - screenW / 2f);
+			c.bossBarY = Math.round(y - b[1] * c.bossBarScale);
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().bossBarScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().bossBarScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().bossBarShown;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().bossBarShown = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.bossBarX = 0;
+			c.bossBarY = 0;
+			c.bossBarScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.bossBar");
+		}
+	};
+
 	MovableElement HOTBAR = new MovableElement() {
 		@Override
 		public float[] rect(int screenW, int screenH) {
@@ -1208,5 +1266,5 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
 }

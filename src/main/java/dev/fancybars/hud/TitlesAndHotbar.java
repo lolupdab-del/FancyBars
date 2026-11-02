@@ -35,6 +35,19 @@ public final class TitlesAndHotbar {
 			original.extractRenderState(graphics, tickCounter);
 			pose.popMatrix();
 		});
+		HudElementRegistry.replaceElement(VanillaHudElements.BOSS_BAR, original -> (graphics, tickCounter) -> {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			if (!config.bossBarShown) return;
+			if (config.bossBarX == 0 && config.bossBarY == 0 && config.bossBarScale == 1) {
+				original.extractRenderState(graphics, tickCounter);
+				return;
+			}
+			Matrix3x2fStack pose = graphics.pose();
+			pose.pushMatrix();
+			transformAround(pose, graphics.guiWidth() / 2f, 0, config.bossBarX, config.bossBarY, config.bossBarScale);
+			original.extractRenderState(graphics, tickCounter);
+			pose.popMatrix();
+		});
 		HudElementRegistry.replaceElement(VanillaHudElements.HOTBAR, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (config.hotbarX == 0 && config.hotbarY == 0 && config.hotbarScale == 1) {
@@ -93,6 +106,33 @@ public final class TitlesAndHotbar {
 		pose.scale(2, 2);
 		graphics.text(font, sampleSubtitle(), -font.width(sampleSubtitle()) / 2, 5, a | 0xFFFFFF, true);
 		pose.popMatrix();
+		pose.popMatrix();
+	}
+
+	// ---------------------------------------------------------------- Boss bar geometry (same as vanilla)
+
+	public static final int BOSS_W = 182;
+	private static final Identifier BOSS_BG = Identifier.withDefaultNamespace("boss_bar/purple_background");
+	private static final Identifier BOSS_FILL = Identifier.withDefaultNamespace("boss_bar/purple_progress");
+
+	/** Unscaled boss bar block {x0, y0, x1, y1} relative to the top centre of the screen (name above, bar below). */
+	public static float[] bossBox() {
+		return new float[]{-BOSS_W / 2f, 2, BOSS_W / 2f, 17};
+	}
+
+	public static void drawBossBarPreview(GuiGraphicsExtractor graphics, float alpha) {
+		FancyBarsConfig config = FancyBarsConfig.get();
+		Font font = Minecraft.getInstance().font;
+		int w = graphics.guiWidth();
+		int a = Math.round(alpha * 255) << 24;
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		transformAround(pose, w / 2f, 0, config.bossBarX, config.bossBarY, config.bossBarScale);
+		int x = w / 2 - BOSS_W / 2;
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BOSS_BG, x, 12, BOSS_W, 5, a | 0xFFFFFF);
+		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, BOSS_FILL, BOSS_W, 5, 0, 0, x, 12, BOSS_W * 2 / 3, 5);
+		Component name = Component.translatable("fancybars.bossBar.sample");
+		graphics.text(font, name, w / 2 - font.width(name) / 2, 3, a | 0xFFFFFF, true);
 		pose.popMatrix();
 	}
 

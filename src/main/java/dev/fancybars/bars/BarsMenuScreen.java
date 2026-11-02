@@ -473,6 +473,12 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("protectionStarInFront", () -> config.protectionStarInFront, value -> config.protectionStarInFront = value));
 				list.add(new ProtectedItemsItem());
 				for (String uuid : new ArrayList<>(config.protectedItems)) list.add(new ProtectedRowItem(uuid));
+				list.add(new HeaderItem(Component.translatable("fancybars.rarityBackground.title"), null));
+				list.add(new ToggleItem("rarityBackground", () -> config.rarityBackground, value -> config.rarityBackground = value));
+				list.add(new ToggleItem("rarityBackgroundHotbar", () -> config.rarityBackgroundHotbar, value -> config.rarityBackgroundHotbar = value));
+				list.add(new ValueCycleItem("rarityBackgroundStyle", new int[]{0, 1, 2, 3}, () -> config.rarityBackgroundStyle,
+						value -> config.rarityBackgroundStyle = value, dev.fancybars.items.RarityBackground::styleName));
+				list.add(new SliderItem("rarityBackgroundOpacity", 0.05f, 1, 0.01f, true, () -> config.rarityBackgroundOpacity, value -> config.rarityBackgroundOpacity = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.itemList.title"), null));
 				list.add(new ToggleItem("itemListEnabled", () -> config.itemListEnabled, value -> config.itemListEnabled = value));
 				list.add(new SliderItem("itemListColumns", 0, 20, 1, false, () -> (float) config.itemListColumns, value -> config.itemListColumns = Math.round(value)));
@@ -715,6 +721,11 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TITLE))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.editor.element.bossBar"), null));
+				list.add(new ToggleItem("bossBarShown", () -> config.bossBarShown, value -> config.bossBarShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.BOSS_BAR))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.BOSS_BAR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HOTBAR))),

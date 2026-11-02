@@ -350,6 +350,7 @@ public final class StorageOverlay {
 					if (i >= s.size()) continue;
 					ItemStack stack = s.getStack(i);
 					if (stack.isEmpty()) continue;
+					dev.fancybars.items.RarityBackground.draw(graphics, stack, sx + 1, sy + 1, false);
 					dev.fancybars.util.gui.CachedItems.draw(graphics, stack, sx + 1, sy + 1);
 					if (stack.getCount() > 1 || stack.isBarVisible()) graphics.itemDecorations(font, stack, sx + 1, sy + 1);
 					if (isProtected(stack)) ItemProtection.drawStar(graphics, sx + 1, sy + 1);

@@ -103,6 +103,11 @@ public abstract class ContainerScreenProtectionMixin<T extends AbstractContainer
 	}
 
 	@Inject(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;item(Lnet/minecraft/world/item/ItemStack;III)V"))
+	private void fancybars$drawRarityBackground(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "slot") Slot slot) {
+		dev.fancybars.items.RarityBackground.draw(graphics, slot.getItem(), slot.x, slot.y, false);
+	}
+
+	@Inject(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;item(Lnet/minecraft/world/item/ItemStack;III)V"))
 	private void fancybars$drawProtectionStar(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "slot") Slot slot) {
 		if (SkyblockLocation.isOnSkyblock() && !dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(slot.getItem())) {
 			ItemProtection.drawStar(graphics, slot.x, slot.y);

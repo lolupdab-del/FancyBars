@@ -1,4 +1,7 @@
 [
+  {"version": "2.43.0", "date": "2026-11-01",
+   "added": ["Item Rarity Background: rarity-coloured backgrounds behind SkyBlock items in inventories, the hotbar and the Storage Overlay, with Square, Rounded, Outline and Gradient styles and an opacity slider (Items tab)", "Boss Bar in the Edit GUI: move, scale or hide the boss bar at the top of the screen"],
+   "fixed": []},
   {"version": "2.42.1", "date": "2026-11-01",
    "added": ["Storage Overlay: Page Switch Delay (400 ms by default) so switching pages fast can't get you kicked; the last page you click during the wait still opens"],
    "fixed": []},
