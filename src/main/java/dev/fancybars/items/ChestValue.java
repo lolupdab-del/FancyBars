@@ -109,6 +109,60 @@ public final class ChestValue {
 		return s + "…";
 	}
 
+	/** Lines to show: {name, value} (strings with § colours). */
+	private static List<String[]> lines(List<Row> rows) {
+		List<String[]> lines = new ArrayList<>();
+		for (Row r : rows) lines.add(new String[]{(r.count() > 1 ? "§7" + r.count() + "x §r" : "") + r.name(), "§6" + format(r.value())});
+		return lines;
+	}
+
+	private static final int MAX_NAME = 150;
+
+	/** Unscaled panel size {w, h}. */
+	private static int[] size(String title, double total, List<String[]> lines) {
+		Font font = Minecraft.getInstance().font;
+		int nameW = 0, valueW = 0;
+		for (String[] l : lines) {
+			nameW = Math.max(nameW, font.width(clip(font, l[0], MAX_NAME)));
+			valueW = Math.max(valueW, font.width(l[1]));
+		}
+		int titleW = font.width(title + format(total));
+		return new int[]{Math.max(titleW, nameW + 8 + valueW) + PAD * 2, PAD * 2 + LINE + (lines.isEmpty() ? 0 : 3 + lines.size() * LINE)};
+	}
+
+	/** Top-left corner on screen: your own spot from the Edit GUI, or just left of the container. */
+	private static float[] position(int screenW, int screenH, int containerLeft, int containerTop, float w) {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		if (c.chestValueX >= 0 && c.chestValueY >= 0) return new float[]{c.chestValueX * screenW, c.chestValueY * screenH};
+		return new float[]{Math.max(2, containerLeft - w - 6), containerTop};
+	}
+
+	private static float scale() {
+		return Math.clamp(FancyBarsConfig.get().chestValueScale, 0.5f, 3f);
+	}
+
+	/** Draws the panel at x, y (already scaled by the caller); returns the hovered line index or -1. */
+	private static int drawPanel(GuiGraphicsExtractor graphics, String title, double total, List<String[]> lines, int w, int h, double mx, double my, float alpha) {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		Font font = Minecraft.getInstance().font;
+		int a = Math.round(alpha * 255) << 24;
+		if (c.chestValueBackground) Theme.panel(graphics, 0, 0, w, h);
+		graphics.text(font, Component.literal(title).withStyle(ChatFormatting.YELLOW).append(Component.literal(format(total)).withStyle(ChatFormatting.GOLD)), PAD, PAD, a | 0xFFFFFF, true);
+		int ly = PAD + LINE + 3;
+		int hovered = -1;
+		for (int i = 0; i < lines.size(); i++) {
+			String[] l = lines.get(i);
+			if (mx >= 0 && mx < w && my >= ly - 1 && my < ly + LINE - 1) {
+				hovered = i;
+				graphics.fill(2, ly - 1, w - 2, ly + LINE - 1, 0x30FFFFFF);
+			}
+			graphics.text(font, clip(font, l[0], MAX_NAME), PAD, ly, a | 0xFFFFFF, true);
+			graphics.text(font, l[1], w - PAD - font.width(l[1]), ly, a | 0xFFFFFF, true);
+			ly += LINE;
+		}
+		return hovered;
+	}
+
 	public static void render(AbstractContainerScreen<?> screen, GuiGraphicsExtractor graphics, int mx, int my) {
 		if (!shown(screen)) return;
 		long now = System.currentTimeMillis();
@@ -119,47 +173,25 @@ public final class ChestValue {
 		}
 		if (total <= 0) return;
 		FancyBarsConfig c = FancyBarsConfig.get();
-		Font font = Minecraft.getInstance().font;
 		ContainerScreenAccessor acc = (ContainerScreenAccessor) screen;
 		int left = acc.fancybars$getLeftPos();
 		int top = acc.fancybars$getTopPos();
-
-		String title = (screen instanceof InventoryScreen ? "Inventory Value: " : "Chest Value: ");
-		List<String[]> lines = new ArrayList<>(); // {left text, right text}
-		for (Row r : rows) lines.add(new String[]{(r.count() > 1 ? "§7" + r.count() + "x §r" : "") + r.name(), "§6" + format(r.value())});
-		int maxName = 150;
-		int nameW = 0, valueW = 0;
-		for (String[] l : lines) {
-			nameW = Math.max(nameW, font.width(clip(font, l[0], maxName)));
-			valueW = Math.max(valueW, font.width(l[1]));
-		}
-		int titleW = font.width(title + format(total));
-		int w = Math.max(titleW, nameW + 8 + valueW) + PAD * 2;
-		int h = PAD * 2 + LINE + (lines.isEmpty() ? 0 : 3 + lines.size() * LINE);
-		int x = Math.max(2, left - w - 6);
-		int y = top;
+		String title = screen instanceof InventoryScreen ? "Inventory Value: " : "Chest Value: ";
+		List<String[]> lines = lines(rows);
+		int[] size = size(title, total, lines);
+		float s = scale();
+		float[] pos = position(screen.width, screen.height, left, top, size[0] * s);
 
 		graphics.pose().pushMatrix();
 		graphics.pose().identity();
 		try {
 			graphics.nextStratum();
-			if (c.chestValueBackground) Theme.panel(graphics, x, y, w, h);
-			graphics.text(font, Component.literal(title).withStyle(ChatFormatting.YELLOW).append(Component.literal(format(total)).withStyle(ChatFormatting.GOLD)), x + PAD, y + PAD, 0xFFFFFFFF, true);
-			int ly = y + PAD + LINE + 3;
-			Row hovered = null;
-			for (int i = 0; i < lines.size(); i++) {
-				String[] l = lines.get(i);
-				boolean over = mx >= x && mx < x + w && my >= ly - 1 && my < ly + LINE - 1;
-				if (over) {
-					hovered = rows.get(i);
-					graphics.fill(x + 2, ly - 1, x + w - 2, ly + LINE - 1, 0x30FFFFFF);
-				}
-				graphics.text(font, clip(font, l[0], maxName), x + PAD, ly, 0xFFFFFFFF, true);
-				graphics.text(font, l[1], x + w - PAD - font.width(l[1]), ly, 0xFFFFFFFF, true);
-				ly += LINE;
-			}
-			if (hovered != null && c.chestValueHighlight) {
-				for (Slot slot : hovered.slots()) {
+			graphics.pose().translate(pos[0], pos[1]);
+			graphics.pose().scale(s, s);
+			int hoveredIndex = drawPanel(graphics, title, total, lines, size[0], size[1], (mx - pos[0]) / s, (my - pos[1]) / s, 1);
+			graphics.pose().identity();
+			if (hoveredIndex >= 0 && c.chestValueHighlight) {
+				for (Slot slot : rows.get(hoveredIndex).slots()) {
 					int sx = left + slot.x, sy = top + slot.y;
 					graphics.fill(sx, sy, sx + 16, sy + 16, 0x8055FF55);
 				}
@@ -167,5 +199,32 @@ public final class ChestValue {
 		} finally {
 			graphics.pose().popMatrix();
 		}
+	}
+
+	// ---------------------------------------------------------------- Edit GUI
+
+	private static final List<String[]> SAMPLE = List.of(
+			new String[]{"§6Hyperion", "§6" + "1.1B"}, new String[]{"§7" + "64x §r§aEnchanted Diamond", "§6" + "11.2M"},
+			new String[]{"§5Wither Shield", "§6" + "3.4M"}, new String[]{"§7" + "12x §r§9Spirit Bone", "§6" + "1.8M"});
+
+	private static final double SAMPLE_TOTAL = 1_116_400_000;
+
+	/** Where the panel is in the Edit GUI (as if a chest were open in the middle of the screen). */
+	public static float[] previewRect(int screenW, int screenH) {
+		int[] size = size("Chest Value: ", SAMPLE_TOTAL, SAMPLE);
+		float s = scale();
+		float[] pos = position(screenW, screenH, (screenW - 176) / 2, (screenH - 166) / 2, size[0] * s);
+		return new float[]{pos[0], pos[1], size[0] * s, size[1] * s};
+	}
+
+	public static void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+		int[] size = size("Chest Value: ", SAMPLE_TOTAL, SAMPLE);
+		float[] r = previewRect(screenW, screenH);
+		float s = scale();
+		graphics.pose().pushMatrix();
+		graphics.pose().translate(r[0], r[1]);
+		graphics.pose().scale(s, s);
+		drawPanel(graphics, "Chest Value: ", SAMPLE_TOTAL, SAMPLE, size[0], size[1], -1, -1, FancyBarsConfig.get().chestValue ? 1 : 0.4f);
+		graphics.pose().popMatrix();
 	}
 }

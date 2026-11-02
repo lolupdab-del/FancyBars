@@ -95,6 +95,10 @@ public class FancyBarsConfig {
 	public boolean chestValueIgnoreSoulbound = true;
 	public int chestValueItems = 15;
 	public int chestValueHideBelow = 100000;
+	/** Chest Value position (fractions of the screen; -1 = next to the container) and size. */
+	public float chestValueX = -1;
+	public float chestValueY = -1;
+	public float chestValueScale = 1;
 
 	/** SkyBlock item UUIDs of protected items. */
 	public java.util.Set<String> protectedItems = new java.util.LinkedHashSet<>();

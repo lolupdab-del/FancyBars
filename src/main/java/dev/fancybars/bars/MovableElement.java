@@ -1210,6 +1210,65 @@ public interface MovableElement {
 	};
 
 
+	/** Chest Value: only shows in containers, so like the Item List it has its own Edit GUI and isn't in {@link #ALL}. */
+	MovableElement CHEST_VALUE = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			return dev.fancybars.items.ChestValue.previewRect(screenW, screenH);
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			dev.fancybars.items.ChestValue.drawPreview(graphics, screenW, screenH);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.chestValueX = Math.clamp(x, 0, screenW - 20) / screenW;
+			c.chestValueY = Math.clamp(y, 0, screenH - 20) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().chestValueScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().chestValueScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().chestValue;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().chestValue = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			c.chestValueX = -1;
+			c.chestValueY = -1;
+			c.chestValueScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.chestValue.title");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
 	/** The Item List: has its own Edit GUI (it's too big for the main one), so it's not in {@link #ALL}. */
 	MovableElement ITEM_LIST = new MovableElement() {
 		@Override

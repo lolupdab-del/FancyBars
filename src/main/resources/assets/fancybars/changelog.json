@@ -1,4 +1,7 @@
 [
+  {"version": "2.48.2", "date": "2026-11-01",
+   "added": ["Chest Value has its own Edit GUI button (Items tab) to move and resize it anywhere; Reset puts it back next to the chest"],
+   "fixed": []},
   {"version": "2.48.1", "date": "2026-11-01",
    "added": ["Protected items list is now a dropdown (click the count to open it) with a search bar", "Rare drop tracker: the list of tracked drops is a dropdown with a search bar, sorted by the floor each drop comes from (shown next to it)"],
    "fixed": []},

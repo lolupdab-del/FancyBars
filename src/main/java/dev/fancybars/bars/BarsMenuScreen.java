@@ -492,6 +492,9 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("chestValueIgnoreSoulbound", () -> config.chestValueIgnoreSoulbound, value -> config.chestValueIgnoreSoulbound = value));
 				list.add(new SliderItem("chestValueItems", 1, 50, 1, false, () -> (float) config.chestValueItems, value -> config.chestValueItems = Math.round(value)));
 				list.add(new SliderItem("chestValueHideBelow", 0, 10000000, 50000, false, () -> (float) config.chestValueHideBelow, value -> config.chestValueHideBelow = Math.round(value)));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.CHEST_VALUE))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.CHEST_VALUE.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.glowingDroppedItems.title"), null));
 				list.add(new ToggleItem("glowingDroppedItems", () -> config.glowingDroppedItems, value -> config.glowingDroppedItems = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.etherwarp.title"), null));
