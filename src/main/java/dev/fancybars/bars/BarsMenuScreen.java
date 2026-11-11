@@ -727,6 +727,9 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("petShowSkin", () -> config.petShowSkin, value -> config.petShowSkin = value));
 				list.add(new ToggleItem("petShowXp", () -> config.petShowXp, value -> config.petShowXp = value));
 				list.add(new ToggleItem("petShowHeldItem", () -> config.petShowHeldItem, value -> config.petShowHeldItem = value));
+				list.add(new ToggleItem("petItemIcon", () -> config.petItemIcon, value -> config.petItemIcon = value));
+				list.add(new SliderItem("petItemIconSize", 0.5f, 2, 0.05f, true, () -> config.petItemIconSize, value -> config.petItemIconSize = value));
+				list.add(new ToggleItem("petItemIconBackground", () -> config.petItemIconBackground, value -> config.petItemIconBackground = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.PET))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.PET.reset())));
@@ -847,6 +850,22 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.nick.title"), Component.translatable("fancybars.nick.hint")));
+				list.add(new ToggleItem("nicknamesEnabled", () -> config.nicknamesEnabled, value -> {
+					config.nicknamesEnabled = value;
+					dev.fancybars.players.Nicknames.refreshNameTags();
+				}));
+				list.add(new ToggleItem("sharedNamesEnabled", () -> config.sharedNamesEnabled, value -> {
+					config.sharedNamesEnabled = value;
+					dev.fancybars.players.Nicknames.refreshNameTags();
+				}));
+				list.add(new SliderItem("nameFlowSize", 2, 40, 0.5f, false, () -> config.nameFlowSize, value -> config.nameFlowSize = value));
+				for (FancyBarsConfig.Nickname nickname : config.nicknames) list.add(new NicknameRowItem(nickname));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.nick.add"), ModernButton.Style.PRIMARY, () -> {
+					config.nicknames.add(new FancyBarsConfig.Nickname());
+					FancyBarsConfig.save();
+					rebuildNextTick = true;
+				})));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.swordBlock"), null));
 				list.add(new ToggleItem("swordBlock", () -> config.swordBlock, value -> config.swordBlock = value));
 				list.add(new ToggleItem("swordBlockSwing", () -> config.swordBlockSwing, value -> config.swordBlockSwing = value));
@@ -2342,6 +2361,57 @@ public class BarsMenuScreen extends Screen {
 			Theme.boldInBox(graphics, font, Component.literal("/"), x + 8, y, height, Theme.TEXT_MUTED);
 			Theme.centeredInBox(graphics, font, Component.literal("→"), from.getRight() + 12, y, height, Theme.ACCENT);
 			Theme.boldInBox(graphics, font, Component.literal("/"), to.getX() - 9, y, height, Theme.TEXT_MUTED);
+		}
+	}
+
+	/** One nickname: [ IGN ]  →  [ Nickname ]  ✕ */
+	private class NicknameRowItem extends Item {
+		private final dev.fancybars.util.gui.SearchField ign;
+		private final dev.fancybars.util.gui.SearchField name;
+		private final ModernButton remove;
+
+		NicknameRowItem(FancyBarsConfig.Nickname nickname) {
+			this.height = 26;
+			this.searchable = true;
+			this.searchText = "nickname nick custom name player " + nickname.ign + " " + nickname.name;
+			ign = new dev.fancybars.util.gui.SearchField(90, 16, nickname.ign, Component.translatable("fancybars.commands.ignPlaceholder"), value -> {
+				nickname.ign = value.trim();
+				FancyBarsConfig.save();
+				dev.fancybars.players.Nicknames.refreshNameTags();
+			}).maxLength(16);
+			name = new dev.fancybars.util.gui.SearchField(120, 16, nickname.name, Component.translatable("fancybars.nick.namePlaceholder"), value -> {
+				nickname.name = value;
+				FancyBarsConfig.save();
+				dev.fancybars.players.Nicknames.refreshNameTags();
+			}).maxLength(64);
+			remove = new ModernButton(20, 16, Component.literal("✕"), () -> {
+				config.nicknames.remove(nickname);
+				FancyBarsConfig.save();
+				dev.fancybars.players.Nicknames.refreshNameTags();
+				rebuildNextTick = true;
+			});
+			tipFor(remove, Component.translatable("fancybars.nick.remove"));
+			widgets.add(ign);
+			widgets.add(name);
+			widgets.add(remove);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			int fy = y + (height - 16) / 2;
+			int ignW = Math.max(70, (w - 70) / 3);
+			ign.setWidth(ignW);
+			ign.setPosition(x + 8, fy);
+			remove.setPosition(x + w - 26, fy);
+			int nameX = x + 8 + ignW + 24;
+			name.setWidth(remove.getX() - 6 - nameX);
+			name.setPosition(nameX, fy);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			row(graphics, x, y, w, height, false);
+			Theme.centeredInBox(graphics, font, Component.literal("→"), ign.getRight() + 12, y, height, Theme.ACCENT);
 		}
 	}
 

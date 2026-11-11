@@ -235,6 +235,12 @@ public class FancyBarsConfig {
 	public boolean petShowSkin = true;
 	public boolean petShowXp = false;
 	public boolean petShowHeldItem = false;
+	/** Small icon of the held item on the bottom-right of the pet circle. */
+	public boolean petItemIcon = true;
+	/** Held item icon size (1 = default). */
+	public float petItemIconSize = 1;
+	/** Dark circle behind the held item icon. */
+	public boolean petItemIconBackground = true;
 
 	/** Rainbow speed (1 = about one full cycle every 10 seconds). */
 	public float chromaSpeed = 1;
@@ -392,6 +398,29 @@ public class FancyBarsConfig {
 	public java.util.List<CommandAlias> commandAliases = new java.util.ArrayList<>();
 
 	public java.util.List<String> shitterList = new java.util.ArrayList<>();
+
+	/** A custom name shown instead of a player's IGN (only on your screen). {@code name} may use &amp; colour codes. */
+	public static final class Nickname {
+		public String ign = "";
+
+		public String name = "";
+
+		public Nickname() {}
+
+		public Nickname(String ign, String name) {
+			this.ign = ign;
+			this.name = name;
+		}
+	}
+
+	public boolean nicknamesEnabled = true;
+	/** Show the custom names from the shared list (names.json in the mod's repo) that every user sees. */
+	public boolean sharedNamesEnabled = true;
+	/** Hex colours in the tab list (off: classic colours, since tab list mods turn hex colours into raw text). */
+	public boolean nicknamesTabSmoothColors = false;
+	/** How long a custom name's colour flow is before it repeats, in % of the screen width. */
+	public float nameFlowSize = 8;
+	public java.util.List<Nickname> nicknames = new java.util.ArrayList<>();
 
 	/** Kick people on the shitter list when they join a party you're in. */
 	public boolean shitterAutoKick = true;
@@ -875,6 +904,8 @@ public class FancyBarsConfig {
 			if (instance.spotifyScale <= 0) instance.spotifyScale = 1;
 			if (instance.calculatorTriggers == null) instance.calculatorTriggers = "ca, c";
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
+			if (instance.petItemIconSize <= 0) instance.petItemIconSize = 1;
+			if (instance.nameFlowSize <= 0) instance.nameFlowSize = 8;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
 			if (instance.storageStyle < 0) instance.storageStyle = instance.storageVanillaStyle ? 1 : 0;
 			if (instance.petStyleVersion < 1) {
@@ -898,6 +929,7 @@ public class FancyBarsConfig {
 			if (instance.termScale <= 0) instance.termScale = 1;
 			if (instance.commandAliases == null) instance.commandAliases = new java.util.ArrayList<>();
 			if (instance.shitterList == null) instance.shitterList = new java.util.ArrayList<>();
+			if (instance.nicknames == null) instance.nicknames = new java.util.ArrayList<>();
 			if (instance.spotifyClientId == null) instance.spotifyClientId = "";
 			if (instance.viewmodelItemScale <= 0) instance.viewmodelItemScale = 1;
 			if (instance.viewmodelArmScale <= 0) instance.viewmodelArmScale = 1;

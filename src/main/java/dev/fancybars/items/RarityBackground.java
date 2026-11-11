@@ -21,7 +21,15 @@ import dev.fancybars.util.SkyblockLocation;
  * rarity line at the bottom of the lore ("LEGENDARY SWORD").
  */
 public final class RarityBackground {
-	private static final Pattern RARITY = Pattern.compile("(?:^|\\s)(VERY SPECIAL|UNCOMMON|COMMON|RARE|EPIC|LEGENDARY|MYTHIC|DIVINE|SPECIAL|ULTIMATE|ADMIN)(?:\\s|$)");
+	/**
+	 * A rarity line, e.g. "LEGENDARY DUNGEON SWORD", "SHINY EPIC", or "a MYTHIC SWORD a" when recombobulated (the a's are
+	 * the obfuscated marks). Case-sensitive and the whole line, so description text like "RARE REWARD!" doesn't count.
+	 */
+	private static final Pattern RARITY = Pattern.compile("^(?:[a-z] )?(?:SHINY )?(VERY SPECIAL|UNCOMMON|COMMON|RARE|EPIC|LEGENDARY|MYTHIC|DIVINE|SPECIAL|ULTIMATE|ADMIN)(?: [A-Z][A-Z ]*)?(?: [a-z])?$");
+	/** Pets have no rarity line: their rarity is the colour of the name after "[Lvl N]". */
+	private static final Pattern PET_NAME = Pattern.compile("^[^\\[]*\\[Lvl \\d+] .+");
+	private static final int[] LEGACY = {0x000000, 0x0000AA, 0x00AA00, 0x00AAAA, 0xAA0000, 0xAA00AA, 0xFFAA00, 0xAAAAAA,
+			0x555555, 0x5555FF, 0x55FF55, 0x55FFFF, 0xFF5555, 0xFF55FF, 0xFFFF55, 0xFFFFFF};
 	private static final Map<String, Integer> COLORS = Map.ofEntries(
 			Map.entry("COMMON", 0xFFFFFF), Map.entry("UNCOMMON", 0x55FF55), Map.entry("RARE", 0x5555FF),
 			Map.entry("EPIC", 0xAA00AA), Map.entry("LEGENDARY", 0xFFAA00), Map.entry("MYTHIC", 0xFF55FF),
@@ -40,18 +48,52 @@ public final class RarityBackground {
 		int color = -1;
 		ItemLore lore = stack.get(DataComponents.LORE);
 		if (lore != null) {
+			// menus (Auction House, Bazaar, shops, ...) add lines below the rarity line, so search up from the bottom
 			var lines = lore.lines();
 			for (int i = lines.size() - 1; i >= 0; i--) {
 				String line = ChatFormatting.stripFormatting(lines.get(i).getString());
 				if (line == null || line.isBlank()) continue;
-				Matcher m = RARITY.matcher(line.trim().toUpperCase(Locale.ROOT));
-				if (m.find()) color = COLORS.get(m.group(1));
-				break;
+				Matcher m = RARITY.matcher(line.trim());
+				if (m.matches()) {
+					color = COLORS.get(m.group(1));
+					break;
+				}
 			}
 		}
+		if (color == -1) color = petColor(stack.getHoverName());
 		if (CACHE.size() > 4000) CACHE.clear();
 		CACHE.put(stack, color);
 		return color;
+	}
+
+	/** For "[Lvl 100] Golden Dragon" style names: the colour the pet's name is written in, else -1. */
+	private static int petColor(Component name) {
+		String raw = name.getString();
+		String plain = ChatFormatting.stripFormatting(raw);
+		if (plain == null || !PET_NAME.matcher(plain.trim()).matches()) return -1;
+		int after = raw.indexOf("] ");
+		// colour codes written into the text
+		int code = raw.indexOf('§', after);
+		if (code >= 0 && code + 1 < raw.length()) {
+			int idx = "0123456789abcdef".indexOf(Character.toLowerCase(raw.charAt(code + 1)));
+			if (idx >= 0) return LEGACY[idx];
+		}
+		// styled parts: the first coloured part after the grey "[Lvl N]"
+		int[] found = {-1};
+		boolean[] pastLevel = {false};
+		name.visit((net.minecraft.network.chat.Style style, String text) -> {
+			if (found[0] != -1 || text.isBlank()) return java.util.Optional.empty();
+			if (!pastLevel[0]) {
+				int close = text.indexOf(']');
+				if (close < 0) return java.util.Optional.empty();
+				pastLevel[0] = true;
+				if (text.substring(close + 1).isBlank()) return java.util.Optional.empty();
+			}
+			var color = style.getColor();
+			if (color != null && (color.getValue() & 0xFFFFFF) != 0xAAAAAA) found[0] = color.getValue() & 0xFFFFFF;
+			return java.util.Optional.empty();
+		}, net.minecraft.network.chat.Style.EMPTY);
+		return found[0];
 	}
 
 	/** Draws the background behind the 16x16 item at x, y if it's turned on and the item has a rarity. */

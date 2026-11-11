@@ -50,6 +50,36 @@ public class FancyBarsMod implements ClientModInitializer {
 		return Identifier.fromNamespaceAndPath(NAMESPACE, path);
 	}
 
+	/** /sgu nick [list] | /sgu nick remove &lt;ign&gt; | /sgu nick &lt;ign&gt; &lt;name&gt; (name may use &amp; colour codes). */
+	private static com.mojang.brigadier.builder.LiteralArgumentBuilder<net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource> nickCommand() {
+		com.mojang.brigadier.suggestion.SuggestionProvider<net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource> online =
+				(_, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(dev.fancybars.players.Nicknames.onlineNames(), builder);
+		com.mojang.brigadier.suggestion.SuggestionProvider<net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource> nicknamed =
+				(_, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+						FancyBarsConfig.get().nicknames.stream().map(n -> n.ign.trim()).filter(s -> !s.isEmpty()).toList(), builder);
+		return ClientCommands.literal("nick")
+				.executes(_ -> {
+					dev.fancybars.players.Nicknames.list();
+					return Command.SINGLE_SUCCESS;
+				})
+				.then(ClientCommands.literal("list").executes(_ -> {
+					dev.fancybars.players.Nicknames.list();
+					return Command.SINGLE_SUCCESS;
+				}))
+				.then(ClientCommands.literal("remove").then(ClientCommands.argument("ign", com.mojang.brigadier.arguments.StringArgumentType.word()).suggests(nicknamed)
+						.executes(ctx -> {
+							dev.fancybars.players.Nicknames.remove(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "ign"));
+							return Command.SINGLE_SUCCESS;
+						})))
+				.then(ClientCommands.argument("ign", com.mojang.brigadier.arguments.StringArgumentType.word()).suggests(online)
+						.then(ClientCommands.argument("name", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+								.executes(ctx -> {
+									dev.fancybars.players.Nicknames.set(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "ign"),
+											com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name"));
+									return Command.SINGLE_SUCCESS;
+								})));
+	}
+
 	@Override
 	public void onInitializeClient() {
 		// the menu remembers where you were until you log off
@@ -91,7 +121,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.util.SkyblockLocation.onLocationChange(dev.fancybars.hud.PerformanceHud::reset);
 		dev.fancybars.mining.Commissions.init();
 		dev.fancybars.players.PlayerSizes.init();
-		dev.fancybars.fun.WallLicker.init();
+		dev.fancybars.players.SharedNames.init();		dev.fancybars.fun.WallLicker.init();
 		dev.fancybars.capes.Capes.init();
 		dev.fancybars.gifs.ScreenImages.init();
 		dev.fancybars.hud.TitlesAndHotbar.init();
@@ -114,6 +144,15 @@ public class FancyBarsMod implements ClientModInitializer {
 						.executes(_ -> queueOpenScreen(BarsMenuScreen.openLast(null)))
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
+						.then(nickCommand())
+						.then(ClientCommands.literal("nametagdebug").executes(_ -> {
+							dev.fancybars.players.NameTagDebug.report();
+							return Command.SINGLE_SUCCESS;
+						}))
+						.then(ClientCommands.literal("names").executes(_ -> {
+							dev.fancybars.players.Nicknames.listShared();
+							return Command.SINGLE_SUCCESS;
+						}))
 						.then(ClientCommands.literal("items").executes(_ -> queueOpenScreen(new dev.fancybars.items.ItemChangerScreen(null))))
 						.then(ClientCommands.literal("spotify").executes(_ -> queueOpenScreen(new dev.fancybars.spotify.SpotifyScreen(null))))
 						.then(ClientCommands.literal("crosshair").executes(_ -> queueOpenScreen(new dev.fancybars.crosshair.CrosshairEditorScreen(null))))

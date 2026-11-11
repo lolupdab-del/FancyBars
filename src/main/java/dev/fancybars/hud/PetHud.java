@@ -56,7 +56,7 @@ import dev.fancybars.util.gui.Theme;
  * Autopet, level ups, held items) and from the /pets menu, which is also where the pet's head icon is learned.
  */
 public final class PetHud {
-	private static final Pattern TAB_NAME = Pattern.compile("^\\[Lvl (?<level>[\\d,]+)] (?<pet>.+?)(?: [✦⚘].*)?$");
+	private static final Pattern TAB_NAME = Pattern.compile("^[^\\[]*\\[Lvl(?<level>[\\d,]+)] (?<pet>.+?)(?: [✦⚘].*)?$");
 	private static final Pattern TAB_XP = Pattern.compile("^\\+?(?<current>[\\d,.kKmMbB]+)(?:/(?<next>[\\d,.kKmMbB]+))? XP(?: \\((?<percent>[\\d.]+)%\\))?$");
 	private static final Pattern SUMMON = Pattern.compile("^You summoned your (?<pet>.+?)!$");
 	private static final Pattern DESPAWN = Pattern.compile("^You despawned your (?<pet>.+?)!$");
@@ -65,9 +65,12 @@ public final class PetHud {
 	private static final Pattern HOLDING = Pattern.compile("^Your pet is now holding (?<item>.+?)\\.$");
 	private static final Pattern REMOVED = Pattern.compile("^You removed (?<item>.+?) from your pet!$");
 	private static final Pattern MENU_TITLE = Pattern.compile("^(?:\\(\\d+/\\d+\\) )?Pets(?:: \".*\")?(?: \\(\\d+/\\d+\\))?.*$");
-	private static final Pattern MENU_NAME = Pattern.compile("^\\[Lvl (?<level>\\d+)] (?:\\[\\d+✦] )?(?<pet>.+?)(?: ✦)?$");
+	/** Favourited pets have a ★ (or other symbols) in front of "[Lvl", so anything before it is allowed. */
+	private static final Pattern MENU_NAME = Pattern.compile("^[^\\[]*\\[Lvl (?<level>\\d+)] (?:\\[\\d+✦] )?(?<pet>.+?)(?: ✦)?$");
 	private static final Pattern MENU_HELD = Pattern.compile("^Held Item: (?<item>.+)$");
 	private static final Pattern MENU_PROGRESS = Pattern.compile("^Progress to Level (?<next>\\d+): (?<percent>[\\d.]+)%$");
+	/** The Pet widget's held item line is just the item's name (in its rarity colour), with no "Held Item:" in front. */
+	private static final Pattern TAB_ITEM = Pattern.compile("^[A-Za-z][A-Za-z0-9' -]*$");
 
 	private static final int PAD = 5;
 	private static final int ICON = 30;
@@ -81,6 +84,8 @@ public final class PetHud {
 	private static float progress = -1;
 	private static boolean maxLevel;
 	private static String heldItem = "";
+	/** Rarity colour of the held item, or -1 when unknown (drawn grey). */
+	private static int heldItemColor = -1;
 	private static long lastTabRead;
 
 	/** Pet name (lowercase) → its head from the /pets menu. */
@@ -119,6 +124,11 @@ public final class PetHud {
 						hoveredColor = colorOf(hovered.getItem().getHoverName(), hoveredPet);
 						hoveredHead = headOf(hovered.getItem());
 						hoveredSkin = skinColorOf(hovered.getItem().getHoverName());
+						String[] held = {""};
+						int[] heldColor = {-1};
+						readHeldFromLore(hovered.getItem(), held, heldColor);
+						hoveredHeld = held[0];
+						hoveredHeldColor = heldColor[0];
 						hoveredAt = System.currentTimeMillis();
 					}
 				}
@@ -164,6 +174,7 @@ public final class PetHud {
 			setPet(pet, Integer.parseInt(m.group("level")), colorOf(message, pet));
 			HELD_PET.set(pet);
 			heldItem = "";
+			heldItemColor = -1;
 			skinColor = skinColorOf(message);
 			switchedTo(pet); // the pet you clicked in /pets wins: its star has the right colour
 		} else if ((m = SUMMON.matcher(text)).matches()) {
@@ -171,6 +182,7 @@ public final class PetHud {
 			setPet(pet, -1, colorOf(message, pet));
 			HELD_PET.set(pet);
 			heldItem = "";
+			heldItemColor = -1;
 			skinColor = skinColorOf(message);
 			switchedTo(pet);
 		} else if ((m = DESPAWN.matcher(text)).matches()) {
@@ -181,8 +193,10 @@ public final class PetHud {
 			level = Integer.parseInt(m.group("level"));
 		} else if ((m = HOLDING.matcher(text)).matches()) {
 			heldItem = m.group("item");
+			heldItemColor = colorOf(message, heldItem);
 		} else if (REMOVED.matcher(text).matches()) {
 			heldItem = "";
+			heldItemColor = -1;
 		}
 	}
 
@@ -192,6 +206,7 @@ public final class PetHud {
 		List<PlayerInfo> infos = new ArrayList<>(mc.getConnection().getOnlinePlayers());
 		infos.sort(Comparator.comparing(info -> info.getProfile().name()));
 		boolean inSection = false;
+		boolean readPet = false;
 		int line = 0;
 		for (PlayerInfo info : infos) {
 			Component display = info.getTabListDisplayName();
@@ -221,6 +236,9 @@ public final class PetHud {
 				}
 				setPet(tabPet, parseInt(m.group("level")), colorOf(display, tabPet));
 				skinColor = skinColorOf(display);
+				readPet = true;
+			} else if (!readPet) {
+				break;
 			} else if (text.equals("MAX LEVEL")) {
 				maxLevel = true;
 				progress = 1;
@@ -232,8 +250,30 @@ public final class PetHud {
 				else if (xpNext > 0) progress = (float) (xpCurrent / xpNext);
 			} else if (text.startsWith("Held Item:") || text.startsWith("Item:")) {
 				heldItem = text.substring(text.indexOf(':') + 1).trim();
+				heldItemColor = colorOf(display, heldItem);
+			} else if (line <= 3 && !text.endsWith(":") && TAB_ITEM.matcher(text).matches()) {
+				heldItem = text;
+				heldItemColor = colorOf(display, heldItem);
 			}
 			if (line >= 4) break;
+		}
+		// (no item line doesn't clear the held item: the widget's item line can be turned off in /widget, and
+		// taking an item off is caught from chat and /pets instead)
+	}
+
+	/** Reads "Held Item: ..." (name and colour) from a pet's lore in /pets; leaves the arrays alone when there's none. */
+	private static void readHeldFromLore(ItemStack stack, String[] held, int[] color) {
+		ItemLore lore = stack.get(DataComponents.LORE);
+		if (lore == null) return;
+		for (Component lineC : lore.lines()) {
+			String line = ChatFormatting.stripFormatting(lineC.getString());
+			if (line == null) continue;
+			Matcher h = MENU_HELD.matcher(line.trim());
+			if (h.matches()) {
+				held[0] = h.group("item");
+				color[0] = colorOf(lineC, held[0]);
+				return;
+			}
 		}
 	}
 
@@ -245,18 +285,21 @@ public final class PetHud {
 			if (hover == null) continue;
 			Matcher m = MENU_NAME.matcher(hover.trim());
 			if (!m.matches()) continue;
-			String pet = m.group("pet").trim();
+			String pet = cleanPet(m.group("pet"));
 			String key = pet.toLowerCase(Locale.ROOT);
 			int petColor = colorOf(stack.getHoverName(), pet);
+			boolean skinned = skinColorOf(stack.getHoverName()) != -1;
 			ItemStack icon = headOf(stack);
-			// always take the latest look, so skins you apply later show up
-			ICONS.put(key + "|" + tierOf(petColor), icon);
-			ICONS.put(key, icon);
+			// always take the latest look, so skins you apply later show up; skinned and plain heads are kept apart so
+			// a skinned pet never shows the plain head of another pet with the same name (or the other way round)
+			ICONS.put(key + "|" + tierOf(petColor) + variant(skinned), icon);
+			ICONS.put(key + variant(skinned), icon);
 			iconsDirty = true;
 			ItemLore lore = stack.get(DataComponents.LORE);
 			if (lore == null) continue;
 			boolean active = false;
 			String held = "";
+			int heldColor = -1;
 			float percent = -1;
 			for (Component lineC : lore.lines()) {
 				String line = ChatFormatting.stripFormatting(lineC.getString());
@@ -264,17 +307,21 @@ public final class PetHud {
 				line = line.trim();
 				if (line.equals("Click to despawn!")) active = true;
 				Matcher h = MENU_HELD.matcher(line);
-				if (h.matches()) held = h.group("item");
+				if (h.matches()) {
+					held = h.group("item");
+					heldColor = colorOf(lineC, held);
+				}
 				Matcher p = MENU_PROGRESS.matcher(line);
 				if (p.matches()) percent = Float.parseFloat(p.group("percent")) / 100f;
 				if (line.equals("MAX LEVEL")) percent = 1;
 			}
 			// (a menu still open from before you switched can show the old pet as active: the hold skips it)
 			if (active && !HELD_PET.holding() || active && HELD_PET.value().equalsIgnoreCase(pet)) {
-				setCurrentIcon(pet, icon);
+				setCurrentIcon(pet, icon, skinned);
 				skinColor = skinColorOf(stack.getHoverName());
 				setPet(pet, Integer.parseInt(m.group("level")), colorOf(stack.getHoverName(), pet));
 				heldItem = held;
+				heldItemColor = heldColor;
 				if (percent >= 0) progress = percent;
 				maxLevel = percent >= 1 && xpNext < 0;
 			}
@@ -365,8 +412,11 @@ public final class PetHud {
 				ItemStack.CODEC.parse(ops, e.getValue()).result().ifPresent(stack -> {
 					ICONS.putIfAbsent(e.getKey(), stack);
 					if (e.getKey().startsWith("current:") && currentIcon == null) {
+						String pet = e.getKey().substring("current:".length());
+						currentIconSkinned = pet.endsWith(SKIN);
+						if (currentIconSkinned) pet = pet.substring(0, pet.length() - SKIN.length());
 						currentIcon = stack;
-						currentIconPet = e.getKey().substring("current:".length());
+						currentIconPet = pet;
 					}
 				});
 			}
@@ -394,9 +444,21 @@ public final class PetHud {
 	/** The head of the pet you have out right now (with its skin), from the /pets menu or the pet you clicked there. */
 	private static ItemStack currentIcon;
 	private static String currentIconPet = "";
+	/** Whether {@link #currentIcon} is a skinned head (its name had the ✦). */
+	private static boolean currentIconSkinned;
 	private static ItemStack hoveredHead;
 	private static String hoveredPet = "";
+	private static String hoveredHeld = "";
+	private static int hoveredHeldColor = -1;
 	private static long hoveredAt;
+
+	/** Icon cache key suffixes for skinned / plain heads. */
+	private static final String SKIN = "|skin";
+	private static final String PLAIN = "|plain";
+
+	private static String variant(boolean skinned) {
+		return skinned ? SKIN : PLAIN;
+	}
 
 	private static ItemStack headOf(ItemStack stack) {
 		ItemStack icon = new ItemStack(Items.PLAYER_HEAD);
@@ -405,19 +467,23 @@ public final class PetHud {
 		return icon;
 	}
 
-	private static void setCurrentIcon(String pet, ItemStack head) {
+	private static void setCurrentIcon(String pet, ItemStack head, boolean skinned) {
 		currentIcon = head;
 		currentIconPet = pet;
-		ICONS.put("current:" + pet.toLowerCase(Locale.ROOT), head);
-		ICONS.keySet().removeIf(k -> k.startsWith("current:") && !k.equals("current:" + pet.toLowerCase(Locale.ROOT)));
+		currentIconSkinned = skinned;
+		String key = "current:" + pet.toLowerCase(Locale.ROOT) + (skinned ? SKIN : "");
+		ICONS.put(key, head);
+		ICONS.keySet().removeIf(k -> k.startsWith("current:") && !k.equals(key));
 		iconsDirty = true;
 	}
 
 	/** You just summoned / Autopet equipped {@code pet}: use the head you clicked in /pets if that's the one. */
 	private static void switchedTo(String pet) {
 		if (hoveredHead != null && hoveredPet.equalsIgnoreCase(pet) && System.currentTimeMillis() - hoveredAt < 15_000) {
-			setCurrentIcon(pet, hoveredHead);
+			setCurrentIcon(pet, hoveredHead, hoveredSkin != -1);
 			skinColor = hoveredSkin;
+			heldItem = hoveredHeld;
+			heldItemColor = hoveredHeldColor;
 			// the pet you clicked tells us its level and rarity right away (chat doesn't)
 			if (hoveredLevel > 0) level = hoveredLevel;
 			if (hoveredColor != -1) rarityColor = hoveredColor;
@@ -549,14 +615,28 @@ public final class PetHud {
 	}
 
 	/** The pet's real head: the one seen in /pets (includes skins), else its default look. */
-	private static ItemStack icon(String pet, int color) {
-		if (currentIcon != null && currentIconPet.equalsIgnoreCase(pet)) return currentIcon;
+	private static ItemStack icon(String pet, int color, boolean skinned) {
+		// the exact head of the pet you have out, as long as it still has (or still lacks) a skin
+		if (currentIcon != null && currentIconPet.equalsIgnoreCase(pet) && currentIconSkinned == skinned) return currentIcon;
 		String key = pet.toLowerCase(Locale.ROOT);
-		ItemStack stack = ICONS.get(key + "|" + tierOf(color));
+		int tier = tierOf(color);
+		ItemStack stack = ICONS.get(key + "|" + tier + variant(skinned));
+		// skins look the same at every rarity
+		if (stack == null && skinned) stack = ICONS.get(key + SKIN);
+		if (stack != null) return stack;
+		// a plain pet's look is known without /pets; only a skin needs the menu
+		String hash = skinned ? null : textureHash(pet, tier);
+		if (hash != null) return headFromHash(hash);
+		// heads cached before skinned and plain were told apart (may be either)
+		stack = ICONS.get(key + "|" + tier);
 		if (stack == null) stack = ICONS.get(key);
 		if (stack != null) return stack;
-		String hash = textureHash(pet, tierOf(color));
-		return hash != null ? headFromHash(hash) : new ItemStack(Items.BONE);
+		if (skinned) {
+			// skin not seen in /pets yet: show the pet's normal head until it is
+			hash = textureHash(pet, tier);
+			if (hash != null) return headFromHash(hash);
+		}
+		return new ItemStack(Items.BONE);
 	}
 
 	// ---------------------------------------------------------------- XP ring texture
@@ -643,6 +723,36 @@ public final class PetHud {
 	private static final int TEXT_GAP = 4;
 	private static final int LINE_H = 10;
 
+	/** Held item badge: dark disc diameter, and the item drawn inside it. */
+	private static final float BADGE = 20;
+	private static final float BADGE_ITEM = 14;
+	private static final int BADGE_BACK = 0x1A1A1A;
+
+	/** Item name (lowercase) → its icon from the item list; EMPTY when the name isn't a known item. */
+	private static final Map<String, ItemStack> ITEM_ICONS = new HashMap<>();
+
+	/** The icon for a held item's name, or null while the item list is loading or when it isn't found. */
+	private static ItemStack heldIcon(String item) {
+		if (item == null || item.isEmpty()) return null;
+		String key = item.toLowerCase(Locale.ROOT);
+		ItemStack cached = ITEM_ICONS.get(key);
+		if (cached != null) return cached.isEmpty() ? null : cached;
+		List<dev.fancybars.items.list.ItemRepo.Entry> entries = dev.fancybars.items.list.ItemRepo.entries();
+		if (entries.isEmpty()) {
+			dev.fancybars.items.list.ItemRepo.ensureLoaded();
+			return null;
+		}
+		ItemStack found = ItemStack.EMPTY;
+		for (dev.fancybars.items.list.ItemRepo.Entry e : entries) {
+			if (!e.name().equalsIgnoreCase(item)) continue;
+			found = e.stack();
+			// some names are shared with non-pet items: the pet item wins
+			if (e.id().startsWith("PET_ITEM_")) break;
+		}
+		ITEM_ICONS.put(key, found);
+		return found.isEmpty() ? null : found;
+	}
+
 	private static List<Component> lines(boolean sample) {
 		FancyBarsConfig c = FancyBarsConfig.get();
 		boolean useSample = sample && name.isEmpty();
@@ -668,7 +778,9 @@ public final class PetHud {
 		}
 		if (c.petShowHeldItem) {
 			String held = useSample ? "Dwarf Turtle Shelmet" : heldItem;
-			if (!held.isEmpty()) out.add(Component.literal(held).withColor(0xAAAAAA));
+			int heldColor = useSample ? 0x5555FF : heldItemColor;
+			// in the item's rarity colour, like Hypixel shows it
+			if (!held.isEmpty()) out.add(Component.literal(held).withColor(heldColor == -1 ? 0xAAAAAA : heldColor & 0xFFFFFF));
 		}
 		return out;
 	}
@@ -738,9 +850,22 @@ public final class PetHud {
 			// whatever the rarity background doesn't cover inside the ring
 			if (c.petSeparator) disc(graphics, cx, cy, INSIDE, a << 24 | c.petSeparatorColor & 0xFFFFFF);
 			if (c.petRarityBackground && backgroundSize() > 0.5f) disc(graphics, cx, cy, backgroundSize(), a << 24 | color & 0xFFFFFF);
-			ItemStack stack = icon(useSample ? "golden dragon" : name, color);
+			ItemStack stack = icon(useSample ? "golden dragon" : name, color, !useSample && skinColor != -1);
 			// rendered at full screen resolution, so the head is as smooth as SkyHanni's
 			dev.fancybars.util.gui.SharpItem.draw(graphics, stack, cx - ICON_SIZE / 2f, cy - ICON_SIZE / 2f, ICON_SIZE);
+			if (c.petItemIcon) {
+				ItemStack held = heldIcon(useSample ? "Dwarf Turtle Shelmet" : heldItem);
+				if (held != null) {
+					// small badge sitting on the bottom-right of the ring; its corner stays put as it grows
+					float s = Math.clamp(c.petItemIconSize, 0.5f, 2f);
+					float badge = BADGE * s;
+					float item = c.petItemIconBackground ? BADGE_ITEM * s : badge;
+					float bx = cx + CIRCLE / 2f - badge / 2f;
+					float by = cy + CIRCLE / 2f - badge / 2f;
+					if (c.petItemIconBackground) disc(graphics, bx, by, badge, a << 24 | BADGE_BACK);
+					dev.fancybars.util.gui.SharpItem.draw(graphics, held, bx - item / 2f, by - item / 2f, item);
+				}
+			}
 			tx += CIRCLE + TEXT_GAP;
 		}
 		// Minecraft's own font with shadow, like SkyHanni

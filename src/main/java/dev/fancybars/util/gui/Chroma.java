@@ -57,12 +57,37 @@ public final class Chroma {
 			.withBindGroupLayout(LAYOUT)
 			.build());
 
-	/** 4 settings + 6 colours (each 4 floats, std140 vec4). */
+	/**
+	 * Custom names flowing with their own colours, one pipeline per palette slot (the slot is baked in as a define, so
+	 * the shader knows which palette to read).
+	 */
+	private static final RenderPipeline[] NAME_PIPELINES = new RenderPipeline[dev.fancybars.players.SharedNames.SLOTS];
+
+	static {
+		for (int i = 0; i < NAME_PIPELINES.length; i++) {
+			NAME_PIPELINES[i] = RenderPipelines.register(RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+					.withLocation(FancyBarsMod.id("pipeline/chroma_custom_name_" + i))
+					.withFragmentShader(FancyBarsMod.id("core/chroma_custom_name"))
+					.withShaderDefine("SLOT", i)
+					.withBindGroupLayout(LAYOUT)
+					.build());
+		}
+	}
+
+	/** Text in colour {@code TEXT_MARK_NAME + slot} flows with that custom name's palette. */
+	public static final int TEXT_MARK_NAME = 0xFF5780;
+
+	/**
+	 * 4 settings + 6 enchant colours, then the custom name palettes: {@code SLOTS * MAX_STOPS} colours and one info
+	 * vec4 per slot (stop count, moving, flow size in pixels, speed). Every entry is a std140 vec4.
+	 */
+	private static final int NAME_COLORS = dev.fancybars.players.SharedNames.SLOTS * dev.fancybars.players.SharedNames.MAX_STOPS;
 	private static final int SIZE;
 
 	static {
 		Std140SizeCalculator calc = new Std140SizeCalculator().putFloat().putFloat().putFloat().putInt();
 		for (int i = 0; i < 24; i++) calc.putFloat();
+		for (int i = 0; i < (NAME_COLORS + dev.fancybars.players.SharedNames.SLOTS) * 4; i++) calc.putFloat();
 		SIZE = calc.get();
 	}
 	private static DynamicUniformStorage<Value> storage;
@@ -75,11 +100,23 @@ public final class Chroma {
 		// touching the class registers the pipelines early
 	}
 
-	private record Value(float size, float time, float saturation, int forward, int[] colors) implements DynamicUniformStorage.DynamicUniform {
+	private record Value(float size, float time, float saturation, int forward, int[] colors, float nameSize) implements DynamicUniformStorage.DynamicUniform {
 		@Override
 		public void write(ByteBuffer buffer) {
 			Std140Builder b = Std140Builder.intoBuffer(buffer).putFloat(size).putFloat(time).putFloat(saturation).putInt(forward);
 			for (int c : colors) b.putFloat((c >> 16 & 0xFF) / 255f).putFloat((c >> 8 & 0xFF) / 255f).putFloat((c & 0xFF) / 255f).putFloat(1);
+			dev.fancybars.players.SharedNames.Entry[] names = dev.fancybars.players.SharedNames.slotEntries();
+			int stops = dev.fancybars.players.SharedNames.MAX_STOPS;
+			for (dev.fancybars.players.SharedNames.Entry e : names) {
+				for (int k = 0; k < stops; k++) {
+					int c = e == null || e.colors().isEmpty() ? 0xFFFFFF : e.colors().get(Math.min(k, e.colors().size() - 1));
+					b.putFloat((c >> 16 & 0xFF) / 255f).putFloat((c >> 8 & 0xFF) / 255f).putFloat((c & 0xFF) / 255f).putFloat(1);
+				}
+			}
+			for (dev.fancybars.players.SharedNames.Entry e : names) {
+				int count = e == null ? 1 : Math.clamp(e.colors().size(), 1, stops);
+				b.putFloat(count).putFloat(e != null && e.animated() ? 1 : 0).putFloat(nameSize).putFloat(e == null ? 1 : e.chromaSpeed());
+			}
 		}
 	}
 
@@ -98,6 +135,10 @@ public final class Chroma {
 		if (rgb == TEXT_MARK_CUSTOM_ULTIMATE) {
 			usedThisFrame = true;
 			return CUSTOM_ULTIMATE;
+		}
+		if (rgb >= TEXT_MARK_NAME && rgb < TEXT_MARK_NAME + NAME_PIPELINES.length) {
+			usedThisFrame = true;
+			return NAME_PIPELINES[rgb - TEXT_MARK_NAME];
 		}
 		return null;
 	}
@@ -120,6 +161,14 @@ public final class Chroma {
 
 	public static boolean marked(int argb) {
 		return (argb & MARK_MASK) == MARK && shaderEnabled();
+	}
+
+	/**
+	 * A computed colour (a blend, a fade) that happens to land on the mark pattern by chance (1 in 64) would suddenly be
+	 * drawn as chroma for that frame. This nudges such a colour by one step of blue so it can't be mistaken for a mark.
+	 */
+	public static int unmark(int argb) {
+		return (argb & MARK_MASK) == MARK ? argb ^ 0x000001 : argb;
 	}
 
 	/** Text in this exact colour is drawn with the chroma shader (an odd pink nothing else uses). */
@@ -153,12 +202,19 @@ public final class Chroma {
 			if (storage == null) storage = new DynamicUniformStorage<>("SkyblockGuiUtils Chroma UBO", SIZE, 2);
 			FancyBarsConfig c = FancyBarsConfig.get();
 			float size = Math.max(1, c.chromaShaderSize) * Minecraft.getInstance().getWindow().getWidth() / 100f;
-			float ticks = Util.getMillis() / 50f;
+			// worked out in doubles and kept small: the clock counts milliseconds since the PC started, and as a float
+			// that loses precision after a few days of uptime, so chroma (and custom name colours) jumped around.
+			// The shaders only use it modulo whole loops; wrapping every 3600 loops keeps it precise and the speed
+			// multiplier per name only sees a tiny step once in a long while.
+			double ticks = Util.getMillis() / 50.0;
 			boolean backward = c.chromaShaderDirection >= 2;
-			float time = (backward ? -ticks : ticks) * (c.chromaShaderSpeed / 360f);
+			double loops = (backward ? -ticks : ticks) * (c.chromaShaderSpeed / 360.0);
+			float time = (float) (loops - Math.floor(loops / 3600.0) * 3600.0);
 			int forward = c.chromaShaderDirection % 2 == 0 ? 1 : 0;
 			int[] colors = {c.enchantMaxCustom1, c.enchantMaxCustom2, c.enchantMaxCustom3, c.enchantUltCustom1, c.enchantUltCustom2, c.enchantUltCustom3};
-			slice = storage.writeUniform(new Value(size, time, Math.clamp(c.chromaShaderSaturation, 0, 1), forward, colors));
+			// names are short, so their palette repeats over a smaller stretch than enchant chroma does
+			float nameSize = Math.max(1, c.nameFlowSize) * Minecraft.getInstance().getWindow().getWidth() / 100f;
+			slice = storage.writeUniform(new Value(size, time, Math.clamp(c.chromaShaderSaturation, 0, 1), forward, colors, nameSize));
 		}
 	}
 

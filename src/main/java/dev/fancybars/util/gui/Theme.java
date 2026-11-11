@@ -672,7 +672,10 @@ public final class Theme {
 		int r = (int) (((from >> 16) & 0xFF) + (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * t);
 		int g = (int) (((from >> 8) & 0xFF) + (((to >> 8) & 0xFF) - ((from >> 8) & 0xFF)) * t);
 		int b = (int) ((from & 0xFF) + ((to & 0xFF) - (from & 0xFF)) * t);
-		return (a << 24) | (r << 16) | (g << 8) | b;
+		int blended = (a << 24) | (r << 16) | (g << 8) | b;
+		// a fade between chroma colours stays chroma; any other fade must never hit the chroma mark by accident
+		// (that flashed buttons rainbow for a frame while their hover animation ran)
+		return Chroma.marked(from) || Chroma.marked(to) ? Chroma.mark(blended) : Chroma.unmark(blended);
 	}
 
 	public static int withAlpha(int color, float alpha) {

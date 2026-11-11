@@ -55,7 +55,7 @@ public final class MaxEnchantChroma {
 					JsonObject root = JsonParser.parseString(new String(in.readAllBytes(), StandardCharsets.UTF_8)).getAsJsonObject();
 					for (Map.Entry<String, JsonElement> e : root.entrySet()) {
 						JsonArray a = e.getValue().getAsJsonArray();
-						enchants.put(e.getKey(), new Object[]{a.get(0).getAsString(), a.get(1).getAsInt()});
+						enchants.put(e.getKey().toLowerCase(java.util.Locale.ROOT), new Object[]{a.get(0).getAsString(), a.get(1).getAsInt()});
 					}
 				}
 			} catch (Exception e) {
@@ -74,10 +74,12 @@ public final class MaxEnchantChroma {
 		// "Sharpness VII" / "Sharpness 7" for every maxed enchant, and every ultimate enchant, with the colour to use
 		Map<String, Integer> targets = new HashMap<>();
 		for (String key : ench.keySet()) {
-			Object[] info = enchants().get(key);
+			// Hypixel isn't consistent with case: Prosecute is stored as "PROSECUTE", Karma as "Karma"
+			String id = key.toLowerCase(java.util.Locale.ROOT);
+			Object[] info = enchants().get(id);
 			if (info == null) continue;
 			int level = ench.getIntOr(key, 0);
-			boolean ultimate = key.startsWith("ultimate_");
+			boolean ultimate = id.startsWith("ultimate_");
 			if (!ultimate && level < (Integer) info[1]) continue;
 			int color = ultimate ? colorFor(c.enchantUltStyle, c.enchantUltColor, Chroma.TEXT_MARK_CUSTOM_ULTIMATE)
 					: colorFor(c.enchantMaxStyle, c.enchantMaxColor, Chroma.TEXT_MARK_CUSTOM_ENCHANT);
