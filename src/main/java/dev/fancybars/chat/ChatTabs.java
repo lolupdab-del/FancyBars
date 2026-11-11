@@ -66,6 +66,10 @@ public final class ChatTabs {
 				Screens.getWidgets(chat).add(button);
 				x += button.getWidth() + 2;
 			}
+			// right-click copy in a filtered tab (copy-chat mods lose track of the hovered message there)
+			net.fabricmc.fabric.api.client.screen.v1.ScreenMouseEvents.beforeMouseClick(chat).register((s, click) -> {
+				if (click.button() == 1 && selected != Tab.ALL && FancyBarsConfig.get().chatTabsEnabled) copyAt(click.x(), click.y());
+			});
 			if (config.chatTabsPrefill) {
 				for (GuiEventListener child : chat.children()) {
 					if (child instanceof EditBox input && input.getValue().isEmpty()) {
@@ -123,9 +127,11 @@ public final class ChatTabs {
 	}
 
 	private static void select(Tab tab, ChatScreen screen) {
-		selected = tab;
 		Minecraft mc = Minecraft.getInstance();
-		applyFilter();
+		boolean changed = tab != selected;
+		selected = tab;
+		// re-filtering rebuilds the whole chat, so only when the tab actually changes
+		if (changed) applyFilter();
 		if (FancyBarsConfig.get().chatTabsSwitchChannel && tab.channel != null && mc.getConnection() != null) {
 			mc.getConnection().sendCommand("chat " + tab.channel);
 		}
@@ -135,14 +141,66 @@ public final class ChatTabs {
 		mc.gui.setScreen(new ChatScreen(typed, false));
 	}
 
+	/** Copies the chat message under the mouse (text only, no colour codes) and says so in the action bar. */
+	private static void copyAt(double mouseX, double mouseY) {
+		Minecraft mc = Minecraft.getInstance();
+		var chat = mc.gui.hud.getChat();
+		LineUnderMouse finder = new LineUnderMouse(mc.font, mouseX, mouseY);
+		chat.captureClickableText(finder, (int) mouseX, (int) mouseY, net.minecraft.client.gui.components.ChatComponent.DisplayMode.FOREGROUND);
+		if (finder.hovered == null) return;
+		for (var line : ((dev.fancybars.mixin.ChatComponentLinesAccessor) chat).fancybars$getTrimmedMessages()) {
+			if (line.content() != finder.hovered) continue;
+			String text = ChatFormatting.stripFormatting(line.parent().content().getString());
+			if (text == null || text.isBlank()) return;
+			mc.keyboardHandler.setClipboard(text.trim());
+			if (mc.player != null) mc.player.sendOverlayMessage(Component.translatable("fancybars.chatTabs.copied").withStyle(ChatFormatting.GREEN));
+			return;
+		}
+	}
+
+	/** Collects the chat line drawn under the mouse (taking the chat's scale into account). */
+	private static final class LineUnderMouse implements net.minecraft.client.gui.ActiveTextCollector {
+		private final net.minecraft.client.gui.Font font;
+		private final double mouseX;
+		private final double mouseY;
+		private Parameters defaults = new Parameters(new org.joml.Matrix3x2f());
+		net.minecraft.util.FormattedCharSequence hovered;
+
+		LineUnderMouse(net.minecraft.client.gui.Font font, double mouseX, double mouseY) {
+			this.font = font;
+			this.mouseX = mouseX;
+			this.mouseY = mouseY;
+		}
+
+		@Override
+		public Parameters defaultParameters() {
+			return defaults;
+		}
+
+		@Override
+		public void defaultParameters(Parameters parameters) {
+			defaults = parameters;
+		}
+
+		@Override
+		public void accept(net.minecraft.client.gui.TextAlignment alignment, int x, int y, Parameters parameters, net.minecraft.util.FormattedCharSequence text) {
+			int left = alignment.calculateLeft(x, font, text);
+			org.joml.Vector2f local = new org.joml.Matrix3x2f(parameters.pose()).invert().transformPosition((float) mouseX, (float) mouseY, new org.joml.Vector2f());
+			if (local.y >= y && local.y < y + font.lineHeight && local.x >= left && local.x < left + Math.max(1, font.width(text))) hovered = text;
+		}
+
+		@Override
+		public void acceptScrolling(Component text, int x, int left, int right, int top, int bottom, Parameters parameters) {}
+	}
+
 	public static void applyFilter() {
 		Minecraft mc = Minecraft.getInstance();
 		Tab tab = FancyBarsConfig.get().chatTabsEnabled ? selected : Tab.ALL;
+		// (setting the filter already rebuilds the chat; a second rebuild here doubled the freeze when switching tabs)
 		mc.gui.hud.getChat().setVisibleMessageFilter(message -> {
 			if (tab == Tab.ALL) return true;
 			String s = ChatFormatting.stripFormatting(message.content().getString());
 			return s != null && tab.matches(s.trim());
 		});
-		mc.gui.hud.getChat().rescaleChat();
 	}
 }

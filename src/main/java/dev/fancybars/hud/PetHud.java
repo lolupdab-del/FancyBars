@@ -56,7 +56,7 @@ import dev.fancybars.util.gui.Theme;
  * Autopet, level ups, held items) and from the /pets menu, which is also where the pet's head icon is learned.
  */
 public final class PetHud {
-	private static final Pattern TAB_NAME = Pattern.compile("^[^\\[]*\\[Lvl(?<level>[\\d,]+)] (?<pet>.+?)(?: [✦⚘].*)?$");
+	private static final Pattern TAB_NAME = Pattern.compile("^[^\\[]*\\[Lvl ?(?<level>[\\d,]+)] (?<pet>.+?)(?: [✦⚘].*)?$");
 	private static final Pattern TAB_XP = Pattern.compile("^\\+?(?<current>[\\d,.kKmMbB]+)(?:/(?<next>[\\d,.kKmMbB]+))? XP(?: \\((?<percent>[\\d.]+)%\\))?$");
 	private static final Pattern SUMMON = Pattern.compile("^You summoned your (?<pet>.+?)!$");
 	private static final Pattern DESPAWN = Pattern.compile("^You despawned your (?<pet>.+?)!$");
@@ -134,6 +134,7 @@ public final class PetHud {
 				}
 			}
 			if (iconsDirty && now % 5000 < 60) saveIcons();
+			if (memoryDirty && now % 5000 < 60) saveMemory();
 		});
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay) return;
@@ -194,9 +195,11 @@ public final class PetHud {
 		} else if ((m = HOLDING.matcher(text)).matches()) {
 			heldItem = m.group("item");
 			heldItemColor = colorOf(message, heldItem);
+			rememberHeld();
 		} else if (REMOVED.matcher(text).matches()) {
 			heldItem = "";
 			heldItemColor = -1;
+			rememberHeld();
 		}
 	}
 
@@ -234,8 +237,18 @@ public final class PetHud {
 					name = "";
 					return;
 				}
+				boolean switched = !tabPet.equalsIgnoreCase(name);
 				setPet(tabPet, parseInt(m.group("level")), colorOf(display, tabPet));
-				skinColor = skinColorOf(display);
+				int tabSkin = skinColorOf(display);
+				// a pet that showed up in the tab list (after logging in, or equipped some other way): start clean
+				if (switched) {
+					heldItem = "";
+					heldItemColor = -1;
+					skinColor = tabSkin;
+				} else if (tabSkin != -1) {
+					skinColor = tabSkin;
+				}
+				fillFromMemory();
 				readPet = true;
 			} else if (!readPet) {
 				break;
@@ -292,6 +305,8 @@ public final class PetHud {
 			ItemStack icon = headOf(stack);
 			// always take the latest look, so skins you apply later show up; skinned and plain heads are kept apart so
 			// a skinned pet never shows the plain head of another pet with the same name (or the other way round)
+			int petLevel = parseInt(m.group("level"));
+			ICONS.put(key + "|" + petLevel + "|" + tierOf(petColor) + variant(skinned), icon);
 			ICONS.put(key + "|" + tierOf(petColor) + variant(skinned), icon);
 			ICONS.put(key + variant(skinned), icon);
 			iconsDirty = true;
@@ -315,6 +330,8 @@ public final class PetHud {
 				if (p.matches()) percent = Float.parseFloat(p.group("percent")) / 100f;
 				if (line.equals("MAX LEVEL")) percent = 1;
 			}
+			// remember every pet in the menu, so its item and skin are known however you equip it later
+			remember(pet, petLevel, petColor, held, heldColor, skinColorOf(stack.getHoverName()));
 			// (a menu still open from before you switched can show the old pet as active: the hold skips it)
 			if (active && !HELD_PET.holding() || active && HELD_PET.value().equalsIgnoreCase(pet)) {
 				setCurrentIcon(pet, icon, skinned);
@@ -403,6 +420,7 @@ public final class PetHud {
 
 	private static void loadIcons() {
 		iconsLoaded = true;
+		loadMemory();
 		DynamicOps<JsonElement> ops = ops();
 		if (ops == null) return;
 		try {
@@ -488,10 +506,116 @@ public final class PetHud {
 			if (hoveredLevel > 0) level = hoveredLevel;
 			if (hoveredColor != -1) rarityColor = hoveredColor;
 		} else if (!currentIconPet.equalsIgnoreCase(pet)) {
+			// (the skin star read from the chat message stays: clearing it here made every pet you didn't click in
+			// /pets show its plain head)
 			currentIcon = null;
 			currentIconPet = "";
-			skinColor = -1;
 		}
+		fillFromMemory();
+	}
+
+	// ---------------------------------------------------------------- memory of your pets (from /pets)
+
+	/** What /pets last showed for one of your pets. */
+	private record PetMemo(String held, int heldColor, int skinColor) {}
+
+	/** "pet|level|tier" and "pet|tier" → what /pets showed; saved, so it's known after restarting too. */
+	private static final Map<String, PetMemo> MEMORY = new HashMap<>();
+	private static boolean memoryDirty;
+
+	private static Path memoryFile() {
+		return FancyBarsMod.CONFIG_DIR.resolve("pet_memory.json");
+	}
+
+	private static void remember(String pet, int lvl, int color, String held, int heldColor, int skin) {
+		PetMemo memo = new PetMemo(held == null ? "" : held, heldColor, skin);
+		String base = pet.toLowerCase(Locale.ROOT);
+		if (lvl > 0) MEMORY.put(base + "|" + lvl + "|" + tierOf(color), memo);
+		MEMORY.put(base + "|" + tierOf(color), memo);
+		memoryDirty = true;
+	}
+
+	private static PetMemo recall(String pet, int lvl, int color) {
+		String base = pet.toLowerCase(Locale.ROOT);
+		PetMemo memo = lvl > 0 ? MEMORY.get(base + "|" + lvl + "|" + tierOf(color)) : null;
+		return memo != null ? memo : MEMORY.get(base + "|" + tierOf(color));
+	}
+
+	/** Fills in what the tab list and chat don't say (held item, skin) from what /pets showed last time. */
+	private static void fillFromMemory() {
+		if (name.isEmpty()) return;
+		PetMemo memo = recall(name, level, rarityColor);
+		if (memo == null) return;
+		if (heldItem.isEmpty() && !memo.held().isEmpty()) {
+			heldItem = memo.held();
+			heldItemColor = memo.heldColor();
+		}
+		if (skinColor == -1 && memo.skinColor() != -1) skinColor = memo.skinColor();
+	}
+
+	/** Your pet's held item changed (chat): remember it for that pet. */
+	private static void rememberHeld() {
+		if (name.isEmpty()) return;
+		PetMemo old = recall(name, level, rarityColor);
+		remember(name, level, rarityColor, heldItem, heldItemColor, old != null ? old.skinColor() : skinColor);
+	}
+
+	private static void loadMemory() {
+		try {
+			if (!Files.exists(memoryFile())) return;
+			JsonObject root = JsonParser.parseString(Files.readString(memoryFile())).getAsJsonObject();
+			for (Map.Entry<String, JsonElement> e : root.entrySet()) {
+				JsonObject o = e.getValue().getAsJsonObject();
+				MEMORY.putIfAbsent(e.getKey(), new PetMemo(o.get("held").getAsString(), o.get("heldColor").getAsInt(), o.get("skinColor").getAsInt()));
+			}
+		} catch (Exception e) {
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't read pet memory", e);
+		}
+	}
+
+	private static void saveMemory() {
+		memoryDirty = false;
+		JsonObject root = new JsonObject();
+		for (Map.Entry<String, PetMemo> e : new LinkedHashMap<>(MEMORY).entrySet()) {
+			JsonObject o = new JsonObject();
+			o.addProperty("held", e.getValue().held());
+			o.addProperty("heldColor", e.getValue().heldColor());
+			o.addProperty("skinColor", e.getValue().skinColor());
+			root.add(e.getKey(), o);
+		}
+		try {
+			Files.createDirectories(memoryFile().getParent());
+			Files.writeString(memoryFile(), root.toString());
+		} catch (Exception e) {
+			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't save pet memory", e);
+		}
+	}
+
+	/** /sgu petdebug: the Pet lines of the tab list as they arrive, and what the display made of them. */
+	public static void debug() {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.getConnection() == null || mc.player == null) return;
+		java.util.function.Consumer<String> say = s -> mc.player.sendSystemMessage(Theme.chatPrefix().append(Component.literal(s).withStyle(ChatFormatting.GRAY)));
+		List<PlayerInfo> infos = new ArrayList<>(mc.getConnection().getOnlinePlayers());
+		infos.sort(Comparator.comparing(info -> info.getProfile().name()));
+		boolean inSection = false;
+		int shown = 0;
+		for (PlayerInfo info : infos) {
+			Component display = info.getTabListDisplayName();
+			if (display == null) continue;
+			String raw = ChatFormatting.stripFormatting(display.getString());
+			if (raw == null) continue;
+			if (raw.trim().equals("Pet:")) inSection = true;
+			if (!inSection) continue;
+			say.accept("tab: \"" + raw.trim() + "\"");
+			if (++shown > 5) break;
+		}
+		if (shown == 0) say.accept("No \"Pet:\" section in the tab list (turn on the Pet widget in /widget).");
+		PetMemo memo = name.isEmpty() ? null : recall(name, level, rarityColor);
+		say.accept("read: pet=\"" + name + "\" level=" + level + " rarity=#" + String.format("%06X", rarityColor & 0xFFFFFF)
+				+ " skin=" + (skinColor == -1 ? "none" : String.format("#%06X", skinColor & 0xFFFFFF)) + " item=\"" + heldItem + "\"");
+		say.accept("memory: " + (memo == null ? "nothing saved for this pet (open /pets once)" : "item=\"" + memo.held() + "\" skin=" + (memo.skinColor() == -1 ? "none" : "yes"))
+				+ " (" + MEMORY.size() / 2 + " pets remembered)");
 	}
 
 	/** Colour of the pet's skin star (✦), or -1 when it has no skin. */
@@ -620,7 +744,10 @@ public final class PetHud {
 		if (currentIcon != null && currentIconPet.equalsIgnoreCase(pet) && currentIconSkinned == skinned) return currentIcon;
 		String key = pet.toLowerCase(Locale.ROOT);
 		int tier = tierOf(color);
-		ItemStack stack = ICONS.get(key + "|" + tier + variant(skinned));
+		// this exact pet (name, level, rarity) as /pets showed it, then any pet of that name and rarity
+		// (the level is only known for the pet you have out, not the editor's sample pet)
+		ItemStack stack = level > 0 && pet.equalsIgnoreCase(name) ? ICONS.get(key + "|" + level + "|" + tier + variant(skinned)) : null;
+		if (stack == null) stack = ICONS.get(key + "|" + tier + variant(skinned));
 		// skins look the same at every rarity
 		if (stack == null && skinned) stack = ICONS.get(key + SKIN);
 		if (stack != null) return stack;

@@ -145,6 +145,10 @@ public class FancyBarsMod implements ClientModInitializer {
 						.then(ClientCommands.literal("edit").executes(_ -> queueOpenScreen(new BarEditorScreen(null))))
 						.then(ClientCommands.literal("protect").executes(_ -> ItemProtection.protectHeldCommand()))
 						.then(nickCommand())
+						.then(ClientCommands.literal("petdebug").executes(_ -> {
+							dev.fancybars.hud.PetHud.debug();
+							return Command.SINGLE_SUCCESS;
+						}))
 						.then(ClientCommands.literal("nametagdebug").executes(_ -> {
 							dev.fancybars.players.NameTagDebug.report();
 							return Command.SINGLE_SUCCESS;
