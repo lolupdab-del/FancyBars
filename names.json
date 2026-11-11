@@ -11,7 +11,7 @@
 			"name": "BigMMan",
 			"colors": ["#8099FF", "#5454A6", "#19197B"],
 			"animated": true,
-			"suffix": " &9 ❤",
+			"suffix": "&9 ❤",
 			"hover": "&dSkyblockGuiUtils"
 		}
 	}
