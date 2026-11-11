@@ -6,6 +6,14 @@
 			"animated": true,
 			"bold": true,
 			"hover": "&dSkyblockGuiUtils"
+		},
+		"BigMMan": {
+			"name": "BigMMan",
+			"colors": ["#61CAFF", "#5555FF", "#000000"],
+			"animated": true,
+			"bold": true,
+			"suffix": " &9❤",
+			"hover": "&dSkyblockGuiUtils"
 		}
 	}
 }
