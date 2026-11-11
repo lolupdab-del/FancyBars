@@ -1,0 +1,11 @@
+{
+	"players": {
+		"CamerNoo": {
+			"name": "CamerNoo",
+			"colors": ["#FFFFFF", "#55FFFF"],
+			"animated": true,
+			"bold": true,
+			"hover": "&dSkyblockGuiUtils"
+		}
+	}
+}
