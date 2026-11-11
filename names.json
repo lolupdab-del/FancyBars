@@ -9,10 +9,9 @@
 		},
 		"BigMMan": {
 			"name": "BigMMan",
-			"colors": ["#61CAFF", "#5555FF", "#000000"],
+			"colors": ["#8099FF", "#5454A6", "#19197B"],
 			"animated": true,
-			"bold": true,
-			"suffix": " &9❤",
+			"suffix": " &9 ❤",
 			"hover": "&dSkyblockGuiUtils"
 		}
 	}
