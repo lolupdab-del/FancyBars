@@ -49,6 +49,28 @@ public class BarsMenuScreen extends Screen {
 	private static Tab tab = Tab.HOME;
 	private static String search = "";
 
+	// Feature list (left) + that feature's settings (right), on every tab except Home and search results
+	private static final int LIST_W = 128;
+	private static final int ROW_H = 18;
+	/** The feature picked on each tab (its section title), kept until you log off. */
+	private static final java.util.Map<Tab, String> selectedFeature = new java.util.EnumMap<>(Tab.class);
+	private final List<Section> sections = new ArrayList<>();
+	private boolean split;
+	private int listW;
+
+	/** One feature on a tab: its title, its settings, and its main on/off switch when it has one. */
+	private static final class Section {
+		final String id;
+		final Component title;
+		final List<Item> items = new ArrayList<>();
+		@Nullable ToggleItem master;
+
+		Section(Component title) {
+			this.id = title.getString();
+			this.title = title;
+		}
+	}
+
 	private final @Nullable Screen parent;
 	private final FancyStatusBars bars = FancyStatusBars.INSTANCE;
 	private final FancyBarsConfig config = FancyBarsConfig.get();
@@ -127,6 +149,7 @@ public class BarsMenuScreen extends Screen {
 		tab = Tab.HOME;
 		search = "";
 		rememberedScroll = 0;
+		selectedFeature.clear();
 	}
 
 	public static BarsMenuScreen openAt(@Nullable Screen parent, Category start) {
@@ -204,9 +227,12 @@ public class BarsMenuScreen extends Screen {
 		}
 		tabsBottom = ty + TAB_HEIGHT;
 
-		contentX = x0 + 10;
+		// tabs other than Home show their features in a list on the left and the picked one's settings on the right
+		split = search.isBlank() && tab != Tab.HOME;
+		listW = split ? Math.min(LIST_W, totalWidth / 3) : 0;
+		contentX = x0 + 10 + (split ? listW + 10 : 0);
 		contentY = tabsBottom + 1 + CONTENT_PADDING;
-		contentW = totalWidth - 20;
+		contentW = totalWidth - 20 - (split ? listW + 10 : 0);
 		contentH = y0 + totalHeight - FOOTER_HEIGHT - CONTENT_PADDING - contentY;
 
 		// Content
@@ -219,6 +245,28 @@ public class BarsMenuScreen extends Screen {
 			}
 		}
 		layoutContent();
+
+		// Feature list
+		if (split && !sections.isEmpty()) {
+			int rowH = Math.max(13, Math.min(ROW_H, contentH / sections.size()));
+			int ry = contentY;
+			for (Section s : sections) {
+				int switchSpace = 0;
+				if (s.master != null) {
+					// the feature's main switch sits in its row (added before the row so it gets the click)
+					ModernToggle toggle = s.master.toggle;
+					toggle.setPosition(x0 + 10 + listW - ModernToggle.SWITCH_WIDTH - 4, ry + (rowH - ModernToggle.SWITCH_HEIGHT) / 2);
+					toggle.visible = true;
+					addRenderableWidget(toggle);
+					tipFor(toggle, s.master.tooltip != null ? s.master.tooltip : s.title);
+					switchSpace = ModernToggle.SWITCH_WIDTH + 6;
+				}
+				FeatureRow row = new FeatureRow(s, listW - switchSpace, rowH);
+				row.setPosition(x0 + 10, ry);
+				addRenderableWidget(row);
+				ry += rowH;
+			}
+		}
 
 		// arrived here from a search result: scroll to that setting and flash it
 		if (pendingJump != null) {
@@ -296,17 +344,110 @@ public class BarsMenuScreen extends Screen {
 			if (tab == Tab.HOME) {
 				items.addAll(homeItems());
 			} else {
+				List<Item> all = new ArrayList<>();
 				for (Category c : tab.categories) {
 					List<Item> list = itemsFor(c);
 					// grouped tabs: every part gets its own section label
-					if (tab.categories.length > 1 && (list.isEmpty() || !(list.getFirst() instanceof HeaderItem))) items.add(new HeaderItem(c.label(), null));
-					items.addAll(list);
+					if (tab.categories.length > 1 && (list.isEmpty() || !(list.getFirst() instanceof HeaderItem))) all.add(new HeaderItem(c.label(), null));
+					all.addAll(list);
 				}
 				if (tab == Tab.BARS) {
-					items.add(new HeaderItem(Component.translatable("fancybars.menu.layout"), null));
-					items.add(resetLayoutRow());
+					all.add(new HeaderItem(Component.translatable("fancybars.menu.layout"), null));
+					all.add(resetLayoutRow());
+				}
+				if (!split) {
+					items.addAll(all);
+					return;
+				}
+				splitIntoSections(all);
+				Section shown = pickSection();
+				items.addAll(shown.items);
+			}
+		}
+	}
+
+	/** Each section label starts a feature; a feature whose first setting is an on/off switch shows it in the list. */
+	private void splitIntoSections(List<Item> all) {
+		sections.clear();
+		Section current = null;
+		for (Item item : all) {
+			if (item instanceof HeaderItem header) {
+				current = new Section(header.title);
+				sections.add(current);
+			} else if (current == null) {
+				current = new Section(tab.label());
+				sections.add(current);
+			}
+			current.items.add(item);
+		}
+		for (Section s : sections) {
+			for (Item item : s.items) {
+				if (item instanceof HeaderItem) continue;
+				if (item instanceof ToggleItem toggle) {
+					s.master = toggle;
+					s.items.remove(toggle);
+				}
+				break;
+			}
+		}
+	}
+
+	/** The feature to show: the one jumped to from search, else the last one picked on this tab, else the first. */
+	private Section pickSection() {
+		if (pendingJump != null) {
+			for (Section s : sections) {
+				boolean here = s.master != null && s.master.searchText.equals(pendingJump);
+				for (Item item : s.items) here |= item.searchable && item.searchText.equals(pendingJump);
+				if (here) {
+					selectedFeature.put(tab, s.id);
+					return s;
 				}
 			}
+		}
+		String wanted = selectedFeature.get(tab);
+		for (Section s : sections) if (s.id.equals(wanted)) return s;
+		return sections.getFirst();
+	}
+
+	private void selectFeature(Section s) {
+		if (s.id.equals(selectedFeature.get(tab))) return;
+		selectedFeature.put(tab, s.id);
+		scroll = scrollTarget = 0;
+		rebuildNextTick = true;
+	}
+
+	/** A feature in the list on the left: its name, highlighted when picked. */
+	private class FeatureRow extends AbstractWidget {
+		private final Section section;
+		private float hover = 0;
+		private long last = Util.getMillis();
+
+		FeatureRow(Section section, int w, int h) {
+			super(0, 0, w, h, section.title);
+			this.section = section;
+		}
+
+		@Override
+		protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+			boolean selected = section.id.equals(selectedFeature.get(tab)) || selectedFeature.get(tab) == null && sections.getFirst() == section;
+			hover = Theme.approach(hover, isHovered() ? 1 : 0, 8, last);
+			last = Util.getMillis();
+			if (selected) Theme.roundedRect(graphics, getX(), getY() + 1, listW, getHeight() - 2, 3, Theme.SELECTED);
+			else if (hover > 0.01f) Theme.roundedRect(graphics, getX(), getY() + 1, listW, getHeight() - 2, 3, Theme.withAlpha(Theme.SURFACE_HOVER, 0.6f * hover));
+			if (selected) Theme.fillF(graphics, getX(), getY() + 3, 1.5f, getHeight() - 6, Theme.ACCENT);
+			int color = selected ? Theme.TEXT : Theme.lerpColor(Theme.TEXT_MUTED, Theme.TEXT_SOFT, hover);
+			Theme.textInBox(graphics, font, clip(section.title, getWidth() - 10), getX() + 7, getY(), getHeight(), color);
+			if (isHovered()) graphics.requestCursor(CursorTypes.POINTING_HAND);
+		}
+
+		@Override
+		public void onClick(MouseButtonEvent click, boolean doubled) {
+			selectFeature(section);
+		}
+
+		@Override
+		protected void updateWidgetNarration(NarrationElementOutput output) {
+			output.add(NarratedElementType.TITLE, getMessage());
 		}
 	}
 
@@ -1095,6 +1236,8 @@ public class BarsMenuScreen extends Screen {
 		Theme.hline(graphics, x0 + 1, x0 + totalWidth - 1, y0 + HEADER_HEIGHT, Theme.DIVIDER);
 		Theme.hline(graphics, x0 + 1, x0 + totalWidth - 1, tabsBottom, Theme.DIVIDER);
 		Theme.hline(graphics, x0 + 1, x0 + totalWidth - 1, y0 + totalHeight - FOOTER_HEIGHT, Theme.DIVIDER);
+		// feature list | settings
+		if (split) Theme.vline(graphics, x0 + 10 + listW + 5, tabsBottom + 1, y0 + totalHeight - FOOTER_HEIGHT, Theme.DIVIDER);
 
 		// Brand mark + wordmark, divider, current page
 		int iconSize = 14;
@@ -1107,6 +1250,11 @@ public class BarsMenuScreen extends Screen {
 		Theme.vline(graphics, hx, y0 + 9, y0 + HEADER_HEIGHT - 9, Theme.PANEL_BORDER);
 		hx += 9;
 		Component page = search.isBlank() ? tab.label() : Component.translatable("fancybars.menu.searchResults");
+		if (split && !sections.isEmpty()) {
+			Section shown = sections.getFirst();
+			for (Section s : sections) if (s.id.equals(selectedFeature.get(tab))) shown = s;
+			if (sections.size() > 1) page = page.copy().append(Component.literal("  ›  ").withColor(Theme.night(Theme.TEXT_DISABLED) & 0xFFFFFF)).append(shown.title.copy().withColor(Theme.night(Theme.TEXT_MUTED) & 0xFFFFFF));
+		}
 		Theme.textInBox(graphics, font, page, hx, y0, HEADER_HEIGHT, Theme.TEXT);
 
 		// Footer
