@@ -84,6 +84,8 @@ public class FancyBarsConfig {
 	public float etherwarpFillOpacity = 0.3f;
 	/** Glowing Dropped Items (SkyHanni): items on the ground glow in their rarity colour. */
 	public boolean glowingDroppedItems = true;
+	/** How far away (blocks) dropped items still glow. */
+	public float glowingDroppedItemsRange = 24;
 	/** Chest Value (SkyHanni): what's in the open chest and what it's worth. */
 	public boolean chestValue = true;
 	public boolean chestValueOwnInventory = false;
@@ -906,6 +908,7 @@ public class FancyBarsConfig {
 			if (instance.melodyScale <= 0) instance.melodyScale = 1;
 			if (instance.petItemIconSize <= 0) instance.petItemIconSize = 1;
 			if (instance.nameFlowSize <= 0) instance.nameFlowSize = 8;
+			if (instance.glowingDroppedItemsRange <= 0) instance.glowingDroppedItemsRange = 24;
 			if (instance.panelOpacity <= 0) instance.panelOpacity = 1;
 			if (instance.storageStyle < 0) instance.storageStyle = instance.storageVanillaStyle ? 1 : 0;
 			if (instance.petStyleVersion < 1) {

@@ -448,11 +448,6 @@ public class BarsMenuScreen extends Screen {
 					StatusBar bar = bars.statusBars.get(type);
 					if (bar != null) list.add(new BarItem(bar));
 				}
-				list.add(new HeaderItem(Component.translatable("fancybars.vanillaHud.title"), null));
-				list.add(new ToggleItem("hideVanillaHearts", () -> config.hideVanillaHearts, value -> config.hideVanillaHearts = value));
-				list.add(new ToggleItem("hideAbsorptionHearts", () -> config.hideAbsorptionHearts, value -> config.hideAbsorptionHearts = value));
-				list.add(new ToggleItem("hideVanillaHunger", () -> config.hideVanillaHunger, value -> config.hideVanillaHunger = value));
-				list.add(new ToggleItem("hideVanillaArmor", () -> config.hideVanillaArmor, value -> config.hideVanillaArmor = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.bars.options"), null));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
@@ -497,6 +492,7 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.CHEST_VALUE.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.glowingDroppedItems.title"), null));
 				list.add(new ToggleItem("glowingDroppedItems", () -> config.glowingDroppedItems, value -> config.glowingDroppedItems = value));
+				list.add(new SliderItem("glowingDroppedItemsRange", 4, 100, 1, false, () -> config.glowingDroppedItemsRange, value -> config.glowingDroppedItemsRange = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.etherwarp.title"), null));
 				list.add(new ToggleItem("etherwarpOutline", () -> config.etherwarpOutline, value -> config.etherwarpOutline = value));
 				list.add(new SwatchItem("etherwarpColor", () -> new Color(config.etherwarpColor, false), color -> config.etherwarpColor = color.getRGB() & 0xFFFFFF));
@@ -545,18 +541,6 @@ public class BarsMenuScreen extends Screen {
 									dev.fancybars.items.Customization.clearCaches();
 									FancyBarsConfig.save();
 								})))));
-				list.add(new HeaderItem(Component.translatable("fancybars.storage.title"), null));
-				list.add(new ToggleItem("storageOverlay", () -> config.storageOverlay, value -> config.storageOverlay = value));
-				list.add(new ValueCycleItem("storageStyle", new int[]{0, 1, 2}, () -> config.storageStyle,
-						value -> config.storageStyle = value, v -> Component.translatable("fancybars.storage.style." + v)));
-				list.add(new SliderItem("storageSwitchDelay", 150, 1500, 10, false, () -> (float) config.storageSwitchDelay, value -> config.storageSwitchDelay = Math.round(value)));
-				list.add(new SliderItem("storageOverlayColumns", 1, 6, 1, false, () -> (float) config.storageOverlayColumns, value -> config.storageOverlayColumns = Math.round(value)));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
-				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
-				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), null));
-				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
-				list.add(new HeldItemActionsItem());
 			}
 			case GIFS -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.gifs"), null));
@@ -747,20 +731,6 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("crosshairInThirdPerson", () -> config.crosshairInThirdPerson, value -> config.crosshairInThirdPerson = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.crosshair.edit"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.crosshair.CrosshairEditorScreen(BarsMenuScreen.this)))));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
-				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TITLE))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
-				list.add(new HeaderItem(Component.translatable("fancybars.editor.element.bossBar"), null));
-				list.add(new ToggleItem("bossBarShown", () -> config.bossBarShown, value -> config.bossBarShown = value));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.BOSS_BAR))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.BOSS_BAR.reset())));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HOTBAR))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.HOTBAR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.inventoryHud"), null));
 				list.add(new ToggleItem("invHudEnabled", () -> config.invHudEnabled, value -> config.invHudEnabled = value));
 				list.add(new ToggleItem("invHudBackground", () -> config.invHudBackground, value -> config.invHudBackground = value));
@@ -850,22 +820,6 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
-				list.add(new HeaderItem(Component.translatable("fancybars.nick.title"), Component.translatable("fancybars.nick.hint")));
-				list.add(new ToggleItem("nicknamesEnabled", () -> config.nicknamesEnabled, value -> {
-					config.nicknamesEnabled = value;
-					dev.fancybars.players.Nicknames.refreshNameTags();
-				}));
-				list.add(new ToggleItem("sharedNamesEnabled", () -> config.sharedNamesEnabled, value -> {
-					config.sharedNamesEnabled = value;
-					dev.fancybars.players.Nicknames.refreshNameTags();
-				}));
-				list.add(new SliderItem("nameFlowSize", 2, 40, 0.5f, false, () -> config.nameFlowSize, value -> config.nameFlowSize = value));
-				for (FancyBarsConfig.Nickname nickname : config.nicknames) list.add(new NicknameRowItem(nickname));
-				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.nick.add"), ModernButton.Style.PRIMARY, () -> {
-					config.nicknames.add(new FancyBarsConfig.Nickname());
-					FancyBarsConfig.save();
-					rebuildNextTick = true;
-				})));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.swordBlock"), null));
 				list.add(new ToggleItem("swordBlock", () -> config.swordBlock, value -> config.swordBlock = value));
 				list.add(new ToggleItem("swordBlockSwing", () -> config.swordBlockSwing, value -> config.swordBlockSwing = value));
@@ -947,6 +901,61 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.nametag"), null));
 				list.add(new ToggleItem("ownNametagInF5", () -> config.ownNametagInF5, value -> config.ownNametagInF5 = value));
 				list.add(new ToggleItem("hideOwnFireF5", () -> config.hideOwnFireF5, value -> config.hideOwnFireF5 = value));
+			}
+			case SCREEN -> {
+				// Minecraft's own HUD pieces: hide them, or move titles, the boss bar, the hotbar and item names
+				list.add(new HeaderItem(Component.translatable("fancybars.vanillaHud.title"), null));
+				list.add(new ToggleItem("hideVanillaHearts", () -> config.hideVanillaHearts, value -> config.hideVanillaHearts = value));
+				list.add(new ToggleItem("hideAbsorptionHearts", () -> config.hideAbsorptionHearts, value -> config.hideAbsorptionHearts = value));
+				list.add(new ToggleItem("hideVanillaHunger", () -> config.hideVanillaHunger, value -> config.hideVanillaHunger = value));
+				list.add(new ToggleItem("hideVanillaArmor", () -> config.hideVanillaArmor, value -> config.hideVanillaArmor = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
+				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TITLE))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.editor.element.bossBar"), null));
+				list.add(new ToggleItem("bossBarShown", () -> config.bossBarShown, value -> config.bossBarShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.BOSS_BAR))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.BOSS_BAR.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HOTBAR))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.HOTBAR.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), null));
+				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
+				list.add(new HeldItemActionsItem());
+			}
+			case INVENTORY -> {
+				// things shown in menus and your inventory (GIFs and screen images follow on the same tab)
+				list.add(new HeaderItem(Component.translatable("fancybars.storage.title"), null));
+				list.add(new ToggleItem("storageOverlay", () -> config.storageOverlay, value -> config.storageOverlay = value));
+				list.add(new ValueCycleItem("storageStyle", new int[]{0, 1, 2}, () -> config.storageStyle,
+						value -> config.storageStyle = value, v -> Component.translatable("fancybars.storage.style." + v)));
+				list.add(new SliderItem("storageSwitchDelay", 150, 1500, 10, false, () -> (float) config.storageSwitchDelay, value -> config.storageSwitchDelay = Math.round(value)));
+				list.add(new SliderItem("storageOverlayColumns", 1, 6, 1, false, () -> (float) config.storageOverlayColumns, value -> config.storageOverlayColumns = Math.round(value)));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
+				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
+				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
+			}
+			case NAMES -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.nick.title"), Component.translatable("fancybars.nick.hint")));
+				list.add(new ToggleItem("nicknamesEnabled", () -> config.nicknamesEnabled, value -> {
+					config.nicknamesEnabled = value;
+					dev.fancybars.players.Nicknames.refreshNameTags();
+				}));
+				list.add(new ToggleItem("sharedNamesEnabled", () -> config.sharedNamesEnabled, value -> {
+					config.sharedNamesEnabled = value;
+					dev.fancybars.players.Nicknames.refreshNameTags();
+				}));
+				list.add(new SliderItem("nameFlowSize", 2, 40, 0.5f, false, () -> config.nameFlowSize, value -> config.nameFlowSize = value));
+				for (FancyBarsConfig.Nickname nickname : config.nicknames) list.add(new NicknameRowItem(nickname));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.nick.add"), ModernButton.Style.PRIMARY, () -> {
+					config.nicknames.add(new FancyBarsConfig.Nickname());
+					FancyBarsConfig.save();
+					rebuildNextTick = true;
+				})));
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
@@ -1296,7 +1305,10 @@ public class BarsMenuScreen extends Screen {
 		COMMANDS("fancybars.category.commands"),
 		PLAYER("fancybars.category.player"),
 		GENERAL("fancybars.category.general"),
-		VANILLA_MANA("fancybars.category.vanillaMana");
+		VANILLA_MANA("fancybars.category.vanillaMana"),
+		SCREEN("fancybars.category.screen"),
+		INVENTORY("fancybars.category.inventory"),
+		NAMES("fancybars.nick.title");
 
 		private final String key;
 
@@ -1312,13 +1324,20 @@ public class BarsMenuScreen extends Screen {
 	/** The broad sections shown as tabs; each one holds one or more pages of settings. */
 	public enum Tab {
 		HOME("fancybars.category.home", Category.HOME),
-		BARS("fancybars.category.bars", Category.BARS, Category.STYLE, Category.VANILLA_MANA),
-		HUD("fancybars.category.hud", Category.HUD, Category.ACTION_BAR, Category.MINING),
-		DUNGEONS("fancybars.category.dungeons", Category.DUNGEONS),
+		/** Your status bars: which bars, how they look, the vanilla-style mana bar and the action bar they replace. */
+		BARS("fancybars.category.bars", Category.BARS, Category.STYLE, Category.VANILLA_MANA, Category.ACTION_BAR),
+		/** Extra HUD elements the mod adds (FPS, armor, pet, keystrokes, crosshair, inventory HUD). */
+		HUD("fancybars.category.hud", Category.HUD),
+		/** Minecraft's own HUD: hide hearts/hunger/armor, move titles, boss bar, hotbar, held item name. */
+		SCREEN("fancybars.tab.screen", Category.SCREEN),
 		ITEMS("fancybars.category.items", Category.ITEMS),
-		GIFS("fancybars.tab.gifs", Category.GIFS),
+		/** Menus and your inventory: storage overlay, backpack preview, GIFs and screen images. */
+		INVENTORY("fancybars.tab.inventory", Category.INVENTORY, Category.GIFS),
+		/** Chat tabs and filters, nicknames and custom names, command shortcuts. */
+		CHAT("fancybars.category.chat", Category.CHAT, Category.NAMES, Category.COMMANDS),
 		PLAYER("fancybars.category.player", Category.PLAYER),
-		CHAT("fancybars.category.chat", Category.CHAT, Category.COMMANDS),
+		/** SkyBlock-only features: dungeons and mining. */
+		SKYBLOCK("fancybars.tab.skyblock", Category.DUNGEONS, Category.MINING),
 		SPOTIFY("fancybars.category.spotify", Category.SPOTIFY),
 		SETTINGS("fancybars.tab.settings", Category.GENERAL);
 
@@ -2724,7 +2743,7 @@ public class BarsMenuScreen extends Screen {
 			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 200), x + 10, y, height, Theme.TEXT);
 			float v = getter.get();
 			Component value = Component.literal(key.equals("tooltipDelay") ? String.format("%.2fs", v) : key.equals("borderThickness") ? String.format("%.1fpx", v) : key.endsWith("Speed") && !percent ? String.format("%.1fx", v)
-					: percent ? Math.round(v * 100) + "%" : key.contains("Rot") ? Math.round(v) + "°" : String.format("%.2f", v));
+					: percent ? Math.round(v * 100) + "%" : key.contains("Rot") ? Math.round(v) + "°" : key.endsWith("Range") ? Math.round(v) + " blocks" : String.format("%.2f", v));
 			Theme.monoInBox(graphics, font, value, slider.getX() - 8, y, height, Theme.TEXT_MUTED);
 		}
 	}
