@@ -207,7 +207,7 @@ public final class Ring {
 	 * Draws the border inside the box {@code x, y, width, height} (GUI units).
 	 * {@code radius} and {@code thickness} are in GUI units too (thickness may be fractional).
 	 */
-	public static void draw(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int radius, float thickness, int color) {
+	public static void draw(GuiGraphicsExtractor graphics, int x, int y, int width, int height, float radius, float thickness, int color) {
 		float px = thickness * Theme.guiScale() * Math.abs(graphics.pose().m00());
 		outlinePx(graphics, x, y, width, height, radius, px, color);
 	}
