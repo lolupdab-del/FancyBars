@@ -326,7 +326,9 @@ public final class Theme {
 			int f = night(fallback);
 			color = Math.round((f >>> 24) * alpha / 255f) << 24 | f & 0xFFFFFF;
 		}
-		Ring.draw(graphics, x, y, width, height, Math.round(Math.min(radius * c.cornerRoundness, Math.min(width, height) / 2f)), thickness, color);
+		// exactly the radius roundedRect fills with: rounding it to whole GUI pixels first made the border's corners a
+		// pixel off from the fill's, so a coloured fill (a pressed keystroke) poked out at the corners
+		Ring.draw(graphics, x, y, width, height, Math.min(radius * c.cornerRoundness, Math.min(width, height) / 2f), thickness, color);
 	}
 
 	/** A HUD box: themed background (HUD opacity) and the Appearance border. */

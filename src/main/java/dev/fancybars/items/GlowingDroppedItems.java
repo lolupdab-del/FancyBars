@@ -14,6 +14,11 @@ public final class GlowingDroppedItems {
 	public static int color(Entity entity) {
 		if (!(entity instanceof ItemEntity item) || !FancyBarsConfig.get().glowingDroppedItems || !SkyblockLocation.isOnSkyblock()) return -1;
 		if (item.hasGlowingTag()) return -1; // already glowing from the server: leave its colour alone
+		// only within range: every glowing item is outlined through walls each frame, which got expensive with
+		// items 100 blocks away
+		var player = net.minecraft.client.Minecraft.getInstance().player;
+		double range = FancyBarsConfig.get().glowingDroppedItemsRange;
+		if (player == null || player.distanceToSqr(item) > range * range) return -1;
 		int rgb = RarityBackground.colorOf(item.getItem());
 		return rgb == -1 ? 0xFFFFFF : rgb; // no rarity: common (white), like SkyHanni
 	}

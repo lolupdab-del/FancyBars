@@ -49,6 +49,28 @@ public class BarsMenuScreen extends Screen {
 	private static Tab tab = Tab.HOME;
 	private static String search = "";
 
+	// Feature list (left) + that feature's settings (right), on every tab except Home and search results
+	private static final int LIST_W = 128;
+	private static final int ROW_H = 18;
+	/** The feature picked on each tab (its section title), kept until you log off. */
+	private static final java.util.Map<Tab, String> selectedFeature = new java.util.EnumMap<>(Tab.class);
+	private final List<Section> sections = new ArrayList<>();
+	private boolean split;
+	private int listW;
+
+	/** One feature on a tab: its title, its settings, and its main on/off switch when it has one. */
+	private static final class Section {
+		final String id;
+		final Component title;
+		final List<Item> items = new ArrayList<>();
+		@Nullable ToggleItem master;
+
+		Section(Component title) {
+			this.id = title.getString();
+			this.title = title;
+		}
+	}
+
 	private final @Nullable Screen parent;
 	private final FancyStatusBars bars = FancyStatusBars.INSTANCE;
 	private final FancyBarsConfig config = FancyBarsConfig.get();
@@ -127,6 +149,7 @@ public class BarsMenuScreen extends Screen {
 		tab = Tab.HOME;
 		search = "";
 		rememberedScroll = 0;
+		selectedFeature.clear();
 	}
 
 	public static BarsMenuScreen openAt(@Nullable Screen parent, Category start) {
@@ -204,13 +227,24 @@ public class BarsMenuScreen extends Screen {
 		}
 		tabsBottom = ty + TAB_HEIGHT;
 
-		contentX = x0 + 10;
+		// tabs other than Home show their features in a list on the left and the picked one's settings on the right
+		split = search.isBlank() && tab != Tab.HOME;
+		listW = split ? Math.min(LIST_W, totalWidth / 3) : 0;
+		contentX = x0 + 10 + (split ? listW + 10 : 0);
 		contentY = tabsBottom + 1 + CONTENT_PADDING;
-		contentW = totalWidth - 20;
+		contentW = totalWidth - 20 - (split ? listW + 10 : 0);
 		contentH = y0 + totalHeight - FOOTER_HEIGHT - CONTENT_PADDING - contentY;
 
 		// Content
 		buildItems();
+		if (split && sections.size() <= 1) {
+			// a tab with a single feature (Spotify) doesn't need a list: full width instead
+			split = false;
+			listW = 0;
+			contentX = x0 + 10;
+			contentW = totalWidth - 20;
+			buildItems();
+		}
 		contentWidgets.clear();
 		for (Item item : items) {
 			for (AbstractWidget widget : item.widgets) {
@@ -219,6 +253,28 @@ public class BarsMenuScreen extends Screen {
 			}
 		}
 		layoutContent();
+
+		// Feature list
+		if (split && !sections.isEmpty()) {
+			int rowH = Math.max(13, Math.min(ROW_H, contentH / sections.size()));
+			int ry = contentY;
+			for (Section s : sections) {
+				// the row first, then the feature's main switch on top of it (the row's clickable area stops short of
+				// the switch, and the switch is drawn above the picked row's highlight instead of under it)
+				int switchSpace = s.master != null ? ModernToggle.SWITCH_WIDTH + 6 : 0;
+				FeatureRow row = new FeatureRow(s, listW - switchSpace, rowH);
+				row.setPosition(x0 + 10, ry);
+				addRenderableWidget(row);
+				if (s.master != null) {
+					ModernToggle toggle = s.master.toggle;
+					toggle.setPosition(x0 + 10 + listW - ModernToggle.SWITCH_WIDTH - 4, ry + (rowH - ModernToggle.SWITCH_HEIGHT) / 2);
+					toggle.visible = true;
+					addRenderableWidget(toggle);
+					tipFor(toggle, s.master.tooltip != null ? s.master.tooltip : s.title);
+				}
+				ry += rowH;
+			}
+		}
 
 		// arrived here from a search result: scroll to that setting and flash it
 		if (pendingJump != null) {
@@ -296,17 +352,128 @@ public class BarsMenuScreen extends Screen {
 			if (tab == Tab.HOME) {
 				items.addAll(homeItems());
 			} else {
+				List<Item> all = new ArrayList<>();
 				for (Category c : tab.categories) {
 					List<Item> list = itemsFor(c);
 					// grouped tabs: every part gets its own section label
-					if (tab.categories.length > 1 && (list.isEmpty() || !(list.getFirst() instanceof HeaderItem))) items.add(new HeaderItem(c.label(), null));
-					items.addAll(list);
+					if (tab.categories.length > 1 && (list.isEmpty() || !(list.getFirst() instanceof HeaderItem))) all.add(new HeaderItem(c.label(), null));
+					all.addAll(list);
 				}
 				if (tab == Tab.BARS) {
-					items.add(new HeaderItem(Component.translatable("fancybars.menu.layout"), null));
-					items.add(resetLayoutRow());
+					all.add(new HeaderItem(Component.translatable("fancybars.menu.layout"), null));
+					all.add(resetLayoutRow());
+				}
+				if (!split) {
+					items.addAll(all);
+					return;
+				}
+				splitIntoSections(all);
+				if (sections.isEmpty()) {
+					items.addAll(all);
+					return;
+				}
+				Section shown = pickSection();
+				items.addAll(shown.items);
+			}
+		}
+	}
+
+	/** Each section label starts a feature; a feature whose first setting is an on/off switch shows it in the list. */
+	private void splitIntoSections(List<Item> all) {
+		sections.clear();
+		Section current = null;
+		for (Item item : all) {
+			if (item instanceof HeaderItem header) {
+				current = new Section(header.title);
+				sections.add(current);
+			} else if (current == null) {
+				current = new Section(tab.label());
+				sections.add(current);
+			}
+			current.items.add(item);
+		}
+		// a label with nothing under it (Settings' "General", directly followed by Appearance) isn't a feature
+		sections.removeIf(s -> s.items.stream().allMatch(item -> item instanceof HeaderItem));
+		for (Section s : sections) {
+			long settings = s.items.stream().filter(item -> !(item instanceof HeaderItem)).count();
+			for (Item item : s.items) {
+				if (item instanceof HeaderItem) continue;
+				// only a switch that turns the whole feature on or off, and never the feature's only setting (that
+				// would leave its page empty)
+				if (item instanceof ToggleItem toggle && isFeatureSwitch(toggle.key) && settings > 1) {
+					s.master = toggle;
+					s.items.remove(toggle);
+				}
+				break;
+			}
+		}
+	}
+
+	/** Settings that turn a whole feature on or off (as opposed to the first option of a feature). */
+	private static final java.util.Set<String> FEATURE_SWITCHES = java.util.Set.of("enableBars", "rarityBackground", "chestValue",
+			"glowingDroppedItems", "etherwarpOutline", "screenImagesInScreens", "swordBlock", "titlesShown", "bossBarShown",
+			"storageOverlay", "enableVanillaStyleManaBar");
+
+	private static boolean isFeatureSwitch(String key) {
+		return key.endsWith("Enabled") || FEATURE_SWITCHES.contains(key);
+	}
+
+	/** The feature to show: the one jumped to from search, else the last one picked on this tab, else the first. */
+	private Section pickSection() {
+		if (pendingJump != null) {
+			for (Section s : sections) {
+				boolean here = s.master != null && s.master.searchText.equals(pendingJump);
+				for (Item item : s.items) here |= item.searchable && item.searchText.equals(pendingJump);
+				if (here) {
+					selectedFeature.put(tab, s.id);
+					return s;
 				}
 			}
+		}
+		String wanted = selectedFeature.get(tab);
+		for (Section s : sections) if (s.id.equals(wanted)) return s;
+		return sections.getFirst();
+	}
+
+	private void selectFeature(Section s) {
+		if (s.id.equals(selectedFeature.get(tab))) return;
+		selectedFeature.put(tab, s.id);
+		scroll = scrollTarget = 0;
+		rebuildNextTick = true;
+	}
+
+	/** A feature in the list on the left: its name, highlighted when picked. */
+	private class FeatureRow extends AbstractWidget {
+		private final Section section;
+		private float hover = 0;
+		private long last = Util.getMillis();
+
+		FeatureRow(Section section, int w, int h) {
+			super(0, 0, w, h, section.title);
+			this.section = section;
+		}
+
+		@Override
+		protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+			boolean selected = section.id.equals(selectedFeature.get(tab)) || selectedFeature.get(tab) == null && sections.getFirst() == section;
+			hover = Theme.approach(hover, isHovered() ? 1 : 0, 8, last);
+			last = Util.getMillis();
+			if (selected) Theme.roundedRect(graphics, getX(), getY() + 1, listW, getHeight() - 2, 3, Theme.SELECTED);
+			else if (hover > 0.01f) Theme.roundedRect(graphics, getX(), getY() + 1, listW, getHeight() - 2, 3, Theme.withAlpha(Theme.SURFACE_HOVER, 0.6f * hover));
+			if (selected) Theme.fillF(graphics, getX(), getY() + 3, 1.5f, getHeight() - 6, Theme.ACCENT);
+			int color = selected ? Theme.TEXT : Theme.lerpColor(Theme.TEXT_MUTED, Theme.TEXT_SOFT, hover);
+			Theme.textInBox(graphics, font, clip(section.title, getWidth() - 10), getX() + 7, getY(), getHeight(), color);
+			if (isHovered()) graphics.requestCursor(CursorTypes.POINTING_HAND);
+		}
+
+		@Override
+		public void onClick(MouseButtonEvent click, boolean doubled) {
+			selectFeature(section);
+		}
+
+		@Override
+		protected void updateWidgetNarration(NarrationElementOutput output) {
+			output.add(NarratedElementType.TITLE, getMessage());
 		}
 	}
 
@@ -448,11 +615,6 @@ public class BarsMenuScreen extends Screen {
 					StatusBar bar = bars.statusBars.get(type);
 					if (bar != null) list.add(new BarItem(bar));
 				}
-				list.add(new HeaderItem(Component.translatable("fancybars.vanillaHud.title"), null));
-				list.add(new ToggleItem("hideVanillaHearts", () -> config.hideVanillaHearts, value -> config.hideVanillaHearts = value));
-				list.add(new ToggleItem("hideAbsorptionHearts", () -> config.hideAbsorptionHearts, value -> config.hideAbsorptionHearts = value));
-				list.add(new ToggleItem("hideVanillaHunger", () -> config.hideVanillaHunger, value -> config.hideVanillaHunger = value));
-				list.add(new ToggleItem("hideVanillaArmor", () -> config.hideVanillaArmor, value -> config.hideVanillaArmor = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.bars.options"), null));
 				list.add(new ToggleItem("enableBars", () -> config.enableBars, value -> config.enableBars = value));
 				list.add(new ToggleItem("enableBarsRift", () -> config.enableBarsRift, value -> config.enableBarsRift = value));
@@ -497,6 +659,7 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.CHEST_VALUE.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.glowingDroppedItems.title"), null));
 				list.add(new ToggleItem("glowingDroppedItems", () -> config.glowingDroppedItems, value -> config.glowingDroppedItems = value));
+				list.add(new SliderItem("glowingDroppedItemsRange", 4, 100, 1, false, () -> config.glowingDroppedItemsRange, value -> config.glowingDroppedItemsRange = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.etherwarp.title"), null));
 				list.add(new ToggleItem("etherwarpOutline", () -> config.etherwarpOutline, value -> config.etherwarpOutline = value));
 				list.add(new SwatchItem("etherwarpColor", () -> new Color(config.etherwarpColor, false), color -> config.etherwarpColor = color.getRGB() & 0xFFFFFF));
@@ -545,18 +708,6 @@ public class BarsMenuScreen extends Screen {
 									dev.fancybars.items.Customization.clearCaches();
 									FancyBarsConfig.save();
 								})))));
-				list.add(new HeaderItem(Component.translatable("fancybars.storage.title"), null));
-				list.add(new ToggleItem("storageOverlay", () -> config.storageOverlay, value -> config.storageOverlay = value));
-				list.add(new ValueCycleItem("storageStyle", new int[]{0, 1, 2}, () -> config.storageStyle,
-						value -> config.storageStyle = value, v -> Component.translatable("fancybars.storage.style." + v)));
-				list.add(new SliderItem("storageSwitchDelay", 150, 1500, 10, false, () -> (float) config.storageSwitchDelay, value -> config.storageSwitchDelay = Math.round(value)));
-				list.add(new SliderItem("storageOverlayColumns", 1, 6, 1, false, () -> (float) config.storageOverlayColumns, value -> config.storageOverlayColumns = Math.round(value)));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
-				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
-				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), null));
-				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
-				list.add(new HeldItemActionsItem());
 			}
 			case GIFS -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.gifs"), null));
@@ -747,20 +898,6 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ToggleItem("crosshairInThirdPerson", () -> config.crosshairInThirdPerson, value -> config.crosshairInThirdPerson = value));
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.crosshair.edit"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(new dev.fancybars.crosshair.CrosshairEditorScreen(BarsMenuScreen.this)))));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
-				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TITLE))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
-				list.add(new HeaderItem(Component.translatable("fancybars.editor.element.bossBar"), null));
-				list.add(new ToggleItem("bossBarShown", () -> config.bossBarShown, value -> config.bossBarShown = value));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.BOSS_BAR))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.BOSS_BAR.reset())));
-				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
-				list.add(new ButtonRowItem(
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HOTBAR))),
-						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.HOTBAR.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.inventoryHud"), null));
 				list.add(new ToggleItem("invHudEnabled", () -> config.invHudEnabled, value -> config.invHudEnabled = value));
 				list.add(new ToggleItem("invHudBackground", () -> config.invHudBackground, value -> config.invHudBackground = value));
@@ -850,22 +987,6 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
-				list.add(new HeaderItem(Component.translatable("fancybars.nick.title"), Component.translatable("fancybars.nick.hint")));
-				list.add(new ToggleItem("nicknamesEnabled", () -> config.nicknamesEnabled, value -> {
-					config.nicknamesEnabled = value;
-					dev.fancybars.players.Nicknames.refreshNameTags();
-				}));
-				list.add(new ToggleItem("sharedNamesEnabled", () -> config.sharedNamesEnabled, value -> {
-					config.sharedNamesEnabled = value;
-					dev.fancybars.players.Nicknames.refreshNameTags();
-				}));
-				list.add(new SliderItem("nameFlowSize", 2, 40, 0.5f, false, () -> config.nameFlowSize, value -> config.nameFlowSize = value));
-				for (FancyBarsConfig.Nickname nickname : config.nicknames) list.add(new NicknameRowItem(nickname));
-				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.nick.add"), ModernButton.Style.PRIMARY, () -> {
-					config.nicknames.add(new FancyBarsConfig.Nickname());
-					FancyBarsConfig.save();
-					rebuildNextTick = true;
-				})));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.swordBlock"), null));
 				list.add(new ToggleItem("swordBlock", () -> config.swordBlock, value -> config.swordBlock = value));
 				list.add(new ToggleItem("swordBlockSwing", () -> config.swordBlockSwing, value -> config.swordBlockSwing = value));
@@ -947,6 +1068,61 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.nametag"), null));
 				list.add(new ToggleItem("ownNametagInF5", () -> config.ownNametagInF5, value -> config.ownNametagInF5 = value));
 				list.add(new ToggleItem("hideOwnFireF5", () -> config.hideOwnFireF5, value -> config.hideOwnFireF5 = value));
+			}
+			case SCREEN -> {
+				// Minecraft's own HUD pieces: hide them, or move titles, the boss bar, the hotbar and item names
+				list.add(new HeaderItem(Component.translatable("fancybars.vanillaHud.title"), null));
+				list.add(new ToggleItem("hideVanillaHearts", () -> config.hideVanillaHearts, value -> config.hideVanillaHearts = value));
+				list.add(new ToggleItem("hideAbsorptionHearts", () -> config.hideAbsorptionHearts, value -> config.hideAbsorptionHearts = value));
+				list.add(new ToggleItem("hideVanillaHunger", () -> config.hideVanillaHunger, value -> config.hideVanillaHunger = value));
+				list.add(new ToggleItem("hideVanillaArmor", () -> config.hideVanillaArmor, value -> config.hideVanillaArmor = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.titles"), null));
+				list.add(new ToggleItem("titlesShown", () -> config.titlesShown, value -> config.titlesShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.TITLE))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.TITLE.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.editor.element.bossBar"), null));
+				list.add(new ToggleItem("bossBarShown", () -> config.bossBarShown, value -> config.bossBarShown = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.BOSS_BAR))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.BOSS_BAR.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.hotbar"), null));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.HOTBAR))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.HOTBAR.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.heldItem"), null));
+				list.add(new ToggleItem("heldItemNameEnabled", () -> config.heldItemNameEnabled, value -> config.heldItemNameEnabled = value));
+				list.add(new HeldItemActionsItem());
+			}
+			case INVENTORY -> {
+				// things shown in menus and your inventory (GIFs and screen images follow on the same tab)
+				list.add(new HeaderItem(Component.translatable("fancybars.storage.title"), null));
+				list.add(new ToggleItem("storageOverlay", () -> config.storageOverlay, value -> config.storageOverlay = value));
+				list.add(new ValueCycleItem("storageStyle", new int[]{0, 1, 2}, () -> config.storageStyle,
+						value -> config.storageStyle = value, v -> Component.translatable("fancybars.storage.style." + v)));
+				list.add(new SliderItem("storageSwitchDelay", 150, 1500, 10, false, () -> (float) config.storageSwitchDelay, value -> config.storageSwitchDelay = Math.round(value)));
+				list.add(new SliderItem("storageOverlayColumns", 1, 6, 1, false, () -> (float) config.storageOverlayColumns, value -> config.storageOverlayColumns = Math.round(value)));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
+				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
+				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
+			}
+			case NAMES -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.nick.title"), Component.translatable("fancybars.nick.hint")));
+				list.add(new ToggleItem("nicknamesEnabled", () -> config.nicknamesEnabled, value -> {
+					config.nicknamesEnabled = value;
+					dev.fancybars.players.Nicknames.refreshNameTags();
+				}));
+				list.add(new ToggleItem("sharedNamesEnabled", () -> config.sharedNamesEnabled, value -> {
+					config.sharedNamesEnabled = value;
+					dev.fancybars.players.Nicknames.refreshNameTags();
+				}));
+				list.add(new SliderItem("nameFlowSize", 2, 40, 0.5f, false, () -> config.nameFlowSize, value -> config.nameFlowSize = value));
+				for (FancyBarsConfig.Nickname nickname : config.nicknames) list.add(new NicknameRowItem(nickname));
+				list.add(new ButtonRowItem(new ModernButton(10, 20, Component.translatable("fancybars.nick.add"), ModernButton.Style.PRIMARY, () -> {
+					config.nicknames.add(new FancyBarsConfig.Nickname());
+					FancyBarsConfig.save();
+					rebuildNextTick = true;
+				})));
 			}
 			case GENERAL -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.general"), null));
@@ -1086,6 +1262,8 @@ public class BarsMenuScreen extends Screen {
 		Theme.hline(graphics, x0 + 1, x0 + totalWidth - 1, y0 + HEADER_HEIGHT, Theme.DIVIDER);
 		Theme.hline(graphics, x0 + 1, x0 + totalWidth - 1, tabsBottom, Theme.DIVIDER);
 		Theme.hline(graphics, x0 + 1, x0 + totalWidth - 1, y0 + totalHeight - FOOTER_HEIGHT, Theme.DIVIDER);
+		// feature list | settings
+		if (split) Theme.vline(graphics, x0 + 10 + listW + 5, tabsBottom + 1, y0 + totalHeight - FOOTER_HEIGHT, Theme.DIVIDER);
 
 		// Brand mark + wordmark, divider, current page
 		int iconSize = 14;
@@ -1098,6 +1276,11 @@ public class BarsMenuScreen extends Screen {
 		Theme.vline(graphics, hx, y0 + 9, y0 + HEADER_HEIGHT - 9, Theme.PANEL_BORDER);
 		hx += 9;
 		Component page = search.isBlank() ? tab.label() : Component.translatable("fancybars.menu.searchResults");
+		if (split && !sections.isEmpty()) {
+			Section shown = sections.getFirst();
+			for (Section s : sections) if (s.id.equals(selectedFeature.get(tab))) shown = s;
+			if (sections.size() > 1) page = page.copy().append(Component.literal("  ›  ").withColor(Theme.night(Theme.TEXT_DISABLED) & 0xFFFFFF)).append(shown.title.copy().withColor(Theme.night(Theme.TEXT_MUTED) & 0xFFFFFF));
+		}
 		Theme.textInBox(graphics, font, page, hx, y0, HEADER_HEIGHT, Theme.TEXT);
 
 		// Footer
@@ -1296,7 +1479,10 @@ public class BarsMenuScreen extends Screen {
 		COMMANDS("fancybars.category.commands"),
 		PLAYER("fancybars.category.player"),
 		GENERAL("fancybars.category.general"),
-		VANILLA_MANA("fancybars.category.vanillaMana");
+		VANILLA_MANA("fancybars.category.vanillaMana"),
+		SCREEN("fancybars.category.screen"),
+		INVENTORY("fancybars.category.inventory"),
+		NAMES("fancybars.nick.title");
 
 		private final String key;
 
@@ -1312,13 +1498,20 @@ public class BarsMenuScreen extends Screen {
 	/** The broad sections shown as tabs; each one holds one or more pages of settings. */
 	public enum Tab {
 		HOME("fancybars.category.home", Category.HOME),
-		BARS("fancybars.category.bars", Category.BARS, Category.STYLE, Category.VANILLA_MANA),
-		HUD("fancybars.category.hud", Category.HUD, Category.ACTION_BAR, Category.MINING),
-		DUNGEONS("fancybars.category.dungeons", Category.DUNGEONS),
+		/** Your status bars: which bars, how they look, the vanilla-style mana bar and the action bar they replace. */
+		BARS("fancybars.category.bars", Category.BARS, Category.STYLE, Category.VANILLA_MANA, Category.ACTION_BAR),
+		/** Extra HUD elements the mod adds (FPS, armor, pet, keystrokes, crosshair, inventory HUD). */
+		HUD("fancybars.category.hud", Category.HUD),
+		/** Minecraft's own HUD: hide hearts/hunger/armor, move titles, boss bar, hotbar, held item name. */
+		SCREEN("fancybars.tab.screen", Category.SCREEN),
 		ITEMS("fancybars.category.items", Category.ITEMS),
-		GIFS("fancybars.tab.gifs", Category.GIFS),
+		/** Menus and your inventory: storage overlay, backpack preview, GIFs and screen images. */
+		INVENTORY("fancybars.tab.inventory", Category.INVENTORY, Category.GIFS),
+		/** Chat tabs and filters, nicknames and custom names, command shortcuts. */
+		CHAT("fancybars.category.chat", Category.CHAT, Category.NAMES, Category.COMMANDS),
 		PLAYER("fancybars.category.player", Category.PLAYER),
-		CHAT("fancybars.category.chat", Category.CHAT, Category.COMMANDS),
+		/** SkyBlock-only features: dungeons and mining. */
+		SKYBLOCK("fancybars.tab.skyblock", Category.DUNGEONS, Category.MINING),
 		SPOTIFY("fancybars.category.spotify", Category.SPOTIFY),
 		SETTINGS("fancybars.tab.settings", Category.GENERAL);
 
@@ -2724,7 +2917,7 @@ public class BarsMenuScreen extends Screen {
 			Theme.textInBox(graphics, font, clip(Component.translatable("fancybars.config." + key), w - 200), x + 10, y, height, Theme.TEXT);
 			float v = getter.get();
 			Component value = Component.literal(key.equals("tooltipDelay") ? String.format("%.2fs", v) : key.equals("borderThickness") ? String.format("%.1fpx", v) : key.endsWith("Speed") && !percent ? String.format("%.1fx", v)
-					: percent ? Math.round(v * 100) + "%" : key.contains("Rot") ? Math.round(v) + "°" : String.format("%.2f", v));
+					: percent ? Math.round(v * 100) + "%" : key.contains("Rot") ? Math.round(v) + "°" : key.endsWith("Range") ? Math.round(v) + " blocks" : String.format("%.2f", v));
 			Theme.monoInBox(graphics, font, value, slider.getX() - 8, y, height, Theme.TEXT_MUTED);
 		}
 	}

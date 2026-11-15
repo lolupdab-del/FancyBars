@@ -1,4 +1,7 @@
 [
+  {"version": "3.1.0", "date": "2026-11-15",
+   "added": ["New menu layout: each tab lists its features on the left (with each feature's on/off switch right there) and shows the one you pick on the right", "Clearer tabs: Bars (bars, style, vanilla mana, action bar), HUD (FPS, armor, pet, keystrokes, crosshair, inventory HUD), Screen (Minecraft's own HUD: hide hearts/hunger/armor, titles, boss bar, hotbar, held item name), Items, Inventory (storage overlay, backpack preview, GIFs, screen images), Chat (chat tabs, filters, nicknames, custom names, commands), Player, SkyBlock (dungeons, mining), Spotify and Settings", "The title bar shows where you are (e.g. HUD › Pet Display)", "Glowing Dropped Items: Glow Range setting, so far-away drops don't glow (better FPS)"],
+   "fixed": ["Outlines on HUD boxes and pressed keystrokes no longer have gaps at the corners", "Long text in text boxes stays inside the box"]},
   {"version": "3.0.4", "date": "2026-11-11",
    "added": ["Pet Display remembers your pets: open /pets once and their skins, held items and heads show however you equip them later (Autopet, summoning, logging in), even after restarting", "Right-click a message in the Party, Guild, DMs or Co-op chat tab to copy it", "/sgu petdebug shows what the Pet Display reads from your tab list"],
    "fixed": ["Pet Display reads your pet from the tab list again", "Pets equipped without clicking them in /pets keep their skin", "Switching chat tabs (especially back to All) no longer freezes the game"]},
