@@ -56,17 +56,24 @@ public class SearchField extends AbstractWidget {
 		Theme.card(graphics, getX(), getY(), getWidth(), getHeight(), Theme.RADIUS, Theme.lerpColor(0xFF312128, 0xFF3A272F, hover), border);
 
 		int textX = getX() + 8;
+		// text stays inside the box (it used to run past the edge): long text is cut off, and while typing it scrolls
+		// so the end and the caret stay in view
+		int room = getWidth() - 8 - (text.isEmpty() ? 6 : 18);
+		graphics.enableScissor(getX() + 2, getY(), getX() + 8 + room, getBottom());
 		if (text.isEmpty() && !focused) {
 			Theme.textInBox(graphics, font, placeholder, textX, getY(), getHeight(), Theme.TEXT_MUTED);
 		} else {
 			Component shown = Component.literal(text);
-			Theme.textInBox(graphics, font, shown, textX, getY(), getHeight(), Theme.TEXT);
+			int textW = Theme.width(font, shown);
+			int shift = focused ? Math.max(0, textW + 3 - room) : 0;
+			Theme.textInBox(graphics, font, shown, textX - shift, getY(), getHeight(), Theme.TEXT);
 			if (focused && (Util.getMillis() / 500) % 2 == 0) {
-				int caretX = textX + Theme.width(font, shown) + 1;
+				int caretX = textX - shift + textW + 1;
 				int caretTop = Math.round(getY() + (getHeight() - Theme.UI_CAP) / 2f) - 2;
 				graphics.fill(caretX, caretTop, caretX + 1, caretTop + Math.round(Theme.UI_CAP) + 4, Theme.night(Theme.ACCENT));
 			}
 		}
+		graphics.disableScissor();
 		if (!text.isEmpty()) {
 			Theme.centeredInBox(graphics, font, Component.literal("✕"), getRight() - 9, getY(), getHeight(), isClearHovered(mouseX, mouseY) ? Theme.TEXT : Theme.TEXT_MUTED);
 		}

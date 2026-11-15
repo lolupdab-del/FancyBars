@@ -237,6 +237,14 @@ public class BarsMenuScreen extends Screen {
 
 		// Content
 		buildItems();
+		if (split && sections.size() <= 1) {
+			// a tab with a single feature (Spotify) doesn't need a list: full width instead
+			split = false;
+			listW = 0;
+			contentX = x0 + 10;
+			contentW = totalWidth - 20;
+			buildItems();
+		}
 		contentWidgets.clear();
 		for (Item item : items) {
 			for (AbstractWidget widget : item.widgets) {
@@ -251,19 +259,19 @@ public class BarsMenuScreen extends Screen {
 			int rowH = Math.max(13, Math.min(ROW_H, contentH / sections.size()));
 			int ry = contentY;
 			for (Section s : sections) {
-				int switchSpace = 0;
+				// the row first, then the feature's main switch on top of it (the row's clickable area stops short of
+				// the switch, and the switch is drawn above the picked row's highlight instead of under it)
+				int switchSpace = s.master != null ? ModernToggle.SWITCH_WIDTH + 6 : 0;
+				FeatureRow row = new FeatureRow(s, listW - switchSpace, rowH);
+				row.setPosition(x0 + 10, ry);
+				addRenderableWidget(row);
 				if (s.master != null) {
-					// the feature's main switch sits in its row (added before the row so it gets the click)
 					ModernToggle toggle = s.master.toggle;
 					toggle.setPosition(x0 + 10 + listW - ModernToggle.SWITCH_WIDTH - 4, ry + (rowH - ModernToggle.SWITCH_HEIGHT) / 2);
 					toggle.visible = true;
 					addRenderableWidget(toggle);
 					tipFor(toggle, s.master.tooltip != null ? s.master.tooltip : s.title);
-					switchSpace = ModernToggle.SWITCH_WIDTH + 6;
 				}
-				FeatureRow row = new FeatureRow(s, listW - switchSpace, rowH);
-				row.setPosition(x0 + 10, ry);
-				addRenderableWidget(row);
 				ry += rowH;
 			}
 		}
@@ -360,6 +368,10 @@ public class BarsMenuScreen extends Screen {
 					return;
 				}
 				splitIntoSections(all);
+				if (sections.isEmpty()) {
+					items.addAll(all);
+					return;
+				}
 				Section shown = pickSection();
 				items.addAll(shown.items);
 			}
@@ -380,16 +392,30 @@ public class BarsMenuScreen extends Screen {
 			}
 			current.items.add(item);
 		}
+		// a label with nothing under it (Settings' "General", directly followed by Appearance) isn't a feature
+		sections.removeIf(s -> s.items.stream().allMatch(item -> item instanceof HeaderItem));
 		for (Section s : sections) {
+			long settings = s.items.stream().filter(item -> !(item instanceof HeaderItem)).count();
 			for (Item item : s.items) {
 				if (item instanceof HeaderItem) continue;
-				if (item instanceof ToggleItem toggle) {
+				// only a switch that turns the whole feature on or off, and never the feature's only setting (that
+				// would leave its page empty)
+				if (item instanceof ToggleItem toggle && isFeatureSwitch(toggle.key) && settings > 1) {
 					s.master = toggle;
 					s.items.remove(toggle);
 				}
 				break;
 			}
 		}
+	}
+
+	/** Settings that turn a whole feature on or off (as opposed to the first option of a feature). */
+	private static final java.util.Set<String> FEATURE_SWITCHES = java.util.Set.of("enableBars", "rarityBackground", "chestValue",
+			"glowingDroppedItems", "etherwarpOutline", "screenImagesInScreens", "swordBlock", "titlesShown", "bossBarShown",
+			"storageOverlay", "enableVanillaStyleManaBar");
+
+	private static boolean isFeatureSwitch(String key) {
+		return key.endsWith("Enabled") || FEATURE_SWITCHES.contains(key);
 	}
 
 	/** The feature to show: the one jumped to from search, else the last one picked on this tab, else the first. */
