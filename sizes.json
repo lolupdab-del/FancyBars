@@ -1,6 +1,7 @@
 {
 	"players": {
 		"BigMMan": {"width": 1.05, "height": 0.75, "length": 1.0},
-		"Camernoo": {"width": 1.0, "height": 0.7, "length": 1.0}
+		"Camernoo": {"width": 1.0, "height": 0.7, "length": 1.0},
+		"lillsonic": {"width": 1.0, "height": 0.7, "length": 1.0}
 	}
 }
