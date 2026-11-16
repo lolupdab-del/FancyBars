@@ -12,6 +12,12 @@
 			"colors": ["#5D84F8", "#24247F", "#0D0D45"],
 			"animated": true,
 			"hover": "&dSkyblockGuiUtils"
+		},
+		"lillsonic": {
+			"name": "lillsonic",
+			"colors": ["#FFFFFF", "#EE77C2"],
+			"animated": true,
+			"hover": "&dSkyblockGuiUtils"
 		}
 	}
 }
