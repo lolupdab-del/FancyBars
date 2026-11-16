@@ -22,36 +22,51 @@ public abstract class AvatarRendererMixin {
 	/** Custom player sizes. */
 	@Inject(method = "scale(Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;)V", at = @At("TAIL"))
 	private void fancybars$scale(AvatarRenderState state, PoseStack poseStack, CallbackInfo ci) {
-		float[] size = PlayerSizes.scaleFor(state.id);
-		if (size[0] != 1 || size[1] != 1 || size[2] != 1) poseStack.scale(size[0], size[1], size[2]);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			float[] size = PlayerSizes.scaleFor(state.id);
+			if (size[0] != 1 || size[1] != 1 || size[2] != 1) poseStack.scale(size[0], size[1], size[2]);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("AvatarRendererMixin scale", fancybars$perf);
+		}
 	}
 
 	/** Keep the nametag right above the head of resized players. */
 	@Inject(method = "extractRenderState(Lnet/minecraft/world/entity/Avatar;Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;F)V", at = @At("TAIL"))
 	private void fancybars$nametagHeight(Avatar entity, AvatarRenderState state, float partialTick, CallbackInfo ci) {
-		// Hide the flames on yourself in third person
-		if (entity == Minecraft.getInstance().player && dev.fancybars.config.FancyBarsConfig.get().hideOwnFireF5) state.displayFireAnimation = false;
-
-		// Cape picked in the menu (only on yourself)
-		if (entity == Minecraft.getInstance().player) {
-			net.minecraft.core.ClientAsset.Texture cape = dev.fancybars.capes.Capes.selectedTexture();
-			if (cape != null && state.skin != null) {
-				state.skin = new net.minecraft.world.entity.player.PlayerSkin(state.skin.body(), cape, cape, state.skin.model(), state.skin.secure());
-				state.showCape = !state.isInvisible;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			// Hide the flames on yourself in third person
+			if (entity == Minecraft.getInstance().player && dev.fancybars.config.FancyBarsConfig.get().hideOwnFireF5) state.displayFireAnimation = false;
+	
+			// Cape picked in the menu (only on yourself)
+			if (entity == Minecraft.getInstance().player) {
+				net.minecraft.core.ClientAsset.Texture cape = dev.fancybars.capes.Capes.selectedTexture();
+				if (cape != null && state.skin != null) {
+					state.skin = new net.minecraft.world.entity.player.PlayerSkin(state.skin.body(), cape, cape, state.skin.model(), state.skin.secure());
+					state.showCape = !state.isInvisible;
+				}
 			}
-		}
-
-		float[] size = PlayerSizes.scaleFor(entity);
-		if (size[1] != 1 && state.nameTagAttachment != null) {
-			state.nameTagAttachment = new net.minecraft.world.phys.Vec3(state.nameTagAttachment.x, state.nameTagAttachment.y * size[1], state.nameTagAttachment.z);
+	
+			float[] size = PlayerSizes.scaleFor(entity);
+			if (size[1] != 1 && state.nameTagAttachment != null) {
+				state.nameTagAttachment = new net.minecraft.world.phys.Vec3(state.nameTagAttachment.x, state.nameTagAttachment.y * size[1], state.nameTagAttachment.z);
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("AvatarRendererMixin nametagHeight", fancybars$perf);
 		}
 	}
 
 	/** Show your own nametag in third person (F5). */
 	@Inject(method = "shouldShowName(Lnet/minecraft/world/entity/Avatar;D)Z", at = @At("HEAD"), cancellable = true)
 	private void fancybars$ownNametag(Avatar entity, double distance, CallbackInfoReturnable<Boolean> cir) {
-		Minecraft mc = Minecraft.getInstance();
-		if (!FancyBarsConfig.get().ownNametagInF5 || entity != mc.player || mc.options.getCameraType() == CameraType.FIRST_PERSON) return;
-		if (!entity.isInvisibleTo(mc.player)) cir.setReturnValue(true);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Minecraft mc = Minecraft.getInstance();
+			if (!FancyBarsConfig.get().ownNametagInF5 || entity != mc.player || mc.options.getCameraType() == CameraType.FIRST_PERSON) return;
+			if (!entity.isInvisibleTo(mc.player)) cir.setReturnValue(true);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("AvatarRendererMixin ownNametag", fancybars$perf);
+		}
 	}
 }

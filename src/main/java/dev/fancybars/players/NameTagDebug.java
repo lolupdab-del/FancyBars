@@ -21,10 +21,19 @@ public final class NameTagDebug {
 	private static final Map<String, AtomicInteger> SWAPS = new ConcurrentHashMap<>();
 	private static final Map<String, Component> LAST_TEXT = new ConcurrentHashMap<>();
 
+	/** Off until /sgu nametagdebug is first used. */
+	private static volatile boolean recording;
+
 	private NameTagDebug() {}
+
+	public static boolean recording() {
+		return recording;
+	}
 
 	/** Called by each hook: {@code before} → {@code after} for that hook. */
 	public static void hit(String hook, Component before, Component after) {
+		// this runs for every name tag every frame: only count once someone has asked for the debug
+		if (!recording) return;
 		CALLS.computeIfAbsent(hook, k -> new AtomicInteger()).incrementAndGet();
 		if (before != after) SWAPS.computeIfAbsent(hook, k -> new AtomicInteger()).incrementAndGet();
 		if (before != null) LAST_TEXT.put(hook, before);
@@ -43,7 +52,10 @@ public final class NameTagDebug {
 		say(Component.literal("  swapped would be: ").withStyle(ChatFormatting.GRAY).append(swapped));
 
 		Map<String, AtomicInteger> calls = new TreeMap<>(CALLS);
-		if (calls.isEmpty()) say(Component.literal("No name tag hooks have run since last time.").withStyle(ChatFormatting.RED));
+		if (!recording) {
+			recording = true;
+			say(Component.literal("Started counting name tag hooks: run this again in a few seconds.").withStyle(ChatFormatting.YELLOW));
+		} else if (calls.isEmpty()) say(Component.literal("No name tag hooks have run since last time.").withStyle(ChatFormatting.RED));
 		for (Map.Entry<String, AtomicInteger> e : calls.entrySet()) {
 			int s = SWAPS.getOrDefault(e.getKey(), new AtomicInteger()).get();
 			say(Component.literal("Hook " + e.getKey() + ": ran " + e.getValue().get() + "x, swapped " + s + "x, last: \""

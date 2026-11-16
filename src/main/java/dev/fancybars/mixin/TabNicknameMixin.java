@@ -16,8 +16,13 @@ import dev.fancybars.players.Nicknames;
 public abstract class TabNicknameMixin {
 	@Inject(method = "getNameForDisplay", at = @At("RETURN"), cancellable = true, require = 0)
 	private void fancybars$nicknames(PlayerInfo info, CallbackInfoReturnable<Component> cir) {
-		Component name = cir.getReturnValue();
-		Component replaced = Nicknames.apply(name, Nicknames.Where.TAB);
-		if (replaced != name) cir.setReturnValue(replaced);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Component name = cir.getReturnValue();
+			Component replaced = Nicknames.apply(name, Nicknames.Where.TAB);
+			if (replaced != name) cir.setReturnValue(replaced);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("TabNicknameMixin nicknames", fancybars$perf);
+		}
 	}
 }

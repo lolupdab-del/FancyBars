@@ -42,11 +42,11 @@ public final class Commissions {
 	private Commissions() {}
 
 	public static void init() {
-		ClientTickEvents.END_CLIENT_TICK.register(_ -> {
+		dev.fancybars.util.Perf.onTick("Tick Commissions", _ -> {
 			if (++ticks % 20 != 0) return;
 			current = SkyblockLocation.isInMiningIsland() ? readTabList() : List.of();
 		});
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("commissions"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("commissions"), (graphics, tickCounter) -> {
 			if (shouldShow()) render(graphics);
 		});
 	}

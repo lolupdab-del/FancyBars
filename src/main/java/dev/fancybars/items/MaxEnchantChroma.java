@@ -40,7 +40,9 @@ public final class MaxEnchantChroma {
 	public static void init() {
 		ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
 			try {
+				long perf = dev.fancybars.util.Perf.begin();
 				apply(stack, lines);
+				dev.fancybars.util.Perf.end("Tooltip: max enchant chroma", perf);
 			} catch (Exception e) {
 				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Max enchant chroma failed", e);
 			}
@@ -68,7 +70,7 @@ public final class MaxEnchantChroma {
 	private static void apply(ItemStack stack, List<Component> lines) {
 		FancyBarsConfig c = FancyBarsConfig.get();
 		if (!c.chromaMaxEnchants || !SkyblockLocation.isOnSkyblock() || stack.isEmpty()) return;
-		CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		CompoundTag data = ((dev.fancybars.mixin.CustomDataAccessor) (Object) stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).getTag();
 		CompoundTag ench = data.getCompoundOrEmpty("enchantments");
 		if (ench.isEmpty()) return;
 		// "Sharpness VII" / "Sharpness 7" for every maxed enchant, and every ultimate enchant, with the colour to use

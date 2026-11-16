@@ -48,77 +48,102 @@ public abstract class ContainerScreenProtectionMixin<T extends AbstractContainer
 
 	@Inject(method = "keyPressed", at = @At("HEAD"))
 	private void fancybars$protectHovered(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-		Slot slot = this.hoveredSlot;
-		if (this.minecraft.player == null || slot == null || input.isEscape() || !ItemProtection.isOnSkyblockAndEnabled()) return;
-		if (ItemProtection.protectKey != null && ItemProtection.protectKey.matches(input)) {
-			ItemProtection.protectKey.consumeClick();
-			boolean ownItem = ItemProtection.isPlayerInventory(slot, this.minecraft.player) || ItemProtection.isPersonalStorage(this.getTitle().getString());
-			if (ownItem) ItemProtection.toggle(slot.getItem());
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Slot slot = this.hoveredSlot;
+			if (this.minecraft.player == null || slot == null || input.isEscape() || !ItemProtection.isOnSkyblockAndEnabled()) return;
+			if (ItemProtection.protectKey != null && ItemProtection.protectKey.matches(input)) {
+				ItemProtection.protectKey.consumeClick();
+				boolean ownItem = ItemProtection.isPlayerInventory(slot, this.minecraft.player) || ItemProtection.isPersonalStorage(this.getTitle().getString());
+				if (ownItem) ItemProtection.toggle(slot.getItem());
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ContainerScreenProtectionMixin protectHovered", fancybars$perf);
 		}
 	}
 
 	@Inject(method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ContainerInput;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;handleContainerInput(IIILnet/minecraft/world/inventory/ContainerInput;Lnet/minecraft/world/entity/player/Player;)V"), cancellable = true)
 	private void fancybars$blockProtectedClicks(@Nullable Slot slot, int slotId, int button, ContainerInput containerInput, CallbackInfo ci) {
-		if (!ItemProtection.isOnSkyblockAndEnabled()) return;
-
-		// Picking the item up and clicking outside the window drops it
-		if (slotId == OUT_OF_BOUNDS_SLOT && ItemProtection.isItemProtected(this.menu.getCarried())) {
-			ci.cancel();
-			return;
-		}
-		if (slot == null) return;
-		ItemStack stack = slot.getItem();
-		if (!ItemProtection.isItemProtected(stack)) return;
-		String title = this.getTitle().getString();
-
-		// Drop key while hovering
-		if (containerInput == ContainerInput.THROW) {
-			ci.cancel();
-			return;
-		}
-		// Salvaging
-		if (title.equals("Salvage Items")) {
-			ci.cancel();
-			return;
-		}
-		// Trading
-		if (title.startsWith("You  ")) {
-			ci.cancel();
-			return;
-		}
-		// Auctioning
-		if (title.endsWith("Auction House") || title.equals("Create Auction") || title.equals("Create BIN Auction")) {
-			ci.cancel();
-			return;
-		}
-		// Swapping with a dungeon secret chest item (which drops yours if not taken back out)
-		if (SkyblockLocation.isInDungeons() && title.equals("Chest")) {
-			ci.cancel();
-			return;
-		}
-		// Selling to NPC shops
-		if (this.menu instanceof ChestMenu && !ItemProtection.isNpcSellButton(slot) && ItemProtection.isNpcSellMenu(this.menu)) {
-			ci.cancel();
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (!ItemProtection.isOnSkyblockAndEnabled()) return;
+	
+			// Picking the item up and clicking outside the window drops it
+			if (slotId == OUT_OF_BOUNDS_SLOT && ItemProtection.isItemProtected(this.menu.getCarried())) {
+				ci.cancel();
+				return;
+			}
+			if (slot == null) return;
+			ItemStack stack = slot.getItem();
+			if (!ItemProtection.isItemProtected(stack)) return;
+			String title = this.getTitle().getString();
+	
+			// Drop key while hovering
+			if (containerInput == ContainerInput.THROW) {
+				ci.cancel();
+				return;
+			}
+			// Salvaging
+			if (title.equals("Salvage Items")) {
+				ci.cancel();
+				return;
+			}
+			// Trading
+			if (title.startsWith("You  ")) {
+				ci.cancel();
+				return;
+			}
+			// Auctioning
+			if (title.endsWith("Auction House") || title.equals("Create Auction") || title.equals("Create BIN Auction")) {
+				ci.cancel();
+				return;
+			}
+			// Swapping with a dungeon secret chest item (which drops yours if not taken back out)
+			if (SkyblockLocation.isInDungeons() && title.equals("Chest")) {
+				ci.cancel();
+				return;
+			}
+			// Selling to NPC shops
+			if (this.menu instanceof ChestMenu && !ItemProtection.isNpcSellButton(slot) && ItemProtection.isNpcSellMenu(this.menu)) {
+				ci.cancel();
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ContainerScreenProtectionMixin blockProtectedClicks", fancybars$perf);
 		}
 	}
 
 	@Inject(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;item(Lnet/minecraft/world/item/ItemStack;III)V"))
 	private void fancybars$drawRarityBackground(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "slot") Slot slot) {
-		dev.fancybars.items.RarityBackground.draw(graphics, slot.getItem(), slot.x, slot.y, false);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			dev.fancybars.items.RarityBackground.draw(graphics, slot.getItem(), slot.x, slot.y, false);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ContainerScreenProtectionMixin drawRarityBackground", fancybars$perf);
+		}
 	}
 
 	@Inject(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;item(Lnet/minecraft/world/item/ItemStack;III)V"))
 	private void fancybars$drawProtectionStar(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "slot") Slot slot) {
-		if (SkyblockLocation.isOnSkyblock() && !dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(slot.getItem())) {
-			ItemProtection.drawStar(graphics, slot.x, slot.y);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (SkyblockLocation.isOnSkyblock() && !dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(slot.getItem())) {
+				ItemProtection.drawStar(graphics, slot.x, slot.y);
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ContainerScreenProtectionMixin drawProtectionStar", fancybars$perf);
 		}
 	}
 
 	@Inject(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;item(Lnet/minecraft/world/item/ItemStack;III)V", shift = At.Shift.AFTER))
 	private void fancybars$drawProtectionStarFront(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "slot") Slot slot) {
-		if (SkyblockLocation.isOnSkyblock() && dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(slot.getItem())) {
-			graphics.nextStratum();
-			ItemProtection.drawStar(graphics, slot.x, slot.y);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (SkyblockLocation.isOnSkyblock() && dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(slot.getItem())) {
+				graphics.nextStratum();
+				ItemProtection.drawStar(graphics, slot.x, slot.y);
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ContainerScreenProtectionMixin drawProtectionStarFront", fancybars$perf);
 		}
 	}
 }

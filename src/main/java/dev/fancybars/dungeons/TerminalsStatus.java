@@ -147,7 +147,7 @@ public final class TerminalsStatus {
 			}
 		});
 		// find the inactive terminals / devices / levers (Hypixel labels them with named armour stands)
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick TerminalsStatus", mc -> {
 			if (!FancyBarsConfig.get().termStatusEnabled || mc.level == null || !F7Phase.inP3()) {
 				if (!INACTIVE.isEmpty()) INACTIVE.clear();
 				return;
@@ -196,7 +196,7 @@ public final class TerminalsStatus {
 				pose.popPose();
 			}
 		});
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("term_info"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("term_info"), (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (config.termStatusEnabled && config.termHud && shouldRender && SkyblockLocation.isInDungeons()) render(graphics);
 		});

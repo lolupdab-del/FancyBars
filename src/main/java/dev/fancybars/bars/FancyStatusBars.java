@@ -83,7 +83,7 @@ public class FancyStatusBars {
 
 		// The vanilla XP bar is always hidden while fancy bars are active (even if the fancy XP bar is turned off),
 		// so vanilla hearts (when the fancy health bar is off) move down into its space.
-		HudElementRegistry.replaceElement(VanillaHudElements.HEALTH_BAR, hudElement -> (context, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.HEALTH_BAR, hudElement -> (context, tickCounter) -> {
 			if (!shouldProcess()) {
 				hudElement.extractRenderState(context, tickCounter);
 			} else if (!isHealthFancyBarEnabled()) {
@@ -94,14 +94,14 @@ public class FancyStatusBars {
 				pose.popMatrix();
 			}
 		});
-		HudElementRegistry.replaceElement(VanillaHudElements.EXPERIENCE_LEVEL, hideIfFancyStatusBarsEnabled);
-		HudElementRegistry.replaceElement(VanillaHudElements.INFO_BAR, hideIfFancyStatusBarsEnabled);
-		HudElementRegistry.replaceElement(VanillaHudElements.ARMOR_BAR, hideIfFancyStatusBarsEnabled);
-		HudElementRegistry.replaceElement(VanillaHudElements.MOUNT_HEALTH, hideIfFancyStatusBarsEnabled);
-		HudElementRegistry.replaceElement(VanillaHudElements.FOOD_BAR, hideIfFancyStatusBarsEnabled);
-		HudElementRegistry.replaceElement(VanillaHudElements.AIR_BAR, hideIfFancyStatusBarsEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.EXPERIENCE_LEVEL, hideIfFancyStatusBarsEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.INFO_BAR, hideIfFancyStatusBarsEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.ARMOR_BAR, hideIfFancyStatusBarsEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.MOUNT_HEALTH, hideIfFancyStatusBarsEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.FOOD_BAR, hideIfFancyStatusBarsEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.AIR_BAR, hideIfFancyStatusBarsEnabled);
 
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, HUD_LAYER, (context, _) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, HUD_LAYER, (context, _) -> {
 			if (shouldProcess()) extractRenderState(context, Minecraft.getInstance());
 		});
 

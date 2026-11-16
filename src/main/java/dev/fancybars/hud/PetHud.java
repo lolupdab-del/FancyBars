@@ -96,7 +96,7 @@ public final class PetHud {
 	private PetHud() {}
 
 	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("pet_display"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("pet_display"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (FancyBarsConfig.get().petEnabled && mc.player != null && SkyblockLocation.isOnSkyblock()
 					&& !name.isEmpty() && dev.fancybars.util.HudVisibility.allowed()) {
@@ -104,7 +104,7 @@ public final class PetHud {
 				renderAt(graphics, pos[0], pos[1], FancyBarsConfig.get().petScale, 1, false);
 			}
 		});
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick PetHud", mc -> {
 			if (!FancyBarsConfig.get().petEnabled || mc.player == null) return;
 			if (!iconsLoaded && mc.level != null) loadIcons();
 			long now = System.currentTimeMillis();

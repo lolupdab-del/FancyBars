@@ -20,17 +20,37 @@ import dev.fancybars.util.gui.Chroma;
  */
 @Mixin(GuiRenderer.class)
 public abstract class ChromaTextMixin {
+	@org.spongepowered.asm.mixin.Unique
+	private static final java.util.Map<TextColor, Boolean> fancybars$chromaColors = new com.google.common.collect.MapMaker().weakKeys().makeMap();
+
+	@org.spongepowered.asm.mixin.Unique
+	private static boolean fancybars$isSkyHanniChroma(TextColor color) {
+		Boolean known = fancybars$chromaColors.get(color);
+		if (known == null) {
+			known = "chroma".equals(color.serialize());
+			fancybars$chromaColors.put(color, known);
+		}
+		return known;
+	}
+
 	@WrapOperation(method = "addElementToMesh", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/state/gui/GuiElementRenderState;pipeline()Lcom/mojang/blaze3d/pipeline/RenderPipeline;"))
 	private RenderPipeline fancybars$chromaText(GuiElementRenderState state, Operation<RenderPipeline> original) {
-		if (state instanceof GlyphRenderState glyph && glyph.renderable() instanceof BakedSheetGlyph.GlyphInstance instance) {
-			TextColor color = instance.style().getColor();
-			if (color != null) {
-				RenderPipeline chroma = Chroma.textPipelineFor(color.getValue());
-				if (chroma != null) return chroma;
-				// SkyHanni's "chroma" colour (its Enchant Parsing uses it for perfect enchants)
-				if (Chroma.shaderEnabled() && "chroma".equals(color.serialize())) return Chroma.textPipeline();
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (state instanceof GlyphRenderState glyph && glyph.renderable() instanceof BakedSheetGlyph.GlyphInstance instance) {
+				TextColor color = instance.style().getColor();
+				if (color != null) {
+					RenderPipeline chroma = Chroma.textPipelineFor(color.getValue());
+					if (chroma != null) return chroma;
+					// SkyHanni's "chroma" colour (its Enchant Parsing uses it for perfect enchants)
+					// serialize() formats a "#RRGGBB" string for hex colours, which was done for every coloured letter on
+					// screen every frame: work it out once per colour object instead
+					if (Chroma.shaderEnabled() && fancybars$isSkyHanniChroma(color)) return Chroma.textPipeline();
+				}
 			}
+			return original.call(state);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ChromaTextMixin chromaText", fancybars$perf);
 		}
-		return original.call(state);
 	}
 }

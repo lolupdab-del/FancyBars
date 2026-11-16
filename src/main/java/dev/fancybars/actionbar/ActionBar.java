@@ -35,7 +35,7 @@ public final class ActionBar {
 	private ActionBar() {}
 
 	public static void init() {
-		HudElementRegistry.replaceElement(VanillaHudElements.OVERLAY_MESSAGE, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.OVERLAY_MESSAGE, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (!config.actionBarShown) return;
 

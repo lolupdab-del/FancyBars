@@ -21,12 +21,17 @@ public abstract class EquipmentLayerRendererMixin {
 	@ModifyVariable(method = "renderLayers(Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;Lnet/minecraft/resources/ResourceKey;Lnet/minecraft/client/model/Model;Ljava/lang/Object;Lnet/minecraft/world/item/ItemStack;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/resources/Identifier;II)V",
 			at = @At("HEAD"), argsOnly = true, require = 0)
 	private ResourceKey<EquipmentAsset> fancybars$armorModel(ResourceKey<EquipmentAsset> asset, @Local(argsOnly = true) ItemStack stack) {
-		Identifier custom = Customization.armorModel(stack);
-		if (custom != null) return ResourceKey.create(EquipmentAssets.ROOT_ID, custom);
-		// your dye on armor that has its own look (like a real animated dye): use plain leather so the dye shows
-		if (Customization.forcesPlainLeather(stack) && asset != null && !asset.identifier().getNamespace().equals("minecraft")) {
-			return ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.withDefaultNamespace("leather"));
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Identifier custom = Customization.armorModel(stack);
+			if (custom != null) return ResourceKey.create(EquipmentAssets.ROOT_ID, custom);
+			// your dye on armor that has its own look (like a real animated dye): use plain leather so the dye shows
+			if (Customization.forcesPlainLeather(stack) && asset != null && !asset.identifier().getNamespace().equals("minecraft")) {
+				return ResourceKey.create(EquipmentAssets.ROOT_ID, Identifier.withDefaultNamespace("leather"));
+			}
+			return asset;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("EquipmentLayerRendererMixin armorModel", fancybars$perf);
 		}
-		return asset;
 	}
 }

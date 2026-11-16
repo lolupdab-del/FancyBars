@@ -36,7 +36,7 @@ public final class F7Phase {
 			if (p3) END.forEach(Runnable::run);
 			p3 = false;
 		});
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick F7Phase", mc -> {
 			if (p3 && !SkyblockLocation.isInDungeons()) {
 				p3 = false;
 				END.forEach(Runnable::run);

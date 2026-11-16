@@ -115,6 +115,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.items.list.ItemList.init();
 		dev.fancybars.hud.VanillaHudToggles.init();
 		dev.fancybars.hud.ArmorHud.init();
+		dev.fancybars.util.Perf.init();
 		dev.fancybars.hud.PetHud.init();
 		dev.fancybars.util.gui.Chroma.init();
 		dev.fancybars.util.gui.SharpItem.init();
@@ -149,6 +150,13 @@ public class FancyBarsMod implements ClientModInitializer {
 							dev.fancybars.hud.PetHud.debug();
 							return Command.SINGLE_SUCCESS;
 						}))
+						.then(ClientCommands.literal("perf").executes(_ -> {
+							dev.fancybars.util.Perf.start();
+							return Command.SINGLE_SUCCESS;
+						}).then(ClientCommands.literal("hud").executes(_ -> {
+							dev.fancybars.util.Perf.startHudTest();
+							return Command.SINGLE_SUCCESS;
+						})))
 						.then(ClientCommands.literal("nametagdebug").executes(_ -> {
 							dev.fancybars.players.NameTagDebug.report();
 							return Command.SINGLE_SUCCESS;

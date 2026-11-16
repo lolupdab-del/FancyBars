@@ -18,13 +18,16 @@ public interface DataComponentHolderMixin {
 	@SuppressWarnings("unchecked")
 	@ModifyReturnValue(method = "get", at = @At("RETURN"))
 	private <T> T fancybars$customComponents(T original, DataComponentType<? extends T> type) {
-		// cheap checks first: this runs for every component lookup of every item
+		// cheap checks first: this runs thousands of times a frame (every component lookup of every item), so it's only
+		// timed past them
 		if (type != DataComponents.TRIM && type != DataComponents.PROFILE && type != DataComponents.ENCHANTMENT_GLINT_OVERRIDE) return original;
 		if (!((Object) this instanceof ItemStack stack)) return original;
+		long perf = dev.fancybars.util.Perf.begin();
 		Object custom;
 		if (type == DataComponents.TRIM) custom = Customization.trim(stack);
 		else if (type == DataComponents.PROFILE) custom = Customization.headProfile(stack);
 		else custom = Customization.glint(stack);
+		if (perf != 0) dev.fancybars.util.Perf.end("Item customisation (trim, head, glint)", perf);
 		return custom != null ? (T) custom : original;
 	}
 }

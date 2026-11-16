@@ -57,10 +57,15 @@ public final class SmoothText {
 
 	private static final Map<String, Font> BASE_FONTS = new HashMap<>();
 	private static final LinkedHashMap<String, Entry> CACHE = new LinkedHashMap<>(256, 0.75f, true);
+
+	static {
+		// the shared atlas was cleared: text drawn into it has to be drawn again (its own-texture pieces stay)
+		UiAtlas.onReset(() -> CACHE.values().removeIf(e -> e.plain() != null && !e.plain().valid() || e.colored() != null && !e.colored().valid()));
+	}
 	private static int counter;
 	private static boolean failed;
 
-	private record Entry(@Nullable Identifier plain, @Nullable Identifier colored, int width, int height, float ascentPx, long[] lastUsed, List<Run> fallback) {}
+	private record Entry(UiAtlas.@Nullable Region plain, UiAtlas.@Nullable Region colored, int width, int height, float ascentPx, long[] lastUsed, List<Run> fallback) {}
 
 	/** A piece of text Geist has no glyphs for (✪, ⚚, ✕ ...), drawn by Minecraft at {@code offsetPx} from the start. */
 	private record Run(float offsetPx, Segment segment) {}
@@ -73,7 +78,30 @@ public final class SmoothText {
 	private static boolean bypass;
 
 	/** Splits text into runs of the same look; returns null if it isn't (only) in SkyblockGuiUtils's fonts. */
+	/**
+	 * Quick check whether this text could be ours: only text whose every letter is in a smooth font is drawn by us, so
+	 * the first letter decides it. Every piece of text in the game is drawn and measured through here, so the full
+	 * pass (and its allocations) only runs for text that passes this.
+	 */
+	public static boolean mightBeSmooth(FormattedCharSequence text) {
+		if (failed || bypass || dev.fancybars.util.Perf.smoothTextOff) return false;
+		boolean[] smooth = {false};
+		text.accept((index, style, codePoint) -> {
+			smooth[0] = kindOf(style) != null;
+			return false;
+		});
+		return smooth[0];
+	}
+
+	/** {@link #mightBeSmooth(FormattedCharSequence)} for unsplit text, without building its visual order first. */
+	public static boolean mightBeSmooth(net.minecraft.network.chat.FormattedText text) {
+		if (failed || bypass || dev.fancybars.util.Perf.smoothTextOff) return false;
+		return text.visit((Style style, String part) -> part.isEmpty() ? java.util.Optional.<Boolean>empty() : java.util.Optional.of(kindOf(style) != null),
+				Style.EMPTY).orElse(false);
+	}
+
 	private static @Nullable Collected collect(FormattedCharSequence text) {
+		if (!mightBeSmooth(text)) return null;
 		List<Segment> segments = new ArrayList<>();
 		String[] kind = new String[1];
 		StringBuilder current = new StringBuilder();
@@ -147,9 +175,44 @@ public final class SmoothText {
 	 * text isn't in one of SkyblockGuiUtils's fonts, so Minecraft draws it as usual.
 	 */
 	public static boolean draw(GuiGraphicsExtractor graphics, FormattedCharSequence text, int x, int y, int color, boolean shadow) {
-		if (failed || bypass) return false;
-		Collected collected = collect(text);
-		if (collected == null) return false;
+		if (failed || bypass || dev.fancybars.util.Perf.smoothTextOff) return false;
+		if (!mightBeSmooth(text)) return false;
+		return draw(graphics, memo(text, text, null), x, y, color, shadow);
+	}
+
+	/** {@link #draw(GuiGraphicsExtractor, FormattedCharSequence, int, int, int, boolean)} for unsplit text. */
+	public static boolean draw(GuiGraphicsExtractor graphics, Component text, int x, int y, int color, boolean shadow) {
+		if (failed || bypass || dev.fancybars.util.Perf.smoothTextOff) return false;
+		return draw(graphics, memo(text, null, text), x, y, color, shadow);
+	}
+
+	/**
+	 * What's been worked out for one text object: its runs, its width and which texture it was last drawn with. HUDs
+	 * draw the same text objects every frame, and splitting them into runs and building the cache keys again each
+	 * time was most of the cost.
+	 */
+	private static final class Memo {
+		@Nullable Collected collected;
+		float width = Float.NaN;
+		float emPx = -1;
+		@Nullable String drawKey;
+	}
+
+	private static final Map<Object, Memo> MEMO = new com.google.common.collect.MapMaker().weakKeys().makeMap();
+
+	private static @Nullable Memo memo(Object key, @Nullable FormattedCharSequence sequence, net.minecraft.network.chat.@Nullable FormattedText text) {
+		Memo m = MEMO.get(key);
+		if (m == null) {
+			m = new Memo();
+			m.collected = collect(sequence != null ? sequence : net.minecraft.locale.Language.getInstance().getVisualOrder(text));
+			MEMO.put(key, m);
+		}
+		return m.collected == null ? null : m;
+	}
+
+	private static boolean draw(GuiGraphicsExtractor graphics, @Nullable Memo memo, int x, int y, int color, boolean shadow) {
+		if (memo == null) return false;
+		Collected collected = memo.collected;
 		List<Segment> segments = collected.segments();
 		String[] kind = {collected.kind()};
 		if (segments.isEmpty() || (color >>> 24) == 0) return true;
@@ -162,7 +225,18 @@ public final class SmoothText {
 		float emPx = Math.round(k.size() / EM_RATIO * pxPerUnit * 4) / 4f;
 		if (emPx < 2) return true;
 
-		Entry entry = get(kind[0], k, emPx, segments);
+		Entry entry = null;
+		if (memo.drawKey != null && memo.emPx == emPx) {
+			// same text at the same size as last time: its texture (if it's still cached) without rebuilding the key
+			entry = CACHE.get(memo.drawKey);
+			if (entry != null) entry.lastUsed()[0] = net.minecraft.util.Util.getMillis();
+		}
+		if (entry == null) {
+			String key = drawKey(kind[0], emPx, segments);
+			entry = get(key, k, emPx, segments);
+			memo.drawKey = key;
+			memo.emPx = emPx;
+		}
 		if (entry == null) return false;
 
 		// top-left of the texture in the pose's units
@@ -200,9 +274,24 @@ public final class SmoothText {
 	 * Returns -1 when the text isn't (only) in SkyblockGuiUtils's fonts.
 	 */
 	public static float width(FormattedCharSequence text) {
-		if (failed || bypass) return -1;
-		Collected collected = collect(text);
-		if (collected == null) return -1;
+		if (failed || bypass || dev.fancybars.util.Perf.smoothTextOff) return -1;
+		if (!mightBeSmooth(text)) return -1;
+		return width(memo(text, text, null));
+	}
+
+	/** {@link #width(FormattedCharSequence)} for unsplit text. */
+	public static float width(net.minecraft.network.chat.FormattedText text) {
+		if (failed || bypass || dev.fancybars.util.Perf.smoothTextOff) return -1;
+		return width(memo(text, null, text));
+	}
+
+	private static float width(@Nullable Memo memo) {
+		if (memo == null) return -1;
+		if (Float.isNaN(memo.width)) memo.width = measure(memo.collected);
+		return memo.width;
+	}
+
+	private static float measure(Collected collected) {
 		List<Segment> segments = collected.segments();
 		String[] kind = {collected.kind()};
 		Kind k = KINDS.get(kind[0]);
@@ -254,18 +343,21 @@ public final class SmoothText {
 			pose.translate(lx, ly);
 			pose.scale(1 / pxPerUnit, 1 / pxPerUnit);
 		}
-		if (e.plain() != null) graphics.blit(Chroma.textured(color), e.plain(), 0, 0, 0, 0, e.width(), e.height(), e.width(), e.height(), color);
+		if (e.plain() != null) UiAtlas.blit(graphics, Chroma.textured(color), e.plain(), 0, 0, 0, 0, e.width(), e.height(), color);
 		if (e.colored() != null) {
 			int tint = shadow ? color : (color & 0xFF000000) | 0xFFFFFF;
-			graphics.blit(RenderPipelines.GUI_TEXTURED, e.colored(), 0, 0, 0, 0, e.width(), e.height(), e.width(), e.height(), tint);
+			UiAtlas.blit(graphics, RenderPipelines.GUI_TEXTURED, e.colored(), 0, 0, 0, 0, e.width(), e.height(), tint);
 		}
 		pose.popMatrix();
 	}
 
-	private static @Nullable Entry get(String kindName, Kind kind, float emPx, List<Segment> segments) {
+	private static String drawKey(String kindName, float emPx, List<Segment> segments) {
 		StringBuilder key = new StringBuilder(kindName).append('|').append(emPx);
 		for (Segment s : segments) key.append('|').append(s.color()).append(s.fallback() ? 'f' : s.bold() ? 'b' : 'n').append(s.text());
-		String k = key.toString();
+		return key.toString();
+	}
+
+	private static @Nullable Entry get(String k, Kind kind, float emPx, List<Segment> segments) {
 		long now = net.minecraft.util.Util.getMillis();
 		Entry e = CACHE.get(k);
 		if (e != null) {
@@ -286,8 +378,8 @@ public final class SmoothText {
 			Entry old = it.next().getValue();
 			if (now - old.lastUsed()[0] < 3000) break; // still on screen recently; never free a texture in use
 			it.remove();
-			if (old.plain() != null) Minecraft.getInstance().getTextureManager().release(old.plain());
-			if (old.colored() != null) Minecraft.getInstance().getTextureManager().release(old.colored());
+			UiAtlas.release(old.plain());
+			UiAtlas.release(old.colored());
 		}
 	}
 
@@ -343,8 +435,8 @@ public final class SmoothText {
 		}
 		if (gp != null) gp.dispose();
 		if (gc != null) gc.dispose();
-		Identifier p = plain == null ? null : upload(plain);
-		Identifier c = colored == null ? null : upload(colored);
+		UiAtlas.Region p = plain == null ? null : upload(plain);
+		UiAtlas.Region c = colored == null ? null : upload(colored);
 		return new Entry(p, c, width, height, ascentPx, new long[]{now}, fallback);
 	}
 
@@ -358,13 +450,9 @@ public final class SmoothText {
 		return g;
 	}
 
-	private static Identifier upload(BufferedImage img) {
+	private static UiAtlas.Region upload(BufferedImage img) {
 		NativeImage n = new NativeImage(img.getWidth(), img.getHeight(), false);
 		for (int y = 0; y < img.getHeight(); y++) for (int x = 0; x < img.getWidth(); x++) n.setPixel(x, y, img.getRGB(x, y));
-		Identifier id = FancyBarsMod.id("text/t" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils text", n);
-		Minecraft.getInstance().getTextureManager().register(id, texture);
-		texture.upload();
-		return id;
+		return UiAtlas.add(n);
 	}
 }

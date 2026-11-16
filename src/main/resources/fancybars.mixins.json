@@ -4,6 +4,12 @@
 	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AbsorptionHeartsMixin",
+		"perf.GameRendererPerfMixin",
+		"perf.LevelPerfMixin",
+		"perf.HudPerfMixin",
+		"perf.GuiRendererPerfMixin",
+		"perf.GameLoopPerfMixin",
+		"perf.ClientTickPerfMixin",
 		"ChromaGameRendererMixin",
 		"ChromaGuiRendererMixin",
 		"ChromaTextMixin",

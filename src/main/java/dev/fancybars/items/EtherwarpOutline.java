@@ -103,7 +103,7 @@ public final class EtherwarpOutline {
 	/** Etherwarp range for the held item (57 blocks + Tuned Transmission), 0 if it can't etherwarp. */
 	private static int range(ItemStack stack) {
 		if (stack.isEmpty()) return 0;
-		CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		CompoundTag data = ((dev.fancybars.mixin.CustomDataAccessor) (Object) stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).getTag();
 		String id = data.getStringOr("id", "");
 		boolean ether = id.equals("ETHERWARP_CONDUIT")
 				|| (id.equals("ASPECT_OF_THE_VOID") || id.equals("ASPECT_OF_THE_END")) && data.getIntOr("ethermerge", 0) == 1;

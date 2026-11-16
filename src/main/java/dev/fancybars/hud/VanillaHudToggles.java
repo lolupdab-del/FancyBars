@@ -10,13 +10,13 @@ public final class VanillaHudToggles {
 	private VanillaHudToggles() {}
 
 	public static void init() {
-		HudElementRegistry.replaceElement(VanillaHudElements.HEALTH_BAR, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.HEALTH_BAR, original -> (graphics, tickCounter) -> {
 			if (!FancyBarsConfig.get().hideVanillaHearts) original.extractRenderState(graphics, tickCounter);
 		});
-		HudElementRegistry.replaceElement(VanillaHudElements.FOOD_BAR, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.FOOD_BAR, original -> (graphics, tickCounter) -> {
 			if (!FancyBarsConfig.get().hideVanillaHunger) original.extractRenderState(graphics, tickCounter);
 		});
-		HudElementRegistry.replaceElement(VanillaHudElements.ARMOR_BAR, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.ARMOR_BAR, original -> (graphics, tickCounter) -> {
 			if (!FancyBarsConfig.get().hideVanillaArmor) original.extractRenderState(graphics, tickCounter);
 		});
 	}

@@ -22,6 +22,10 @@ import dev.fancybars.util.gui.Chroma;
 public final class NameColors {
 	private NameColors() {}
 
+	/** Texts known to have no custom name in them (weak, by identity), with the names' generation they were checked at. */
+	private static final Map<FormattedCharSequence, Integer> NO_NAMES = new com.google.common.collect.MapMaker().weakKeys().makeMap();
+	private static final ThreadLocal<StringBuilder> SCAN = ThreadLocal.withInitial(StringBuilder::new);
+
 	/** GUI text: {@code text} with any custom names in it recoloured, or {@code text} itself when there are none. */
 	public static FormattedCharSequence wrap(FormattedCharSequence text) {
 		return wrap(text, true);
@@ -32,10 +36,41 @@ public final class NameColors {
 	 * worked out letter by letter instead, each frame.
 	 */
 	public static FormattedCharSequence wrap(FormattedCharSequence text, boolean gui) {
+		long perf = dev.fancybars.util.Perf.begin();
+		FormattedCharSequence out = wrapInner(text, gui);
+		dev.fancybars.util.Perf.end(gui ? "Custom names: colours in all GUI text" : "Custom names: colours in holograms", perf);
+		return out;
+	}
+
+	private static FormattedCharSequence wrapInner(FormattedCharSequence text, boolean gui) {
 		if (text == null) return null;
 		FancyBarsConfig config = FancyBarsConfig.get();
 		Map<String, SharedNames.Entry> all = SharedNames.all();
 		if (!config.sharedNamesEnabled || all.isEmpty()) return text;
+
+		// this runs for every piece of text on screen every frame, and almost none of it has a name in it: answer that
+		// fast. Texts already checked (chat lines, menu labels) are remembered; anything else gets one quick pass.
+		int gen = Nicknames.generation();
+		Integer checked = NO_NAMES.get(text);
+		if (checked != null && checked == gen) return text;
+		StringBuilder scan = SCAN.get();
+		scan.setLength(0);
+		text.accept((pos, style, cp) -> {
+			scan.append(cp > 0xFFFF ? '�' : Character.toLowerCase((char) cp));
+			return true;
+		});
+		boolean any = false;
+		for (String key : all.keySet()) {
+			String shown = SharedNames.shownText(key);
+			if (shown.length() >= 2 && scan.indexOf(shown) >= 0) {
+				any = true;
+				break;
+			}
+		}
+		if (!any) {
+			NO_NAMES.put(text, gen);
+			return text;
+		}
 
 		// one char per code point so indexes line up with the glyphs
 		int[] count = {0};

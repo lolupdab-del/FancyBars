@@ -27,18 +27,29 @@ public abstract class NameTagFeatureNicknameMixin {
 
 	@ModifyExpressionValue(method = "prepareText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/NameTagFeatureRenderer$Submit;text()Lnet/minecraft/network/chat/Component;"), require = 0)
 	private static Component fancybars$swapName(Component text, @Local(argsOnly = true) Font font) {
-		Component swapped = Nicknames.apply(text, Nicknames.Where.WORLD);
-		NameTagDebug.hit("nameTagRenderer", text, swapped);
-		// whoever swapped it and however old this copy is: colours for this exact frame
-		swapped = Nicknames.recolor(swapped, Nicknames.Where.WORLD);
-		fancybars$widthChange = swapped == text ? 0 : font.width(swapped) - font.width(text);
-		return swapped;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Component swapped = Nicknames.apply(text, Nicknames.Where.WORLD);
+			NameTagDebug.hit("nameTagRenderer", text, swapped);
+			// usually an earlier hook already swapped it, so the width is unchanged; recolouring never changes it. Only
+			// measure (twice, every frame) when this hook did the swap itself.
+			fancybars$widthChange = swapped == text ? 0 : font.width(swapped) - font.width(text);
+			// whoever swapped it and however old this copy is: colours for this exact frame
+			return Nicknames.recolor(swapped, Nicknames.Where.WORLD);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("NameTagFeatureNicknameMixin swapName", fancybars$perf);
+		}
 	}
 
 	@ModifyExpressionValue(method = "prepareText", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/NameTagFeatureRenderer$Submit;x()F"), require = 0)
 	private static float fancybars$recentre(float x) {
-		float change = fancybars$widthChange;
-		fancybars$widthChange = 0;
-		return x - change / 2f;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			float change = fancybars$widthChange;
+			fancybars$widthChange = 0;
+			return x - change / 2f;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("NameTagFeatureNicknameMixin recentre", fancybars$perf);
+		}
 	}
 }

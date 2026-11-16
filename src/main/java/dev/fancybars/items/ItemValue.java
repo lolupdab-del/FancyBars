@@ -65,7 +65,7 @@ public final class ItemValue {
 	private ItemValue() {}
 
 	public static void init() {
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick ItemValue", mc -> {
 			if (!FancyBarsConfig.get().itemValueEnabled) return;
 			long now = System.currentTimeMillis();
 			if (lastRefresh != 0 && (now - lastRefresh < REFRESH_MS || !SkyblockLocation.isOnSkyblock())) return;
@@ -74,7 +74,9 @@ public final class ItemValue {
 		});
 		ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
 			try {
+				long perf = dev.fancybars.util.Perf.begin();
 				addLines(stack, lines);
+				dev.fancybars.util.Perf.end("Tooltip: item value", perf);
 			} catch (Exception e) {
 				FancyBarsMod.LOGGER.debug("[SkyblockGuiUtils] Item value tooltip failed", e);
 			}
@@ -174,7 +176,7 @@ public final class ItemValue {
 	 */
 	public static double stackValue(ItemStack stack) {
 		if (stack.isEmpty()) return -1;
-		CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		CompoundTag data = ((dev.fancybars.mixin.CustomDataAccessor) (Object) stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).getTag();
 		String id = data.getStringOr("id", "");
 		if (id.isEmpty()) return -1;
 		String apiId = apiId(id, data);
@@ -203,7 +205,7 @@ public final class ItemValue {
 	private static void addLines(ItemStack stack, List<Component> lines) {
 		FancyBarsConfig config = FancyBarsConfig.get();
 		if (!config.itemValueEnabled || !SkyblockLocation.isOnSkyblock() || stack.isEmpty()) return;
-		CompoundTag data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+		CompoundTag data = ((dev.fancybars.mixin.CustomDataAccessor) (Object) stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).getTag();
 		String id = data.getStringOr("id", "");
 		if (id.isEmpty()) return;
 		String apiId = apiId(id, data);

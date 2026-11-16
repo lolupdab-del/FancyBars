@@ -46,7 +46,7 @@ public final class DungeonSecrets {
 	private DungeonSecrets() {}
 
 	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("dungeon_secrets"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("dungeon_secrets"), (graphics, tickCounter) -> {
 			if (shouldShow()) render(graphics, secrets, maxSecrets);
 		});
 	}

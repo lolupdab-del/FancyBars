@@ -83,7 +83,7 @@ public final class ScreenImages {
 
 	public static void init() {
 		reload();
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("screen_images"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("screen_images"), (graphics, tickCounter) -> {
 			net.minecraft.client.gui.screens.Screen open = Minecraft.getInstance().gui.screen();
 			if (open != null && !(FancyBarsConfig.get().screenImagesInScreens
 					&& (open instanceof net.minecraft.client.gui.screens.ChatScreen || open instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen))) return;

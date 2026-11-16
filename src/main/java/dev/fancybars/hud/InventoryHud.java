@@ -24,7 +24,7 @@ public final class InventoryHud {
 	private InventoryHud() {}
 
 	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("inventory_hud"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("inventory_hud"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (FancyBarsConfig.get().invHudEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed()) render(graphics);
 		});

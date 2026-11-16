@@ -15,7 +15,12 @@ import dev.fancybars.items.Customization;
 public abstract class ItemStackNameMixin {
 	@ModifyReturnValue(method = "getHoverName", at = @At("RETURN"))
 	private Component fancybars$customName(Component original) {
-		Component custom = Customization.name((ItemStack) (Object) this);
-		return custom != null ? custom : original;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Component custom = Customization.name((ItemStack) (Object) this);
+			return custom != null ? custom : original;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ItemStackNameMixin customName", fancybars$perf);
+		}
 	}
 }

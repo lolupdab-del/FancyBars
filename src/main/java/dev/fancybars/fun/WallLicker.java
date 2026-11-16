@@ -60,7 +60,7 @@ public final class WallLicker {
 		} catch (Exception e) {
 			FancyBarsMod.LOGGER.warn("[SkyblockGuiUtils] Couldn't create {}", SOUND_DIR, e);
 		}
-		ClientTickEvents.END_CLIENT_TICK.register(WallLicker::tick);
+		dev.fancybars.util.Perf.onTick("Tick WallLicker", WallLicker::tick);
 		// the boss fight starts when a boss speaks ("[BOSS] Maxor: ..."); The Watcher also speaks during the clear, so he doesn't count
 		net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay) return;
@@ -76,7 +76,7 @@ public final class WallLicker {
 				FancyBarsConfig.save();
 			}
 		});
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("wall_licker"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("wall_licker"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (FancyBarsConfig.get().wallLickerEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed() && dev.fancybars.util.SkyblockLocation.isInDungeons()) render(graphics);
 		});

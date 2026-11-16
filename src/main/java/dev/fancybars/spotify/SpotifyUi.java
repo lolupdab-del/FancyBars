@@ -61,10 +61,19 @@ public final class SpotifyUi {
 		pose.popMatrix();
 	}
 
+	private static final java.util.Map<String, Component> STYLED = new java.util.HashMap<>();
+	private static int styledVersion = -1;
+
 	/** Text clipped to a width, scrolling back and forth if it's too long. */
 	public static void scrolling(GuiGraphicsExtractor graphics, Component text, int x, int y, int width, int color, boolean bold) {
 		Font font = Minecraft.getInstance().font;
-		Component styled = bold ? Theme.bold(text) : Theme.styled(text);
+		// the same song title every frame: keep its styled text, so its size and look are only worked out once
+		if (styledVersion != dev.fancybars.config.FancyBarsConfig.version || STYLED.size() > 64) {
+			STYLED.clear();
+			styledVersion = dev.fancybars.config.FancyBarsConfig.version;
+		}
+		String raw = text.getString();
+		Component styled = STYLED.computeIfAbsent((bold ? "b" : "n") + raw, _ -> bold ? Theme.bold(text) : Theme.styled(text));
 		int w = font.width(styled);
 		if (w <= width) {
 			Theme.drawAtCapTop(graphics, font, styled, x, y, Theme.UI_CAP, color);

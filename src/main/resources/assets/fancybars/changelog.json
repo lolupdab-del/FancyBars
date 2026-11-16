@@ -1,4 +1,7 @@
 [
+  {"version": "3.1.1", "date": "2026-11-16",
+   "added": ["/sgu perf: measures what each part of the mod costs per frame for 10 seconds", "/sgu perf hud: hides each HUD element in turn and shows how much FPS it really costs, graphics card included"],
+   "fixed": ["Much better FPS: about 18% more in our tests (169 to 199 FPS in the same spot)", "Custom Names no longer lower your FPS", "The mod's HUD is drawn in a few batches instead of hundreds, so the graphics card has far less to do", "Text, tooltips, name tags and items are checked much less often behind the scenes"]},
   {"version": "3.1.0", "date": "2026-11-15",
    "added": ["New menu layout: each tab lists its features on the left (with each feature's on/off switch right there) and shows the one you pick on the right", "Clearer tabs: Bars (bars, style, vanilla mana, action bar), HUD (FPS, armor, pet, keystrokes, crosshair, inventory HUD), Screen (Minecraft's own HUD: hide hearts/hunger/armor, titles, boss bar, hotbar, held item name), Items, Inventory (storage overlay, backpack preview, GIFs, screen images), Chat (chat tabs, filters, nicknames, custom names, commands), Player, SkyBlock (dungeons, mining), Spotify and Settings", "The title bar shows where you are (e.g. HUD › Pet Display)", "Glowing Dropped Items: Glow Range setting, so far-away drops don't glow (better FPS)"],
    "fixed": ["Outlines on HUD boxes and pressed keystrokes no longer have gaps at the corners", "Long text in text boxes stays inside the box"]},

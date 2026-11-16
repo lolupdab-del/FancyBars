@@ -29,7 +29,7 @@ public final class ArmorHud {
 	private ArmorHud() {}
 
 	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("armor_display"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("armor_display"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (FancyBarsConfig.get().armorEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed()) {
 				float[] pos = position(graphics.guiWidth(), graphics.guiHeight());

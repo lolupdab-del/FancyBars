@@ -52,7 +52,7 @@ public final class Keystrokes {
 	private Keystrokes() {}
 
 	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("keystrokes"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("keystrokes"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			pollClicks();
 			if (FancyBarsConfig.get().keystrokesEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed()) render(graphics);
@@ -63,7 +63,33 @@ public final class Keystrokes {
 		return Component.translatable("fancybars.keystrokes.mode." + Math.clamp(mode, 0, 2));
 	}
 
+	/** The layout was built again every frame: kept until the mode or the CPS setting changes. */
+	private static List<Key> cachedLayout;
+	private static int cachedLayoutFor = -1;
+
 	private static List<Key> layout(int mode) {
+		FancyBarsConfig c = FancyBarsConfig.get();
+		int key = mode * 2 + (c.keystrokesLeftCps || c.keystrokesRightCps ? 1 : 0);
+		if (cachedLayout == null || cachedLayoutFor != key) {
+			cachedLayout = buildLayout(mode);
+			cachedLayoutFor = key;
+		}
+		return cachedLayout;
+	}
+
+	/** Labels as text objects, kept so their size and look are only worked out once (until settings are saved). */
+	private static final java.util.Map<String, Component> LABELS = new java.util.HashMap<>();
+	private static int labelsVersion = -1;
+
+	private static Component label(String text, boolean bold) {
+		if (labelsVersion != FancyBarsConfig.version) {
+			LABELS.clear();
+			labelsVersion = FancyBarsConfig.version;
+		}
+		return LABELS.computeIfAbsent((bold ? "b" : "n") + text, _ -> bold ? Theme.bold(Component.literal(text)) : Theme.styled(Component.literal(text)));
+	}
+
+	private static List<Key> buildLayout(int mode) {
 		List<Key> keys = new ArrayList<>();
 		float y = 0;
 		float width;
@@ -193,7 +219,7 @@ public final class Keystrokes {
 			if (pressedAlpha > 0) Theme.roundedRect(graphics, kx, ky, kw, kh, 4, pressedAlpha << 24 | Theme.accent() & 0xFFFFFF);
 			if (FancyBarsConfig.get().hudBorders) Theme.border(graphics, kx, ky, kw, kh, 4, Theme.hudLine(), a);
 			int textColor = Theme.lerpColor(Theme.hudText(255), Theme.night(Theme.TEXT_ON_ACCENT), p);
-			Component label = Theme.bold(Component.literal(key.label()));
+			Component label = label(key.label(), true);
 			float lw = font.width(label);
 			float scaleText = Math.min(1, (kw - 3) / lw);
 			boolean cps = showCps(key.code());
@@ -205,7 +231,7 @@ public final class Keystrokes {
 			pose.popMatrix();
 			if (cps) {
 				int value = !live ? 0 : key.code() == MOUSE_LEFT ? leftCps() : rightCps();
-				Component cpsText = Theme.styled(Component.literal(value + " CPS"));
+				Component cpsText = label(value + " CPS", false);
 				float cw = font.width(cpsText);
 				float cpsScale = Math.min(0.75f, (kw - 3) / cw);
 				pose.pushMatrix();

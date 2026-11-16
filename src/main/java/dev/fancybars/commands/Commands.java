@@ -54,7 +54,7 @@ public final class Commands {
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (!overlay) onChat(message);
 		});
-		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick Commands", mc -> {
 			long now = System.currentTimeMillis();
 			if (QUEUE.isEmpty() || now < nextSendAt || mc.getConnection() == null) return;
 			Queued next = QUEUE.poll();

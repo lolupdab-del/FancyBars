@@ -17,13 +17,25 @@ import dev.fancybars.util.gui.SmoothText;
 public abstract class SmoothTextWidthMixin {
 	@Inject(method = "width(Lnet/minecraft/util/FormattedCharSequence;)I", at = @At("HEAD"), cancellable = true, require = 0)
 	private void fancybars$widthSequence(FormattedCharSequence text, CallbackInfoReturnable<Integer> cir) {
-		float w = SmoothText.width(text);
-		if (w >= 0) cir.setReturnValue(Math.round(w));
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			float w = SmoothText.width(text);
+			if (w >= 0) cir.setReturnValue(Math.round(w));
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("SmoothTextWidthMixin widthSequence", fancybars$perf);
+		}
 	}
 
 	@Inject(method = "width(Lnet/minecraft/network/chat/FormattedText;)I", at = @At("HEAD"), cancellable = true, require = 0)
 	private void fancybars$widthText(FormattedText text, CallbackInfoReturnable<Integer> cir) {
-		float w = SmoothText.width(Language.getInstance().getVisualOrder(text));
-		if (w >= 0) cir.setReturnValue(Math.round(w));
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			// most text isn't ours: don't build its visual order (a full pass over it) just to find that out
+			if (!SmoothText.mightBeSmooth(text)) return;
+			float w = SmoothText.width(text);
+			if (w >= 0) cir.setReturnValue(Math.round(w));
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("SmoothTextWidthMixin widthText", fancybars$perf);
+		}
 	}
 }

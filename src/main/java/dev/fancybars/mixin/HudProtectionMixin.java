@@ -20,21 +20,36 @@ import dev.fancybars.util.SkyblockLocation;
 public abstract class HudProtectionMixin {
 	@Inject(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractSlot(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0))
 	private void fancybars$drawRarityBackground(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "i") int index, @Local(name = "x") int x, @Local(name = "y") int y, @Local(name = "player") Player player) {
-		dev.fancybars.items.RarityBackground.draw(graphics, player.getInventory().getNonEquipmentItems().get(index), x, y, true);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			dev.fancybars.items.RarityBackground.draw(graphics, player.getInventory().getNonEquipmentItems().get(index), x, y, true);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("HudProtectionMixin drawRarityBackground", fancybars$perf);
+		}
 	}
 
 	@Inject(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractSlot(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0))
 	private void fancybars$drawProtectionStar(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "i") int index, @Local(name = "x") int x, @Local(name = "y") int y, @Local(name = "player") Player player) {
-		if (SkyblockLocation.isOnSkyblock() && !dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(player.getInventory().getNonEquipmentItems().get(index))) {
-			ItemProtection.drawStar(graphics, x, y);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (SkyblockLocation.isOnSkyblock() && !dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(player.getInventory().getNonEquipmentItems().get(index))) {
+				ItemProtection.drawStar(graphics, x, y);
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("HudProtectionMixin drawProtectionStar", fancybars$perf);
 		}
 	}
 
 	@Inject(method = "extractItemHotbar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractSlot(Lnet/minecraft/client/gui/GuiGraphicsExtractor;IILnet/minecraft/client/DeltaTracker;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/item/ItemStack;I)V", ordinal = 0, shift = At.Shift.AFTER))
 	private void fancybars$drawProtectionStarFront(CallbackInfo ci, @Local(name = "graphics") GuiGraphicsExtractor graphics, @Local(name = "i") int index, @Local(name = "x") int x, @Local(name = "y") int y, @Local(name = "player") Player player) {
-		if (SkyblockLocation.isOnSkyblock() && dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(player.getInventory().getNonEquipmentItems().get(index))) {
-			graphics.nextStratum();
-			ItemProtection.drawStar(graphics, x, y);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (SkyblockLocation.isOnSkyblock() && dev.fancybars.config.FancyBarsConfig.get().protectionStarInFront && ItemProtection.isItemProtected(player.getInventory().getNonEquipmentItems().get(index))) {
+				graphics.nextStratum();
+				ItemProtection.drawStar(graphics, x, y);
+			}
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("HudProtectionMixin drawProtectionStarFront", fancybars$perf);
 		}
 	}
 }

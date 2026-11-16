@@ -19,16 +19,20 @@ import net.minecraft.resources.Identifier;
  * four corners come from one anti-aliased ring texture generated for that exact radius and thickness.
  */
 public final class Ring {
-	private static final Map<Long, Identifier> CORNERS = new LinkedHashMap<>(16, 0.75f, true);
-	private static int counter;
+	/** Rings by radius and thickness, in the shared UI atlas (so they're drawn in the same batch as everything else). */
+	private static final Map<Long, UiAtlas.Region> CORNERS = new java.util.HashMap<>();
+
+	static {
+		UiAtlas.onReset(CORNERS::clear);
+	}
 
 	private Ring() {}
 
-	/** Texture of a full ring (outer radius {@code r}, thickness {@code t}, both in screen pixels); size 2r × 2r. */
-	private static Identifier corner(int r, float t) {
+	/** A full ring (outer radius {@code r}, thickness {@code t}, both in screen pixels); size 2r × 2r. */
+	private static UiAtlas.Region corner(int r, float t) {
 		long key = (long) r << 32 | Float.floatToIntBits(t);
-		Identifier id = CORNERS.get(key);
-		if (id != null) return id;
+		UiAtlas.Region region = CORNERS.get(key);
+		if (region != null && region.valid()) return region;
 		int size = r * 2;
 		NativeImage image = new NativeImage(size, size, false);
 		float inner = r - t;
@@ -48,18 +52,14 @@ public final class Ring {
 				image.setPixel(x, y, alpha << 24 | 0xFFFFFF);
 			}
 		}
-		id = FancyBarsMod.id("ui/ring_" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils border", image);
-		Minecraft.getInstance().getTextureManager().register(id, texture);
-		texture.upload();
-		CORNERS.put(key, id);
-		if (CORNERS.size() > 1024) {
-			var it = CORNERS.entrySet().iterator();
-			Identifier old = it.next().getValue();
-			it.remove();
-			Minecraft.getInstance().getTextureManager().release(old);
-		}
-		return id;
+		region = UiAtlas.add(image);
+		CORNERS.put(key, region);
+		return region;
+	}
+
+	/** One quarter of a ring: {@code qx, qy} (0 or 1) pick which. */
+	private static void quarter(GuiGraphicsExtractor graphics, UiAtlas.Region ring, int x, int y, int qx, int qy, int r, int color) {
+		UiAtlas.blit(graphics, Chroma.textured(color), ring, x, y, qx * r, qy * r, r, r, color);
 	}
 
 	// ---------------------------------------------------------------- absolute screen-pixel drawing
@@ -84,7 +84,7 @@ public final class Ring {
 	}
 
 	private static void fillPx(GuiGraphicsExtractor graphics, float x1, float y1, float x2, float y2, int color) {
-		if (x2 > x1 && y2 > y1) graphics.fill(Chroma.fill(color), (int) x1, (int) y1, (int) x2, (int) y2, color);
+		if (x2 > x1 && y2 > y1) UiAtlas.fill(graphics, Chroma.textured(color), (int) x1, (int) y1, (int) x2, (int) y2, color);
 	}
 
 	/** Thin line width in screen pixels for hairlines (about 0.6 GUI px, at least 1 pixel). */
@@ -126,12 +126,11 @@ public final class Ring {
 			fillPx(graphics, X + R, Y, X + W - R, Y + H, color);
 			fillPx(graphics, X, Y + R, X + R, Y + H - R, color);
 			fillPx(graphics, X + W - R, Y + R, X + W, Y + H - R, color);
-			Identifier tex = corner(R, R);
-			int size = R * 2;
-			graphics.blit(Chroma.textured(color), tex, X, Y, 0, 0, R, R, size, size, color);
-			graphics.blit(Chroma.textured(color), tex, X + W - R, Y, R, 0, R, R, size, size, color);
-			graphics.blit(Chroma.textured(color), tex, X, Y + H - R, 0, R, R, R, size, size, color);
-			graphics.blit(Chroma.textured(color), tex, X + W - R, Y + H - R, R, R, R, R, size, size, color);
+			UiAtlas.Region tex = corner(R, R);
+			quarter(graphics, tex, X, Y, 0, 0, R, color);
+			quarter(graphics, tex, X + W - R, Y, 1, 0, R, color);
+			quarter(graphics, tex, X, Y + H - R, 0, 1, R, color);
+			quarter(graphics, tex, X + W - R, Y + H - R, 1, 1, R, color);
 		}
 		graphics.pose().popMatrix();
 	}
@@ -194,12 +193,11 @@ public final class Ring {
 			fillPx(graphics, X + W - extra, Y + H - extra, right, bottom, color);
 		}
 		if (R > 0) {
-			Identifier tex = corner(R, Math.round(T * 8) / 8f);
-			int size = R * 2;
-			graphics.blit(Chroma.textured(color), tex, X, Y, 0, 0, R, R, size, size, color);
-			graphics.blit(Chroma.textured(color), tex, X + W - R, Y, R, 0, R, R, size, size, color);
-			graphics.blit(Chroma.textured(color), tex, X, Y + H - R, 0, R, R, R, size, size, color);
-			graphics.blit(Chroma.textured(color), tex, X + W - R, Y + H - R, R, R, R, R, size, size, color);
+			UiAtlas.Region tex = corner(R, Math.round(T * 8) / 8f);
+			quarter(graphics, tex, X, Y, 0, 0, R, color);
+			quarter(graphics, tex, X + W - R, Y, 1, 0, R, color);
+			quarter(graphics, tex, X, Y + H - R, 0, 1, R, color);
+			quarter(graphics, tex, X + W - R, Y + H - R, 1, 1, R, color);
 		}
 	}
 

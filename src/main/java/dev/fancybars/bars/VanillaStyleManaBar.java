@@ -63,13 +63,13 @@ public class VanillaStyleManaBar {
 			if (!isEnabled()) hudElement.extractRenderState(context, tickCounter);
 		};
 
-		HudElementRegistry.replaceElement(VanillaHudElements.FOOD_BAR, hideIfVanillaStyleManaBarEnabled);
-		HudElementRegistry.replaceElement(VanillaHudElements.MOUNT_HEALTH, hideIfVanillaStyleManaBarEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.FOOD_BAR, hideIfVanillaStyleManaBarEnabled);
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.MOUNT_HEALTH, hideIfVanillaStyleManaBarEnabled);
 
-		HudElementRegistry.attachElementBefore(VanillaHudElements.FOOD_BAR, MANABAR_FOOD_HUD_ID, (context, _) -> {
+		dev.fancybars.util.Perf.attachElementBefore(VanillaHudElements.FOOD_BAR, MANABAR_FOOD_HUD_ID, (context, _) -> {
 			if (isEnabled()) extractRenderState(context);
 		});
-		HudElementRegistry.attachElementBefore(VanillaHudElements.MOUNT_HEALTH, MANABAR_MOUNT_HUD_ID, (context, _) -> {
+		dev.fancybars.util.Perf.attachElementBefore(VanillaHudElements.MOUNT_HEALTH, MANABAR_MOUNT_HUD_ID, (context, _) -> {
 			if (isEnabled()) extractRenderState(context);
 		});
 	}

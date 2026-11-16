@@ -22,6 +22,8 @@ public class SkyblockLocation {
 	private static final List<Runnable> LOCATION_CHANGE_LISTENERS = new ArrayList<>();
 
 	private static boolean onSkyblock = false;
+	/** Asked for many times a frame, so looked up once. */
+	private static final boolean DEV = FabricLoader.getInstance().isDevelopmentEnvironment();
 	private static String mode = "";
 
 	public static void init() {
@@ -53,7 +55,7 @@ public class SkyblockLocation {
 
 	public static boolean isOnSkyblock() {
 		// Pretend we're always on SkyBlock in singleplayer dev environments so the bars can be tested
-		if (FabricLoader.getInstance().isDevelopmentEnvironment() && Minecraft.getInstance().isLocalServer()) return true;
+		if (DEV && Minecraft.getInstance().isLocalServer()) return true;
 		return onSkyblock;
 	}
 

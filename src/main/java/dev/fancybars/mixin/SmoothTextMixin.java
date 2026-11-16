@@ -18,11 +18,22 @@ import dev.fancybars.util.gui.SmoothText;
 public abstract class SmoothTextMixin {
 	@Inject(method = "text(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;IIIZ)V", at = @At("HEAD"), cancellable = true, require = 0)
 	private void fancybars$smoothSequence(Font font, FormattedCharSequence text, int x, int y, int color, boolean shadow, CallbackInfo ci) {
-		if (SmoothText.draw((GuiGraphicsExtractor) (Object) this, text, x, y, color, shadow)) ci.cancel();
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (SmoothText.draw((GuiGraphicsExtractor) (Object) this, text, x, y, color, shadow)) ci.cancel();
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("SmoothTextMixin smoothSequence", fancybars$perf);
+		}
 	}
 
 	@Inject(method = "text(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIIZ)V", at = @At("HEAD"), cancellable = true, require = 0)
 	private void fancybars$smoothComponent(Font font, Component text, int x, int y, int color, boolean shadow, CallbackInfo ci) {
-		if (SmoothText.draw((GuiGraphicsExtractor) (Object) this, Language.getInstance().getVisualOrder(text), x, y, color, shadow)) ci.cancel();
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (!SmoothText.mightBeSmooth(text)) return;
+			if (SmoothText.draw((GuiGraphicsExtractor) (Object) this, text, x, y, color, shadow)) ci.cancel();
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("SmoothTextMixin smoothComponent", fancybars$perf);
+		}
 	}
 }

@@ -20,14 +20,24 @@ import dev.fancybars.players.Nicknames;
 public abstract class TextDisplayNicknameMixin {
 	@ModifyVariable(method = "splitLines", at = @At("HEAD"), argsOnly = true, require = 0)
 	private Component fancybars$swapNames(Component text) {
-		Component replaced = Nicknames.apply(text, Nicknames.Where.WORLD);
-		dev.fancybars.players.NameTagDebug.hit("textDisplay.splitLines", text, replaced);
-		return replaced;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Component replaced = Nicknames.apply(text, Nicknames.Where.WORLD);
+			dev.fancybars.players.NameTagDebug.hit("textDisplay.splitLines", text, replaced);
+			return replaced;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("TextDisplayNicknameMixin swapNames", fancybars$perf);
+		}
 	}
 
 	@ModifyExpressionValue(method = "submitInner(Lnet/minecraft/client/renderer/entity/state/TextDisplayEntityRenderState;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;IF)V",
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Display$TextDisplay$CachedLine;contents()Lnet/minecraft/util/FormattedCharSequence;"), require = 0)
 	private FormattedCharSequence fancybars$flowNames(FormattedCharSequence line) {
-		return NameColors.wrap(line, false);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			return NameColors.wrap(line, false);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("TextDisplayNicknameMixin flowNames", fancybars$perf);
+		}
 	}
 }

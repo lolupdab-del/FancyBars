@@ -40,7 +40,7 @@ public final class SpotifyHud {
 		prevKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.fancybars.spotify.previous", none, ItemProtection.KEY_CATEGORY));
 		volUpKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.fancybars.spotify.volumeUp", none, ItemProtection.KEY_CATEGORY));
 		volDownKey = KeyMappingHelper.registerKeyMapping(new KeyMapping("key.fancybars.spotify.volumeDown", none, ItemProtection.KEY_CATEGORY));
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick SpotifyHud", mc -> {
 			while (openKey.consumeClick()) mc.gui.setScreen(new SpotifyScreen(mc.gui.screen()));
 			while (playKey.consumeClick()) Spotify.togglePlay();
 			while (nextKey.consumeClick()) Spotify.next();
@@ -48,7 +48,7 @@ public final class SpotifyHud {
 			while (volUpKey.consumeClick()) Spotify.setVolume(Math.max(0, Spotify.state().volume) + 10);
 			while (volDownKey.consumeClick()) Spotify.setVolume(Math.max(0, Spotify.state().volume) - 10);
 		});
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("spotify"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("spotify"), (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (config.spotifyEnabled && config.spotifyHud && Spotify.connected() && Spotify.state().active && dev.fancybars.util.HudVisibility.allowed()) {
 				render(graphics);
@@ -120,7 +120,21 @@ public final class SpotifyHud {
 	}
 
 	/** Width of the countdown with every digit as the widest digit, for a song of this length. */
+	private static long slotFor = -1;
+	private static int slotVersion = -1;
+	private static float slot;
+
+	/** Worked out once per song (it measured 11 texts every frame). */
 	private static float slotWidth(net.minecraft.client.gui.Font font, long durationMs) {
+		if (slotFor != durationMs || slotVersion != FancyBarsConfig.version) {
+			slot = measureSlot(font, durationMs);
+			slotFor = durationMs;
+			slotVersion = FancyBarsConfig.version;
+		}
+		return slot;
+	}
+
+	private static float measureSlot(net.minecraft.client.gui.Font font, long durationMs) {
 		float widest = 0;
 		char widestDigit = '0';
 		for (char d = '0'; d <= '9'; d++) {

@@ -139,7 +139,7 @@ public final class RareDropTracker {
 		SkyblockLocation.onLocationChange(() -> {
 			if (!SkyblockLocation.isInDungeons()) currentFloor = "";
 		});
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("rare_drops"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("rare_drops"), (graphics, tickCounter) -> {
 			if (shouldShowHud()) render(graphics);
 		});
 	}

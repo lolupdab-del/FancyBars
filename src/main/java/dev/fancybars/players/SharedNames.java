@@ -67,7 +67,7 @@ public final class SharedNames {
 	private SharedNames() {}
 
 	public static void init() {
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick SharedNames", mc -> {
 			if (mc.player == null) return;
 			if (++ticks >= REFRESH_TICKS) {
 				ticks = 0;

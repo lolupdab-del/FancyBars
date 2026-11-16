@@ -98,6 +98,12 @@ public final class RarityBackground {
 
 	/** Draws the background behind the 16x16 item at x, y if it's turned on and the item has a rarity. */
 	public static void draw(GuiGraphicsExtractor graphics, ItemStack stack, int x, int y, boolean hotbar) {
+		long perf = dev.fancybars.util.Perf.begin();
+		drawInner(graphics, stack, x, y, hotbar);
+		dev.fancybars.util.Perf.end("Item rarity backgrounds", perf);
+	}
+
+	private static void drawInner(GuiGraphicsExtractor graphics, ItemStack stack, int x, int y, boolean hotbar) {
 		FancyBarsConfig c = FancyBarsConfig.get();
 		if (!c.rarityBackground || hotbar && !c.rarityBackgroundHotbar || !SkyblockLocation.isOnSkyblock()) return;
 		int rgb = colorOf(stack);

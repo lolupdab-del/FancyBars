@@ -80,7 +80,7 @@ public final class ItemRepo {
 
 	/** SkyBlock id of a stack ("" if it has none). */
 	public static String idOf(ItemStack stack) {
-		return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getStringOr("id", "");
+		return ((dev.fancybars.mixin.CustomDataAccessor) (Object) stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).getTag().getStringOr("id", "");
 	}
 
 	/** Loads (and if needed downloads) the data in the background, once. */

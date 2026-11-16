@@ -16,7 +16,12 @@ import dev.fancybars.items.Customization;
 public abstract class DyedItemColorMixin {
 	@ModifyReturnValue(method = "getOrDefault", at = @At("RETURN"))
 	private static int fancybars$customDye(int original, @Local(argsOnly = true) ItemStack stack) {
-		Integer custom = Customization.dye(stack);
-		return custom != null ? 0xFF000000 | custom : original;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			Integer custom = Customization.dye(stack);
+			return custom != null ? 0xFF000000 | custom : original;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("DyedItemColorMixin customDye", fancybars$perf);
+		}
 	}
 }

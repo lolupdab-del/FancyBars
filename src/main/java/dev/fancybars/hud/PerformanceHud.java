@@ -31,7 +31,7 @@ public final class PerformanceHud {
 	private PerformanceHud() {}
 
 	public static void init() {
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("performance"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("performance"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (FancyBarsConfig.get().perfEnabled && mc.player != null && dev.fancybars.util.HudVisibility.allowed()) render(graphics);
 		});

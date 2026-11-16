@@ -22,7 +22,7 @@ public final class TitlesAndHotbar {
 	private TitlesAndHotbar() {}
 
 	public static void init() {
-		HudElementRegistry.replaceElement(VanillaHudElements.TITLE_AND_SUBTITLE, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.TITLE_AND_SUBTITLE, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (!config.titlesShown) return;
 			if (config.titleX == 0 && config.titleY == 0 && config.titleScale == 1) {
@@ -35,7 +35,7 @@ public final class TitlesAndHotbar {
 			original.extractRenderState(graphics, tickCounter);
 			pose.popMatrix();
 		});
-		HudElementRegistry.replaceElement(VanillaHudElements.BOSS_BAR, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.BOSS_BAR, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (!config.bossBarShown) return;
 			if (config.bossBarX == 0 && config.bossBarY == 0 && config.bossBarScale == 1) {
@@ -48,7 +48,7 @@ public final class TitlesAndHotbar {
 			original.extractRenderState(graphics, tickCounter);
 			pose.popMatrix();
 		});
-		HudElementRegistry.replaceElement(VanillaHudElements.HOTBAR, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.HOTBAR, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (config.hotbarX == 0 && config.hotbarY == 0 && config.hotbarScale == 1) {
 				original.extractRenderState(graphics, tickCounter);

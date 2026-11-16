@@ -64,7 +64,7 @@ public final class StorageOverlay {
 	private StorageOverlay() {}
 
 	public static void init() {
-		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> tickPending());
+		dev.fancybars.util.Perf.onTick("Tick StorageOverlay", mc -> tickPending());
 		ScreenEvents.AFTER_INIT.register((client, screen, w, h) -> {
 			if (!(screen instanceof AbstractContainerScreen<?> container) || !active(container)) return;
 			current = container;

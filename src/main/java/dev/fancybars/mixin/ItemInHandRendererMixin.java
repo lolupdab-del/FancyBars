@@ -31,22 +31,37 @@ public abstract class ItemInHandRendererMixin {
 	/** "No Re-equip Animation": the hand never dips when the held item changes. */
 	@ModifyVariable(method = SUBMIT, at = @At("HEAD"), argsOnly = true, ordinal = 3, require = 0)
 	private float fancybars$noReequipDip(float equipProgress) {
-		FancyBarsConfig c = FancyBarsConfig.get();
-		return c.viewmodelEnabled && c.viewmodelNoReequip ? 0 : equipProgress;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			return c.viewmodelEnabled && c.viewmodelNoReequip ? 0 : equipProgress;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ItemInHandRendererMixin noReequipDip", fancybars$perf);
+		}
 	}
 
 	/** ...and the new item is swapped in straight away instead of after the dip. */
 	@org.spongepowered.asm.mixin.injection.Inject(method = "shouldInstantlyReplaceVisibleItem", at = @At("HEAD"), cancellable = true, require = 0)
 	private void fancybars$noReequip(ItemStack oldStack, ItemStack newStack, org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable<Boolean> cir) {
-		FancyBarsConfig c = FancyBarsConfig.get();
-		if (c.viewmodelEnabled && c.viewmodelNoReequip) cir.setReturnValue(true);
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			if (c.viewmodelEnabled && c.viewmodelNoReequip) cir.setReturnValue(true);
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ItemInHandRendererMixin noReequip", fancybars$perf);
+		}
 	}
 
 	/** "No Swing": first-person swing animation stays at rest. */
 	@ModifyVariable(method = SUBMIT, at = @At("HEAD"), argsOnly = true, ordinal = 2, require = 0)
 	private float fancybars$noSwing(float swingProgress) {
-		FancyBarsConfig c = FancyBarsConfig.get();
-		return c.viewmodelEnabled && c.viewmodelNoSwing ? 0 : swingProgress;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			return c.viewmodelEnabled && c.viewmodelNoSwing ? 0 : swingProgress;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ItemInHandRendererMixin noSwing", fancybars$perf);
+		}
 	}
 
 	@Inject(method = SUBMIT, at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER, ordinal = 0), require = 0)

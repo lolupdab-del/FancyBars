@@ -102,7 +102,7 @@ public final class BackpackPreview {
 			profileId = null;
 			profileName = null;
 		});
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+		dev.fancybars.util.Perf.onTick("Tick BackpackPreview", client -> {
 			if (++ticks % 50 == 0) tick();
 		});
 	}

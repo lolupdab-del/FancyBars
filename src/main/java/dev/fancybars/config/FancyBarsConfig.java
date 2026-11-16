@@ -959,7 +959,13 @@ public class FancyBarsConfig {
 		}
 	}
 
+	/** Goes up on every save, so things worked out from the settings know to work them out again. */
+	public static volatile int version;
+
 	public static void save() {
+		// a name setting may have changed: cached name swaps are worked out again
+		dev.fancybars.players.Nicknames.changed();
+		version++;
 		try {
 			Files.createDirectories(FILE.getParent());
 			try (BufferedWriter writer = Files.newBufferedWriter(FILE)) {

@@ -21,7 +21,7 @@ public abstract class NameTagSubmitNicknameMixin {
 			at = @At("HEAD"), argsOnly = true, require = 0)
 	private Component fancybars$nicknames(Component name) {
 		Component replaced = Nicknames.apply(name, Nicknames.Where.WORLD);
-		dev.fancybars.players.NameTagDebug.hit("submitNameTag (" + getClass().getSimpleName() + ")", name, replaced);
+		if (dev.fancybars.players.NameTagDebug.recording()) dev.fancybars.players.NameTagDebug.hit("submitNameTag (" + getClass().getSimpleName() + ")", name, replaced);
 		return replaced;
 	}
 }

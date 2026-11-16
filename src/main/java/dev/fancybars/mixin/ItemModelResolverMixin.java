@@ -17,13 +17,18 @@ public class ItemModelResolverMixin {
 	@ModifyExpressionValue(method = {"appendItemLayers", "shouldPlaySwapAnimation"}, at = @At(value = "INVOKE",
 			target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"), order = 900, require = 0)
 	private Object fancybars$customModel(Object original, @Local(argsOnly = true) ItemStack stack) {
-		if (!(original instanceof net.minecraft.resources.Identifier)) return original;
-		net.minecraft.resources.Identifier custom = ItemChanger.modelFor(stack);
-		if (custom != null) return custom;
-		// your dye on armor that has its own model (like a real animated dye): use the plain leather model
-		if (dev.fancybars.items.Customization.forcesPlainLeather(stack) && !((net.minecraft.resources.Identifier) original).getNamespace().equals("minecraft")) {
-			return net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			if (!(original instanceof net.minecraft.resources.Identifier)) return original;
+			net.minecraft.resources.Identifier custom = ItemChanger.modelFor(stack);
+			if (custom != null) return custom;
+			// your dye on armor that has its own model (like a real animated dye): use the plain leather model
+			if (dev.fancybars.items.Customization.forcesPlainLeather(stack) && !((net.minecraft.resources.Identifier) original).getNamespace().equals("minecraft")) {
+				return net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+			}
+			return original;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("ItemModelResolverMixin customModel", fancybars$perf);
 		}
-		return original;
 	}
 }

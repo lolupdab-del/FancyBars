@@ -41,7 +41,7 @@ public final class PlayerSizes {
 	private PlayerSizes() {}
 
 	public static void init() {
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick PlayerSizes", mc -> {
 			if (mc.player == null) return;
 			if (++ticks >= REFRESH_TICKS) {
 				ticks = 0;
@@ -96,7 +96,7 @@ public final class PlayerSizes {
 		if (player == mc.player && config.playerSizeEnabled) {
 			return new float[]{Math.clamp(config.playerSizeWidth, MIN, MAX), Math.clamp(config.playerSizeHeight, MIN, MAX), Math.clamp(config.playerSizeLength, MIN, MAX)};
 		}
-		if (!config.playerSizeShowOthers && player != mc.player) return NORMAL;
+		if (!config.playerSizeShowOthers && player != mc.player || SHARED.isEmpty()) return NORMAL;
 		float[] shared = SHARED.get(player.getGameProfile().name().toLowerCase(Locale.ROOT));
 		return shared != null ? shared : NORMAL;
 	}

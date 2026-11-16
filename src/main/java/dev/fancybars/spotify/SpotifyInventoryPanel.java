@@ -60,7 +60,7 @@ public final class SpotifyInventoryPanel extends AbstractWidget {
 				Screens.getWidgets(inventory).add(current);
 			}
 		});
-		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick SpotifyInventoryPanel", mc -> {
 			if (current != null && mc.gui.screen() instanceof InventoryScreen) current.visible = shouldShow();
 		});
 	}

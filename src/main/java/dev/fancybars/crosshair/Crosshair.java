@@ -17,7 +17,7 @@ public final class Crosshair {
 	private Crosshair() {}
 
 	public static void init() {
-		HudElementRegistry.replaceElement(VanillaHudElements.CROSSHAIR, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.CROSSHAIR, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			Minecraft mc = Minecraft.getInstance();
 			boolean firstPerson = mc.options.getCameraType().isFirstPerson();

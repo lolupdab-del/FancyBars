@@ -17,10 +17,15 @@ public abstract class LivingEntitySwingMixin {
 
 	@ModifyReturnValue(method = "getCurrentSwingDuration", at = @At("RETURN"), require = 0)
 	private int fancybars$ignoreHaste(int original) {
-		FancyBarsConfig c = FancyBarsConfig.get();
-		if (!c.viewmodelEnabled || (Object) this != Minecraft.getInstance().player) return original;
-		int base = c.viewmodelIgnoreHaste ? NORMAL_SWING : original;
-		// swing speed: 2x = twice as fast (half the ticks)
-		return Math.max(1, Math.round(base / Math.max(0.1f, c.viewmodelSwingSpeed)));
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			FancyBarsConfig c = FancyBarsConfig.get();
+			if (!c.viewmodelEnabled || (Object) this != Minecraft.getInstance().player) return original;
+			int base = c.viewmodelIgnoreHaste ? NORMAL_SWING : original;
+			// swing speed: 2x = twice as fast (half the ticks)
+			return Math.max(1, Math.round(base / Math.max(0.1f, c.viewmodelSwingSpeed)));
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("LivingEntitySwingMixin ignoreHaste", fancybars$perf);
+		}
 	}
 }

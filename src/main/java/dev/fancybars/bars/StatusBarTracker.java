@@ -65,7 +65,7 @@ public class StatusBarTracker {
 		ClientReceiveMessageEvents.ALLOW_GAME.register(early, StatusBarTracker::allowOverlayMessage);
 		ClientReceiveMessageEvents.MODIFY_GAME.register(early, StatusBarTracker::onOverlayMessage);
 		UseItemCallback.EVENT.register(StatusBarTracker::interactItem);
-		ClientTickEvents.END_CLIENT_TICK.register(_ -> tick());
+		dev.fancybars.util.Perf.onTick("Tick StatusBarTracker", _ -> tick());
 	}
 
 	public static Resource getHealth() {

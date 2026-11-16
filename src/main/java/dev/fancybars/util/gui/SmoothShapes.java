@@ -33,7 +33,11 @@ public final class SmoothShapes {
 		}
 	}
 
-	private static final Map<Long, Identifier> CACHE = new HashMap<>();
+	private static final Map<Long, UiAtlas.Region> CACHE = new HashMap<>();
+
+	static {
+		UiAtlas.onReset(CACHE::clear);
+	}
 	private static int counter;
 
 	private SmoothShapes() {}
@@ -56,10 +60,10 @@ public final class SmoothShapes {
 		return (e1 >= 0 && e2 >= 0 && e3 >= 0) || (e1 <= 0 && e2 <= 0 && e3 <= 0);
 	}
 
-	private static Identifier texture(Shape shape, int pixels) {
+	private static UiAtlas.Region texture(Shape shape, int pixels) {
 		long key = (long) shape.ordinal() << 32 | pixels;
-		Identifier id = CACHE.get(key);
-		if (id != null) return id;
+		UiAtlas.Region id = CACHE.get(key);
+		if (id != null && id.valid()) return id;
 		NativeImage image = new NativeImage(pixels, pixels, false);
 		for (int y = 0; y < pixels; y++) {
 			for (int x = 0; x < pixels; x++) {
@@ -72,10 +76,7 @@ public final class SmoothShapes {
 				image.setPixel(x, y, Math.round(hits / 16f * 255) << 24 | 0xFFFFFF);
 			}
 		}
-		id = FancyBarsMod.id("ui/shape_" + counter++);
-		DynamicTexture texture = new DynamicTexture(() -> "SkyblockGuiUtils shape", image);
-		Minecraft.getInstance().getTextureManager().register(id, texture);
-		texture.upload();
+		id = UiAtlas.add(image);
 		CACHE.put(key, id);
 		return id;
 	}
@@ -86,7 +87,7 @@ public final class SmoothShapes {
 		Matrix3x2fStack pose = graphics.pose();
 		float worldScale = Math.max(0.05f, (float) Math.hypot(pose.m00(), pose.m01()));
 		int pixels = Math.clamp(Math.round(size * Theme.guiScale() * worldScale), 2, 512);
-		Identifier tex = texture(shape, pixels);
+		UiAtlas.Region tex = texture(shape, pixels);
 		if (Math.abs(worldScale - 1) < 0.001f) {
 			// line the texture up with real screen pixels so nothing gets resampled
 			float gs = Theme.guiScale();
@@ -96,7 +97,7 @@ public final class SmoothShapes {
 		pose.pushMatrix();
 		pose.translate(x, y);
 		pose.scale(size / pixels, size / pixels);
-		graphics.blit(Chroma.textured(color), tex, 0, 0, 0, 0, pixels, pixels, pixels, pixels, color);
+		UiAtlas.blit(graphics, Chroma.textured(color), tex, 0, 0, 0, 0, pixels, pixels, color);
 		pose.popMatrix();
 	}
 }

@@ -17,7 +17,7 @@ public class HeldItemName {
 	public static final int VANILLA_OFFSET_FROM_BOTTOM = 59;
 
 	public static void init() {
-		HudElementRegistry.replaceElement(VanillaHudElements.HELD_ITEM_TOOLTIP, original -> (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.replaceElement(VanillaHudElements.HELD_ITEM_TOOLTIP, original -> (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (!config.heldItemNameEnabled) return;
 			if (config.heldItemNameX == 0 && config.heldItemNameY == 0 && config.heldItemNameScale == 1) {

@@ -91,7 +91,7 @@ public final class Spotify {
 
 	public static void init() {
 		loadTokens();
-		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+		dev.fancybars.util.Perf.onTick("Tick Spotify", mc -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (config.spotifyEnabled && config.spotifyBrokeMode) {
 				// Broke Mode: read the song from the Spotify app itself (no login needed)

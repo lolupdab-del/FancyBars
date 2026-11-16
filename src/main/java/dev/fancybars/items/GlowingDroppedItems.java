@@ -12,6 +12,13 @@ public final class GlowingDroppedItems {
 
 	/** Glow colour for this entity, or -1 if it shouldn't get one from us. */
 	public static int color(Entity entity) {
+		long perf = dev.fancybars.util.Perf.begin();
+		int out = colorInner(entity);
+		dev.fancybars.util.Perf.end("Glowing dropped items", perf);
+		return out;
+	}
+
+	private static int colorInner(Entity entity) {
 		if (!(entity instanceof ItemEntity item) || !FancyBarsConfig.get().glowingDroppedItems || !SkyblockLocation.isOnSkyblock()) return -1;
 		if (item.hasGlowingTag()) return -1; // already glowing from the server: leave its colour alone
 		// only within range: every glowing item is outlined through walls each frame, which got expensive with

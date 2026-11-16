@@ -45,7 +45,12 @@ public abstract class SwordBlockMixin {
 	/** 1.8 doesn't swing the sword while blocking (unless Swing While Blocking is on, like 1.7 block-hitting). */
 	@WrapWithCondition(method = SUBMIT, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;swingArm(FLcom/mojang/blaze3d/vertex/PoseStack;ILnet/minecraft/world/entity/HumanoidArm;)V", ordinal = 2))
 	private boolean fancybars$noSwingWhileBlocking(ItemInHandRenderer self, float swing, PoseStack poseStack, int side, HumanoidArm arm) {
-		return !fancybars$blocking || FancyBarsConfig.get().swordBlockSwing;
+		long fancybars$perf = dev.fancybars.util.Perf.begin();
+		try {
+			return !fancybars$blocking || FancyBarsConfig.get().swordBlockSwing;
+		} finally {
+			if (fancybars$perf != 0) dev.fancybars.util.Perf.end("SwordBlockMixin noSwingWhileBlocking", fancybars$perf);
+		}
 	}
 
 	@Inject(method = SUBMIT, at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemDisplayContext;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V", ordinal = 1))

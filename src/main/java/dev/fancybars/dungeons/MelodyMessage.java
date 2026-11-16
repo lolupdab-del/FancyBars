@@ -59,7 +59,7 @@ public final class MelodyMessage {
 	private MelodyMessage() {}
 
 	public static void init() {
-		ClientTickEvents.END_CLIENT_TICK.register(MelodyMessage::tick);
+		dev.fancybars.util.Perf.onTick("Tick MelodyMessage", MelodyMessage::tick);
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay || !dev.fancybars.util.SkyblockLocation.isInDungeons()) return;
 			String text = ChatFormatting.stripFormatting(message.getString());
@@ -88,7 +88,7 @@ public final class MelodyMessage {
 				net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(screen).add(new Overlay());
 			}
 		});
-		HudElementRegistry.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("melody_progress"), (graphics, tickCounter) -> {
+		dev.fancybars.util.Perf.attachElementAfter(VanillaHudElements.HOTBAR, FancyBarsMod.id("melody_progress"), (graphics, tickCounter) -> {
 			FancyBarsConfig config = FancyBarsConfig.get();
 			if (config.melodyEnabled && config.melodyGui && (F7Phase.inP3() || inMelody || !PLAYERS.isEmpty()) && hasRows()) render(graphics);
 		});

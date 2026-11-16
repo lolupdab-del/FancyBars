@@ -46,7 +46,47 @@ public final class Nicknames {
 
 	/** {@code text} with every renamed IGN replaced, or {@code text} itself when nothing matches. */
 	public static Component apply(Component text, Where where) {
+		long perf = dev.fancybars.util.Perf.begin();
+		Component out = applyInner(text, where);
+		if (perf != 0) dev.fancybars.util.Perf.end("Custom names: swap (" + where + ")", perf);
+		return out;
+	}
+
+	private static Component applyInner(Component text, Where where) {
 		if (text == null || bypass) return text;
+		FancyBarsConfig config = FancyBarsConfig.get();
+		if (!config.nicknamesEnabled && !config.sharedNamesEnabled) return text;
+		if (where == Where.CHAT) return compute(text, where);
+		// name tags and tab lines are asked for every frame, usually as the very same text object: working them out
+		// again each time cost real FPS, so the answer is kept until the text is gone or names change
+		Map<Component, Object[]> cache = where == Where.TAB ? CACHE_TAB : CACHE_WORLD;
+		int gen = generation;
+		Object[] hit = cache.get(text);
+		if (hit != null && (int) hit[0] == gen) return hit[1] == UNCHANGED ? text : (Component) hit[1];
+		Component result = compute(text, where);
+		cache.put(text, new Object[] {gen, result == text ? UNCHANGED : result});
+		return result;
+	}
+
+	/** Bumped whenever names or their settings change, so cached results from before are thrown away. */
+	private static volatile int generation;
+
+	/** Names, nicknames or their settings changed: work everything out again. */
+	public static void changed() {
+		generation++;
+	}
+
+	public static int generation() {
+		return generation;
+	}
+
+	/** "Nothing to swap" in the caches (a cached value must not point back at its own weak key). */
+	private static final Object UNCHANGED = new Object();
+	/** {@link #apply} results by text object (weak, by identity: texts no longer used drop out). */
+	private static final Map<Component, Object[]> CACHE_TAB = new com.google.common.collect.MapMaker().weakKeys().makeMap();
+	private static final Map<Component, Object[]> CACHE_WORLD = new com.google.common.collect.MapMaker().weakKeys().makeMap();
+
+	private static Component compute(Component text, Where where) {
 		String raw = text.getString();
 		if (raw.indexOf('§') >= 0) raw = raw.replaceAll("§[0-9a-fk-orA-FK-OR]", "");
 		List<Target> targets = targetsIn(raw.toLowerCase(Locale.ROOT));
@@ -340,7 +380,16 @@ public final class Nicknames {
 	 * this every frame so the colours are always current.
 	 */
 	public static Component recolor(Component text, Where where) {
+		long perf = dev.fancybars.util.Perf.begin();
+		Component out = recolorInner(text, where);
+		dev.fancybars.util.Perf.end("Custom names: name tag recolour", perf);
+		return out;
+	}
+
+	private static Component recolorInner(Component text, Where where) {
 		if (text == null) return null;
+		// runs for every name tag every frame: nothing to do when no shared names are shown
+		if (!FancyBarsConfig.get().sharedNamesEnabled || SharedNames.all().isEmpty()) return text;
 		boolean[] any = {false};
 		text.visit((Style style, String part) -> {
 			String ins = style.getInsertion();
@@ -439,6 +488,7 @@ public final class Nicknames {
 	 * cache: each tag rebuilds its lines on the next frame, with the current names swapped in.
 	 */
 	public static void refreshNameTags() {
+		changed();
 		Minecraft mc = Minecraft.getInstance();
 		mc.execute(() -> {
 			if (mc.level == null) return;
