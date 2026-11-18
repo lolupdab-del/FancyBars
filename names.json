@@ -18,6 +18,12 @@
 			"colors": ["#FFFFFF", "#EE77C2"],
 			"animated": true,
 			"hover": "&dSkyblockGuiUtils"
+		},
+		"si6x": {
+			"name": "si6x",
+			"colors": ["#F27373", "#6A1111", "#6A1111", "#6A1111"],
+			"animated": true,
+			"hover": "&dSkyblockGuiUtils"
 		}
 	}
 }
