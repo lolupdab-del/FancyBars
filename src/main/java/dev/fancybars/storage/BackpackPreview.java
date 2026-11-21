@@ -141,7 +141,17 @@ public final class BackpackPreview {
 		return null;
 	}
 
-	private static @Nullable RegistryOps<Tag> ops() {
+	/** Folder for the current profile's saved items (null until the profile is known). */
+	public static @Nullable Path profileDir() {
+		return saveDir;
+	}
+
+	/** Codec for saving item stacks (empty stacks allowed). */
+	public static Codec<ItemStack> stackCodec() {
+		return STACK_CODEC;
+	}
+
+	public static @Nullable RegistryOps<Tag> ops() {
 		Minecraft client = Minecraft.getInstance();
 		if (client.getConnection() == null) return null;
 		return client.getConnection().registryAccess().createSerializationContext(NbtOps.INSTANCE);

@@ -987,6 +987,12 @@ public class BarsMenuScreen extends Screen {
 				list.add(new SliderItem("playerSizeHeight", () -> config.playerSizeHeight, value -> config.playerSizeHeight = value));
 				list.add(new SliderItem("playerSizeLength", () -> config.playerSizeLength, value -> config.playerSizeLength = value));
 				list.add(new ToggleItem("playerSizeShowOthers", () -> config.playerSizeShowOthers, value -> config.playerSizeShowOthers = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.particleHider"), null));
+				list.add(new ToggleItem("hideParticles", () -> config.hideParticles, value -> {
+					config.hideParticles = value;
+					// the ones already flying disappear straight away too
+					if (value && net.minecraft.client.Minecraft.getInstance().particleEngine != null) net.minecraft.client.Minecraft.getInstance().particleEngine.clearParticles();
+				}));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.swordBlock"), null));
 				list.add(new ToggleItem("swordBlock", () -> config.swordBlock, value -> config.swordBlock = value));
 				list.add(new ToggleItem("swordBlockSwing", () -> config.swordBlockSwing, value -> config.swordBlockSwing = value));
@@ -1071,6 +1077,12 @@ public class BarsMenuScreen extends Screen {
 			}
 			case SCREEN -> {
 				// Minecraft's own HUD pieces: hide them, or move titles, the boss bar, the hotbar and item names
+				list.add(new HeaderItem(Component.translatable("fancybars.category.compactTab"), null));
+				list.add(new ToggleItem("compactTabEnabled", () -> config.compactTabEnabled, value -> config.compactTabEnabled = value));
+				list.add(new ToggleItem("compactTabHideAds", () -> config.compactTabHideAds, value -> config.compactTabHideAds = value));
+				list.add(new ToggleItem("compactTabBackground", () -> config.compactTabBackground, value -> config.compactTabBackground = value));
+				list.add(new ToggleItem("compactTabHeads", () -> config.compactTabHeads, value -> config.compactTabHeads = value));
+				list.add(new ToggleItem("compactTabToggle", () -> config.compactTabToggle, value -> config.compactTabToggle = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.vanillaHud.title"), null));
 				list.add(new ToggleItem("hideVanillaHearts", () -> config.hideVanillaHearts, value -> config.hideVanillaHearts = value));
 				list.add(new ToggleItem("hideAbsorptionHearts", () -> config.hideAbsorptionHearts, value -> config.hideAbsorptionHearts = value));
@@ -1105,6 +1117,8 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.backpackPreview"), null));
 				list.add(new ToggleItem("backpackPreviewEnabled", () -> config.backpackPreviewEnabled, value -> config.backpackPreviewEnabled = value));
 				list.add(new ToggleItem("backpackPreviewNeedsShift", () -> config.backpackPreviewNeedsShift, value -> config.backpackPreviewNeedsShift = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.equipmentDisplay"), null));
+				list.add(new ToggleItem("equipmentDisplayEnabled", () -> config.equipmentDisplayEnabled, value -> config.equipmentDisplayEnabled = value));
 			}
 			case NAMES -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.nick.title"), Component.translatable("fancybars.nick.hint")));

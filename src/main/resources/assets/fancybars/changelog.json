@@ -1,4 +1,7 @@
 [
+  {"version": "3.1.2", "date": "2026-11-20",
+   "added": ["Equipment Display (Inventory tab): your necklace, cloak, belt and gloves next to your inventory, under your armor column. Open /stats once and it's remembered per profile; click a slot to open /stats", "Particle Hider (Player tab): hide every particle, which can help FPS a lot in busy places", "Compact Tab List (Screen tab): a tidier tab list on SkyBlock like SkyHanni's: sections kept together, empty lines removed, player heads, Active Effects and Cookie Buff under Other. Options for adverts, background, heads and Toggle Tab"],
+   "fixed": []},
   {"version": "3.1.1", "date": "2026-11-16",
    "added": ["/sgu perf: measures what each part of the mod costs per frame for 10 seconds", "/sgu perf hud: hides each HUD element in turn and shows how much FPS it really costs, graphics card included"],
    "fixed": ["Much better FPS: about 18% more in our tests (169 to 199 FPS in the same spot)", "Custom Names no longer lower your FPS", "The mod's HUD is drawn in a few batches instead of hundreds, so the graphics card has far less to do", "Text, tooltips, name tags and items are checked much less often behind the scenes"]},

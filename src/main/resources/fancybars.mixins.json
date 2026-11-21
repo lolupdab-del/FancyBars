@@ -4,6 +4,9 @@
 	"compatibilityLevel": "JAVA_25",
 	"client": [
 		"AbsorptionHeartsMixin",
+		"RecipeBookScreenAccessor",
+		"ParticleHiderMixin",
+		"PlayerTabOverlayAccessor",
 		"perf.GameRendererPerfMixin",
 		"perf.LevelPerfMixin",
 		"perf.HudPerfMixin",

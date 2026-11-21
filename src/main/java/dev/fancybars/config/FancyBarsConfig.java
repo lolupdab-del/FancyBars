@@ -144,6 +144,16 @@ public class FancyBarsConfig {
 	// ---------------------------------------------------------------- Backpack preview (from Skyblocker)
 
 	public boolean backpackPreviewEnabled = true;
+	/** Equipment Display: your necklace, cloak, belt and gloves next to the inventory. */
+	public boolean equipmentDisplayEnabled = true;
+	/** Particle Hider: no particles at all. */
+	public boolean hideParticles = false;
+	/** Compact Tab List (SkyHanni / Skytils style). */
+	public boolean compactTabEnabled = true;
+	public boolean compactTabHideAds = false;
+	public boolean compactTabBackground = true;
+	public boolean compactTabHeads = true;
+	public boolean compactTabToggle = false;
 
 	/** Only show the preview while holding Shift (otherwise hold Shift to see the normal tooltip). */
 	public boolean backpackPreviewNeedsShift = false;
