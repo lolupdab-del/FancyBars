@@ -907,6 +907,8 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.INVENTORY.reset())));
 			}
 			case COMMANDS -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.commands.gfs"), null));
+				list.add(new ToggleItem("gfsSuggestions", () -> config.gfsSuggestions, value -> config.gfsSuggestions = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.commands.calculator"), null));
 				list.add(new ToggleItem("calculatorEnabled", () -> config.calculatorEnabled, value -> config.calculatorEnabled = value));
 				list.add(new TextFieldItem("calculatorTriggers", () -> config.calculatorTriggers, value -> config.calculatorTriggers = value));
@@ -979,6 +981,16 @@ public class BarsMenuScreen extends Screen {
 				list.add(new ButtonRowItem(
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.COMMISSIONS))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.COMMISSIONS.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.ghosts"), null));
+				list.add(new ToggleItem("ghostHitboxes", () -> config.ghostHitboxes, value -> config.ghostHitboxes = value));
+				list.add(new SwatchItem("ghostHitboxColor", () -> new Color(config.ghostHitboxColor, false), color -> config.ghostHitboxColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("ghostTrackerEnabled", () -> config.ghostTrackerEnabled, value -> config.ghostTrackerEnabled = value));
+				list.add(new ToggleItem("ghostTrackerBackground", () -> config.ghostTrackerBackground, value -> config.ghostTrackerBackground = value));
+				list.add(new ToggleItem("ghostTrackerShowAll", () -> config.ghostTrackerShowAll, value -> config.ghostTrackerShowAll = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.GHOSTS))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.GHOSTS.reset()),
+						new ModernButton(10, 20, Component.translatable("fancybars.ghosts.resetTracker"), () -> dev.fancybars.mining.Ghosts.reset())));
 			}
 			case PLAYER -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.playerSize"), null));
@@ -993,9 +1005,14 @@ public class BarsMenuScreen extends Screen {
 					// the ones already flying disappear straight away too
 					if (value && net.minecraft.client.Minecraft.getInstance().particleEngine != null) net.minecraft.client.Minecraft.getInstance().particleEngine.clearParticles();
 				}));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.gauntlet"), null));
+				list.add(new ToggleItem("gauntletOnHand", () -> config.gauntletOnHand, value -> config.gauntletOnHand = value));
+				list.add(new SliderItem("gauntletSize", 0.5f, 1.5f, 0.05f, false, () -> config.gauntletSize, value -> config.gauntletSize = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.swordBlock"), null));
 				list.add(new ToggleItem("swordBlock", () -> config.swordBlock, value -> config.swordBlock = value));
 				list.add(new ToggleItem("swordBlockSwing", () -> config.swordBlockSwing, value -> config.swordBlockSwing = value));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.invisibleArm"), null));
+				list.add(new ToggleItem("showArmWhileInvisible", () -> config.showArmWhileInvisible, value -> config.showArmWhileInvisible = value));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.viewmodel"), null));
 				list.add(new ToggleItem("viewmodelEnabled", () -> config.viewmodelEnabled, value -> config.viewmodelEnabled = value));
 				list.add(new ToggleItem("viewmodelIgnoreHaste", () -> config.viewmodelIgnoreHaste, value -> config.viewmodelIgnoreHaste = value));

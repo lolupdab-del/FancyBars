@@ -120,6 +120,7 @@ public class StatusBarTracker {
 	}
 
 	private static Component onOverlayMessage(Component text, boolean overlay) {
+		if (overlay && SkyblockLocation.isOnSkyblock()) dev.fancybars.mining.Ghosts.onActionBar(text.getString());
 		if (!overlay || !SkyblockLocation.isOnSkyblock()) {
 			return text;
 		}

@@ -148,6 +148,13 @@ public class FancyBarsConfig {
 	public boolean equipmentDisplayEnabled = true;
 	/** Particle Hider: no particles at all. */
 	public boolean hideParticles = false;
+	/** Draw your first-person arm even while invisible (Sorrow armor). */
+	public boolean showArmWhileInvisible = true;
+	/** Worn Gemstone Gauntlet: worn over your fist in first person instead of held. */
+	public boolean gauntletOnHand = true;
+	public float gauntletSize = 1f;
+	/** /gfs suggestions: item names and amounts as you type. */
+	public boolean gfsSuggestions = true;
 	/** Compact Tab List (SkyHanni / Skytils style). */
 	public boolean compactTabEnabled = true;
 	public boolean compactTabHideAds = false;
@@ -756,6 +763,16 @@ public class FancyBarsConfig {
 	// ---------------------------------------------------------------- Commissions
 
 	public boolean commissionsEnabled = true;
+	/** Ghosts (The Mist): hitboxes and the profit tracker. */
+	public boolean ghostHitboxes = true;
+	public int ghostHitboxColor = 0xFF5555;
+	public boolean ghostTrackerEnabled = true;
+	public boolean ghostTrackerBackground = false;
+	/** Show more: every drop; otherwise only the 5 most valuable. */
+	public boolean ghostTrackerShowAll = false;
+	public float ghostTrackerX = -1;
+	public float ghostTrackerY = -1;
+	public float ghostTrackerScale = 1;
 
 	public float commissionsX = -1;
 

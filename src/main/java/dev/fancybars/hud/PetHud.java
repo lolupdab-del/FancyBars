@@ -58,8 +58,9 @@ import dev.fancybars.util.gui.Theme;
 public final class PetHud {
 	private static final Pattern TAB_NAME = Pattern.compile("^[^\\[]*\\[Lvl ?(?<level>[\\d,]+)] (?<pet>.+?)(?: [✦⚘].*)?$");
 	private static final Pattern TAB_XP = Pattern.compile("^\\+?(?<current>[\\d,.kKmMbB]+)(?:/(?<next>[\\d,.kKmMbB]+))? XP(?: \\((?<percent>[\\d.]+)%\\))?$");
-	private static final Pattern SUMMON = Pattern.compile("^You summoned your (?<pet>.+?)!$");
-	private static final Pattern DESPAWN = Pattern.compile("^You despawned your (?<pet>.+?)!$");
+	/** "You summoned your [Lvl 100] Guardian ✦!" (newer messages include the level; older ones don't). */
+	private static final Pattern SUMMON = Pattern.compile("^You summoned your (?:\\[Lvl (?<level>\\d+)] )?(?<pet>.+?)!$");
+	private static final Pattern DESPAWN = Pattern.compile("^You despawned your (?:\\[Lvl \\d+] )?(?<pet>.+?)!$");
 	private static final Pattern AUTOPET = Pattern.compile("^Autopet equipped your \\[Lvl (?<level>\\d+)] (?<pet>.+?)! VIEW RULE.*$");
 	private static final Pattern LEVEL_UP = Pattern.compile("^Your (?<pet>.+?) leveled up to level (?<level>\\d+)!$");
 	private static final Pattern HOLDING = Pattern.compile("^Your pet is now holding (?<item>.+?)\\.$");
@@ -180,7 +181,8 @@ public final class PetHud {
 			switchedTo(pet); // the pet you clicked in /pets wins: its star has the right colour
 		} else if ((m = SUMMON.matcher(text)).matches()) {
 			String pet = cleanPet(m.group("pet"));
-			setPet(pet, -1, colorOf(message, pet));
+			String level = m.group("level");
+			setPet(pet, level == null ? -1 : Integer.parseInt(level), colorOf(message, pet));
 			HELD_PET.set(pet);
 			heldItem = "";
 			heldItemColor = -1;

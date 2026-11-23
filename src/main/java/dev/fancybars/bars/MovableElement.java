@@ -444,6 +444,69 @@ public interface MovableElement {
 		}
 	};
 
+	// ---------------------------------------------------------------- Ghost Profit Tracker
+
+	MovableElement GHOSTS = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			java.util.List<Component> list = dev.fancybars.mining.Ghosts.shownLines();
+			float[] pos = dev.fancybars.mining.Ghosts.position(screenW, screenH, list);
+			float[] size = dev.fancybars.mining.Ghosts.size(list);
+			return new float[]{pos[0], pos[1], size[0] * config.ghostTrackerScale, size[1] * config.ghostTrackerScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			java.util.List<Component> list = dev.fancybars.mining.Ghosts.shownLines();
+			float[] pos = dev.fancybars.mining.Ghosts.position(screenW, screenH, list);
+			dev.fancybars.mining.Ghosts.renderAt(graphics, pos[0], pos[1], config.ghostTrackerScale, list, enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.ghostTrackerX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.ghostTrackerY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().ghostTrackerScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().ghostTrackerScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().ghostTrackerEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().ghostTrackerEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.ghostTrackerX = -1;
+			config.ghostTrackerY = -1;
+			config.ghostTrackerScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.ghostTracker");
+		}
+	};
+
 	// ---------------------------------------------------------------- Commissions
 
 	MovableElement COMMISSIONS = new MovableElement() {
@@ -1325,5 +1388,5 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, GHOSTS, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
 }

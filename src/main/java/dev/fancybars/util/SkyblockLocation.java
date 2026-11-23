@@ -53,6 +53,11 @@ public class SkyblockLocation {
 		LOCATION_CHANGE_LISTENERS.add(listener);
 	}
 
+	/** The island type Hypixel reports ("mining_3" for the Dwarven Mines), or "". */
+	public static String mode() {
+		return onSkyblock ? mode : "";
+	}
+
 	public static boolean isOnSkyblock() {
 		// Pretend we're always on SkyBlock in singleplayer dev environments so the bars can be tested
 		if (DEV && Minecraft.getInstance().isLocalServer()) return true;

@@ -122,6 +122,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.util.gui.SharpItem.init();
 		dev.fancybars.util.SkyblockLocation.onLocationChange(dev.fancybars.hud.PerformanceHud::reset);
 		dev.fancybars.mining.Commissions.init();
+		dev.fancybars.mining.Ghosts.init();
 		dev.fancybars.players.PlayerSizes.init();
 		dev.fancybars.players.SharedNames.init();		dev.fancybars.fun.WallLicker.init();
 		dev.fancybars.capes.Capes.init();
@@ -159,6 +160,10 @@ public class FancyBarsMod implements ClientModInitializer {
 							dev.fancybars.util.Perf.startHudTest();
 							return Command.SINGLE_SUCCESS;
 						})))
+						.then(ClientCommands.literal("ghostreset").executes(_ -> {
+							dev.fancybars.mining.Ghosts.reset();
+							return Command.SINGLE_SUCCESS;
+						}))
 						.then(ClientCommands.literal("nametagdebug").executes(_ -> {
 							dev.fancybars.players.NameTagDebug.report();
 							return Command.SINGLE_SUCCESS;
