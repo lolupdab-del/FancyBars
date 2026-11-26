@@ -1,0 +1,54 @@
+name: Discord patch notes
+
+# When a push to main changes mod_version in gradle.properties, posts that version's
+# changelog.json entry and the Modrinth link to Discord through a webhook.
+# Needs the repository secret DISCORD_WEBHOOK (the webhook URL of the patch-notes channel).
+
+on:
+  push:
+    branches: [main]
+    paths: [gradle.properties]
+  workflow_dispatch:
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Post patch notes
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          BEFORE: ${{ github.event.before }}
+          MODRINTH: https://modrinth.com/mod/skyblockguiutils
+        run: |
+          if [ -z "$WEBHOOK" ]; then echo "DISCORD_WEBHOOK secret is not set, skipping"; exit 0; fi
+          version() { grep -E '^mod_version=' | cut -d= -f2 | tr -d '[:space:]'; }
+          NEW=$(version < gradle.properties)
+          OLD=$(git show "$BEFORE:gradle.properties" 2>/dev/null | version || true)
+          if [ "${{ github.event_name }}" = "push" ] && [ "$NEW" = "$OLD" ]; then
+            echo "mod_version unchanged ($NEW), nothing to announce"; exit 0
+          fi
+          CHANGELOG=src/main/resources/assets/fancybars/changelog.json
+          ENTRY=$(jq -c --arg v "$NEW" 'map(select(.version == $v)) | first // empty' "$CHANGELOG")
+          if [ -z "$ENTRY" ]; then echo "No changelog entry for $NEW, skipping"; exit 0; fi
+          BODY=$(jq -n --argjson e "$ENTRY" --arg url "$MODRINTH" '
+            def section(name; items): if (items | length) > 0
+              then "**" + name + "**\n" + (items | map("- " + .) | join("\n")) + "\n\n" else "" end;
+            (section("Added"; $e.added) + section("Fixed"; $e.fixed)) as $notes
+            | ("\n\n**Download:** " + $url) as $link
+            | {
+                username: "SkyblockGuiUtils",
+                content: ("# SkyblockGuiUtils v" + $e.version),
+                embeds: [{
+                  title: ("Download v" + $e.version + " on Modrinth"),
+                  url: $url,
+                  color: 7317730,
+                  description: ((if ($notes | length) > 3900 then $notes[0:3900] + "…" else $notes end | sub("\\s+$"; "")) + $link),
+                  footer: { text: $e.date }
+                }],
+                allowed_mentions: { parse: [] }
+              }')
+          curl -fsS -H "Content-Type: application/json" -d "$BODY" "$WEBHOOK"
+          echo "Posted patch notes for $NEW"
