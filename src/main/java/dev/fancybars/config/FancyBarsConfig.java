@@ -766,6 +766,8 @@ public class FancyBarsConfig {
 	/** Ghosts (The Mist): hitboxes and the profit tracker. */
 	public boolean ghostHitboxes = true;
 	public int ghostHitboxColor = 0xFF5555;
+	/** Hide the charged creeper swirl on invisible creepers (ghosts). */
+	public boolean hideGhostAura = true;
 	public boolean ghostTrackerEnabled = true;
 	public boolean ghostTrackerBackground = false;
 	/** Show more: every drop; otherwise only the 5 most valuable. */
@@ -773,6 +775,20 @@ public class FancyBarsConfig {
 	public float ghostTrackerX = -1;
 	public float ghostTrackerY = -1;
 	public float ghostTrackerScale = 1;
+	/** Bestiary Tracker: progress, kills per hour and a picture for the mobs you pick. */
+	public boolean bestiaryEnabled = true;
+	public boolean bestiaryBackground = true;
+	public java.util.Set<String> bestiaryTracked = new java.util.LinkedHashSet<>();
+	public float bestiaryX = -1;
+	public float bestiaryY = -1;
+	public float bestiaryScale = 1;
+	/** Forge Tracker: what's in the Forge and how long until it's done, plus a chat message when it is. */
+	public boolean forgeTrackerEnabled = true;
+	public boolean forgeTrackerBackground = false;
+	public boolean forgeNotify = true;
+	public float forgeTrackerX = -1;
+	public float forgeTrackerY = -1;
+	public float forgeTrackerScale = 1;
 
 	public float commissionsX = -1;
 
@@ -975,6 +991,8 @@ public class FancyBarsConfig {
 			if (instance.keystrokesScale <= 0) instance.keystrokesScale = 1;
 			instance.keystrokesMode = Math.clamp(instance.keystrokesMode, 0, 2);
 			if (instance.rareDropsUntracked == null) instance.rareDropsUntracked = new java.util.HashSet<>();
+			if (instance.bestiaryTracked == null) instance.bestiaryTracked = new java.util.LinkedHashSet<>();
+			if (instance.bestiaryScale <= 0) instance.bestiaryScale = 1;
 			if (instance.segmentedBars) {
 				instance.barStyle = BarStyle.SEGMENTED;
 				instance.segmentedBars = false;

@@ -507,6 +507,130 @@ public interface MovableElement {
 		}
 	};
 
+	// ---------------------------------------------------------------- Bestiary Tracker
+
+	MovableElement BESTIARY = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.combat.BestiaryTracker.position(screenW, screenH);
+			float[] size = dev.fancybars.combat.BestiaryTracker.size(dev.fancybars.combat.BestiaryTracker.shownView());
+			return new float[]{pos[0], pos[1], size[0] * config.bestiaryScale, size[1] * config.bestiaryScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] pos = dev.fancybars.combat.BestiaryTracker.position(screenW, screenH);
+			dev.fancybars.combat.BestiaryTracker.renderAt(graphics, pos[0], pos[1], config.bestiaryScale, dev.fancybars.combat.BestiaryTracker.shownView(), enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.bestiaryX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.bestiaryY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().bestiaryScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().bestiaryScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().bestiaryEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().bestiaryEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.bestiaryX = -1;
+			config.bestiaryY = -1;
+			config.bestiaryScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.bestiary");
+		}
+	};
+
+	// ---------------------------------------------------------------- Forge Tracker
+
+	MovableElement FORGE = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			java.util.List<dev.fancybars.mining.ForgeTracker.Row> rows = dev.fancybars.mining.ForgeTracker.shownRows();
+			float[] pos = dev.fancybars.mining.ForgeTracker.position(screenW, screenH, rows);
+			float[] size = dev.fancybars.mining.ForgeTracker.size(rows);
+			return new float[]{pos[0], pos[1], size[0] * config.forgeTrackerScale, size[1] * config.forgeTrackerScale};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			java.util.List<dev.fancybars.mining.ForgeTracker.Row> rows = dev.fancybars.mining.ForgeTracker.shownRows();
+			float[] pos = dev.fancybars.mining.ForgeTracker.position(screenW, screenH, rows);
+			dev.fancybars.mining.ForgeTracker.renderAt(graphics, pos[0], pos[1], config.forgeTrackerScale, rows, enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			float[] r = rect(screenW, screenH);
+			config.forgeTrackerX = Math.clamp(x, 0, Math.max(0, screenW - r[2])) / screenW;
+			config.forgeTrackerY = Math.clamp(y, 0, Math.max(0, screenH - r[3])) / screenH;
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().forgeTrackerScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().forgeTrackerScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().forgeTrackerEnabled;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().forgeTrackerEnabled = enabled;
+		}
+
+		@Override
+		public void reset() {
+			FancyBarsConfig config = FancyBarsConfig.get();
+			config.forgeTrackerX = -1;
+			config.forgeTrackerY = -1;
+			config.forgeTrackerScale = 1;
+			FancyBarsConfig.save();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.forgeTracker");
+		}
+	};
+
 	// ---------------------------------------------------------------- Commissions
 
 	MovableElement COMMISSIONS = new MovableElement() {
@@ -1388,5 +1512,5 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, GHOSTS, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, GHOSTS, FORGE, BESTIARY, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
 }

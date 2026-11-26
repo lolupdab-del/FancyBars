@@ -11,6 +11,8 @@
 		"GauntletArmMixin",
 		"GfsSuggestionsMixin",
 		"InvisibleArmMixin",
+		"GhostAuraMixin",
+		"BestiaryRemoveMixin",
 		"perf.GameRendererPerfMixin",
 		"perf.LevelPerfMixin",
 		"perf.HudPerfMixin",

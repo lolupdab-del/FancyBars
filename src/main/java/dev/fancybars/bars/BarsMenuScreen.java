@@ -975,6 +975,21 @@ public class BarsMenuScreen extends Screen {
 					}));
 				}
 			}
+			case COMBAT -> {
+				list.add(new HeaderItem(Component.translatable("fancybars.category.bestiary"), null));
+				list.add(new ToggleItem("bestiaryEnabled", () -> config.bestiaryEnabled, value -> config.bestiaryEnabled = value));
+				list.add(new ToggleItem("bestiaryBackground", () -> config.bestiaryBackground, value -> config.bestiaryBackground = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.BESTIARY))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.BESTIARY.reset()),
+						new ModernButton(10, 20, Component.translatable("fancybars.bestiary.resetSession"), dev.fancybars.combat.BestiaryTracker::resetSession)));
+				list.add(new BestiaryHeaderItem());
+				list.add(new DropdownSearchItem(() -> bestiaryOpen, bestiaryQuery, v -> bestiaryQuery = v, "fancybars.bestiary.search"));
+				// the mobs you track first, then the rest in bestiary order
+				java.util.List<dev.fancybars.combat.BestiaryTracker.Mob> mobs = new java.util.ArrayList<>(dev.fancybars.combat.BestiaryTracker.mobs());
+				mobs.sort(java.util.Comparator.comparing((dev.fancybars.combat.BestiaryTracker.Mob m) -> !dev.fancybars.combat.BestiaryTracker.isTracked(m.name())));
+				for (dev.fancybars.combat.BestiaryTracker.Mob mob : mobs) list.add(new BestiaryRowItem(mob));
+			}
 			case MINING -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.commissions"), null));
 				list.add(new ToggleItem("commissionsEnabled", () -> config.commissionsEnabled, value -> config.commissionsEnabled = value));
@@ -984,6 +999,7 @@ public class BarsMenuScreen extends Screen {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.ghosts"), null));
 				list.add(new ToggleItem("ghostHitboxes", () -> config.ghostHitboxes, value -> config.ghostHitboxes = value));
 				list.add(new SwatchItem("ghostHitboxColor", () -> new Color(config.ghostHitboxColor, false), color -> config.ghostHitboxColor = color.getRGB() & 0xFFFFFF));
+				list.add(new ToggleItem("hideGhostAura", () -> config.hideGhostAura, value -> config.hideGhostAura = value));
 				list.add(new ToggleItem("ghostTrackerEnabled", () -> config.ghostTrackerEnabled, value -> config.ghostTrackerEnabled = value));
 				list.add(new ToggleItem("ghostTrackerBackground", () -> config.ghostTrackerBackground, value -> config.ghostTrackerBackground = value));
 				list.add(new ToggleItem("ghostTrackerShowAll", () -> config.ghostTrackerShowAll, value -> config.ghostTrackerShowAll = value));
@@ -991,6 +1007,13 @@ public class BarsMenuScreen extends Screen {
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.GHOSTS))),
 						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.GHOSTS.reset()),
 						new ModernButton(10, 20, Component.translatable("fancybars.ghosts.resetTracker"), () -> dev.fancybars.mining.Ghosts.reset())));
+				list.add(new HeaderItem(Component.translatable("fancybars.category.forge"), null));
+				list.add(new ToggleItem("forgeTrackerEnabled", () -> config.forgeTrackerEnabled, value -> config.forgeTrackerEnabled = value));
+				list.add(new ToggleItem("forgeNotify", () -> config.forgeNotify, value -> config.forgeNotify = value));
+				list.add(new ToggleItem("forgeTrackerBackground", () -> config.forgeTrackerBackground, value -> config.forgeTrackerBackground = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.FORGE))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.FORGE.reset())));
 			}
 			case PLAYER -> {
 				list.add(new HeaderItem(Component.translatable("fancybars.category.playerSize"), null));
@@ -1505,6 +1528,7 @@ public class BarsMenuScreen extends Screen {
 		ACTION_BAR("fancybars.category.actionBar"),
 		HUD("fancybars.category.hud"),
 		MINING("fancybars.category.mining"),
+		COMBAT("fancybars.category.combat"),
 		CHAT("fancybars.category.chat"),
 		SPOTIFY("fancybars.category.spotify"),
 		COMMANDS("fancybars.category.commands"),
@@ -1541,8 +1565,8 @@ public class BarsMenuScreen extends Screen {
 		/** Chat tabs and filters, nicknames and custom names, command shortcuts. */
 		CHAT("fancybars.category.chat", Category.CHAT, Category.NAMES, Category.COMMANDS),
 		PLAYER("fancybars.category.player", Category.PLAYER),
-		/** SkyBlock-only features: dungeons and mining. */
-		SKYBLOCK("fancybars.tab.skyblock", Category.DUNGEONS, Category.MINING),
+		/** SkyBlock-only features: dungeons, mining and combat. */
+		SKYBLOCK("fancybars.tab.skyblock", Category.DUNGEONS, Category.MINING, Category.COMBAT),
 		SPOTIFY("fancybars.category.spotify", Category.SPOTIFY),
 		SETTINGS("fancybars.tab.settings", Category.GENERAL);
 
@@ -2059,6 +2083,97 @@ public class BarsMenuScreen extends Screen {
 	/** Protected items dropdown: open or closed, and what it's filtered by. */
 	private static boolean protectedOpen = false;
 	private static String protectedQuery = "";
+
+	private static boolean bestiaryOpen = false;
+	private static String bestiaryQuery = "";
+
+	/** "Tracked Mobs (N)": click to open or close the mob list. */
+	private class BestiaryHeaderItem extends Item {
+		private int lastX, lastW;
+
+		BestiaryHeaderItem() {
+			this.height = 26;
+			this.searchable = true;
+			this.searchText = "tracked mobs bestiary list";
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			lastX = x;
+			lastW = w;
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (mouseX < lastX || mouseX >= lastX + lastW || mouseY < y || mouseY >= y + height) return false;
+			bestiaryOpen = !bestiaryOpen;
+			layoutContent();
+			return true;
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			boolean hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + height;
+			row(graphics, x, y, w, height, hovered);
+			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+			Component title = Component.translatable("fancybars.bestiary.trackedCount", dev.fancybars.combat.BestiaryTracker.trackedCount(), dev.fancybars.combat.BestiaryTracker.mobs().size());
+			Theme.boldInBox(graphics, font, title, x + 8, y, height, Theme.TEXT);
+			float cx = x + w - 11;
+			float cy = y + height / 2f;
+			for (int i = 0; i < 3; i++) {
+				float dy = bestiaryOpen ? 1 - i : i - 1;
+				Theme.fillF(graphics, cx - i - 0.5f, cy + dy * 0.9f, i * 2 + 1, 0.9f, Theme.TEXT_MUTED);
+			}
+		}
+	}
+
+	/** One bestiary mob: its picture, island, name and a switch to track it. */
+	private class BestiaryRowItem extends Item {
+		private final dev.fancybars.combat.BestiaryTracker.Mob mob;
+		private final ModernToggle toggle;
+
+		BestiaryRowItem(dev.fancybars.combat.BestiaryTracker.Mob mob) {
+			this.mob = mob;
+			this.height = 26;
+			this.searchable = true;
+			this.searchText = mob.name() + " " + mob.island() + " bestiary mob";
+			this.tooltip = Component.translatable("fancybars.bestiary.track.@Tooltip");
+			toggle = new ModernToggle(ModernToggle.SWITCH_WIDTH, ModernToggle.SWITCH_HEIGHT, null, dev.fancybars.combat.BestiaryTracker.isTracked(mob.name()),
+					value -> dev.fancybars.combat.BestiaryTracker.setTracked(mob.name(), value));
+			widgets.add(toggle);
+		}
+
+		@Override
+		void layout(int x, int y, int w) {
+			String q = bestiaryQuery.trim().toLowerCase(Locale.ROOT);
+			boolean shown = !search.isBlank() || bestiaryOpen && (q.isEmpty() || mob.name().toLowerCase(Locale.ROOT).contains(q) || mob.island().toLowerCase(Locale.ROOT).contains(q));
+			height = shown ? 26 : 0;
+			if (shown) toggle.setPosition(x + w - ModernToggle.SWITCH_WIDTH - 10, y + (height - ModernToggle.SWITCH_HEIGHT) / 2);
+			else toggle.setPosition(-10000, -10000);
+		}
+
+		@Override
+		void render(GuiGraphicsExtractor graphics, int x, int y, int w, int mouseX, int mouseY) {
+			if (height <= 0) return;
+			boolean hovered = isHovered(x, w, mouseX, mouseY);
+			row(graphics, x, y, w, height, hovered);
+			graphics.item(mob.icon(), x + 5, y + (height - 16) / 2);
+			Component name = Component.literal(mob.color() + mob.name());
+			Theme.textInBox(graphics, font, clip(name, w - 130), x + 27, y, height, 0xFFFFFFFF);
+			Component island = Component.literal(mob.island());
+			Theme.textInBox(graphics, font, clip(island, 90), toggle.getX() - Math.min(90, Theme.width(font, island)) - 10, y, height, Theme.TEXT_MUTED);
+			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
+		}
+
+		@Override
+		boolean mouseClicked(double mouseX, double mouseY) {
+			if (itemHit(this, mouseX, mouseY)) {
+				toggle.toggle();
+				return true;
+			}
+			return false;
+		}
+	}
 
 	private static boolean rareDropsOpen = false;
 	private static String rareDropsQuery = "";

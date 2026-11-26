@@ -73,16 +73,31 @@ public final class Ghosts {
 	private static long lastRareDropAt;
 	/** Shards: "CHARM! You charmed the Ghost and received 3 Ghost Shards!". */
 	private static final Pattern CHARM = Pattern.compile("^CHARM! You charmed the .+? and received (\\d+) (.+?)!");
+	/** Any other message giving you Ghost Shards (black holes, random drops): "...received 2 Ghost Shards!", "+1 Ghost Shard". */
+	private static final Pattern GHOST_SHARD = Pattern.compile("(?:(\\d+)x? )?Ghost Shards?\\b");
+	/** The rare million: "The ghost's death materialized 1,000,000 coins from the mists!". */
+	private static final Pattern MILLION = Pattern.compile("(?i)^The ghost.s death materialized ([\\d,]+) coins");
 	private static final Pattern KILL_COMBO =Pattern.compile("^\\+(\\d+) Kill Combo");
 	/** "+12.5 Combat (1,234/5,000)" or "+12.5 Combat (45.2%)" in the action bar. */
 	private static final Pattern COMBAT_XP = Pattern.compile("\\+([\\d,.]+) Combat \\(([\\d,.]+)(?:/[\\d,.kKmM]+)?(%)?\\)");
-	private static final Pattern PURSE = Pattern.compile("^(?:Purse|Piggy): ([\\d,]+)");
+	private static final Pattern PURSE = Pattern.compile("(?:Purse|Piggy): ([\\d,]+)");
+	/** Hypixel puts emoji and other hidden characters into sidebar lines, sometimes in the middle of the number. */
+	private static final Pattern NON_TEXT = Pattern.compile("[^\\x20-\\x7E]");
 	private static final long IDLE_MS = 60_000;
 
 	/** Item (display name) → how many this session, in the order they first dropped. */
 	private static final Map<String, long[]> ITEMS = new LinkedHashMap<>();
 	private static long coins;
 	private static int coinPickups;
+	/** The rare 1,000,000-coin ghost drops. */
+	private static int millionDrops;
+	private static long millionCoins;
+	/** A million announced in chat that the purse hasn't shown yet (it mustn't count as kill coins too). */
+	private static long millionPending;
+	private static long millionPendingAt;
+	/** A purse jump too big to be kill coins, kept a few seconds in case the million message is about to explain it. */
+	private static long heldJump;
+	private static long heldJumpAt;
 	private static double combatXp;
 	private static double magicFindTotal;
 	private static int magicFindDrops;
@@ -147,7 +162,7 @@ public final class Ghosts {
 	}
 
 	public static boolean hasData() {
-		return !ITEMS.isEmpty() || coins > 0 || combatXp > 0;
+		return !ITEMS.isEmpty() || coins > 0 || millionDrops > 0 || combatXp > 0;
 	}
 
 	public static boolean shouldShow() {
@@ -167,6 +182,10 @@ public final class Ghosts {
 		ITEMS.clear();
 		coins = 0;
 		coinPickups = 0;
+		millionDrops = 0;
+		millionCoins = 0;
+		millionPending = 0;
+		heldJump = 0;
 		combatXp = 0;
 		magicFindTotal = 0;
 		magicFindDrops = 0;
@@ -237,6 +256,33 @@ public final class Ghosts {
 			add(name, Long.parseLong(m.group(1)));
 			return;
 		}
+		m = MILLION.matcher(text);
+		if (m.find()) {
+			long amount = Long.parseLong(m.group(1).replace(",", ""));
+			millionDrops++;
+			millionCoins += amount;
+			activity();
+			// the purse goes up by this too: make sure it's only counted once
+			long now = System.currentTimeMillis();
+			if (heldJump >= amount && now - heldJumpAt < 10_000) {
+				coins += heldJump - amount;
+				heldJump = 0;
+			} else {
+				millionPending += amount;
+				millionPendingAt = now;
+			}
+			rebuild();
+			return;
+		}
+		// shards from anything but charming (counted above), e.g. a black hole or a random drop; not players talking
+		if (!text.contains(": ")) {
+			m = GHOST_SHARD.matcher(text);
+			if (m.find()) {
+				add("Ghost Shard", m.group(1) == null ? 1 : Long.parseLong(m.group(1)));
+				return;
+			}
+		}
+		if (text.contains("Shard")) FancyBarsMod.LOGGER.info("[SkyblockGuiUtils] Ghost tracker: shard message not counted: {}", text);
 		m = KILL_COMBO.matcher(text);
 		if (m.find()) {
 			maxCombo = Math.max(maxCombo, Integer.parseInt(m.group(1)));
@@ -286,17 +332,53 @@ public final class Ghosts {
 		if (++tickCount % 10 != 0) return;
 		// coins picked up: the purse going up while out here (not while a menu is open, so selling things doesn't count)
 		long purse = mist ? purse(mc) : -1;
+		long now = System.currentTimeMillis();
+		if (millionPending > 0 && now - millionPendingAt > 30_000) millionPending = 0;
+		if (heldJump > 0 && now - heldJumpAt > 10_000) heldJump = 0; // never explained: not from a ghost
 		if (purse >= 0) {
-			if (lastPurse >= 0 && purse > lastPurse && purse - lastPurse < 1_000_000 && !(mc.gui.screen() instanceof AbstractContainerScreen<?>)) {
-				coins += purse - lastPurse;
-				coinPickups++;
-				activity();
+			if (lastPurse >= 0 && purse > lastPurse && !(mc.gui.screen() instanceof AbstractContainerScreen<?>)) {
+				long gain = purse - lastPurse;
+				// a million already counted from its chat message
+				if (millionPending > 0 && gain >= millionPending) {
+					gain -= millionPending;
+					millionPending = 0;
+				}
+				if (gain >= 1_000_000) {
+					// too much for kill coins: wait for the million message (or forget it)
+					heldJump += gain;
+					heldJumpAt = now;
+				} else if (gain > 0) {
+					coins += gain;
+					coinPickups++;
+					activity();
+				}
 			}
 			lastPurse = purse;
 		} else if (!mist) {
 			lastPurse = -1;
 		}
 		if (FancyBarsConfig.get().ghostTrackerEnabled && (mist || hasData())) rebuild();
+	}
+
+	/** /sgu ghostdebug: what the coin counting sees. */
+	public static void debug() {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null || mc.level == null) return;
+		StringBuilder sb = new StringBuilder("[SkyblockGuiUtils] Ghost debug: inMist=" + inMist() + " mode=" + SkyblockLocation.mode()
+				+ " y=" + Math.round(mc.player.getY()) + " purse=" + purse(mc) + " lastPurse=" + lastPurse + " coins=" + coins
+				+ " pickups=" + coinPickups + " million=" + millionCoins + " pending=" + millionPending + " held=" + heldJump + "\nSidebar:");
+		Scoreboard board = mc.level.getScoreboard();
+		Objective objective = board.getDisplayObjective(DisplaySlot.SIDEBAR);
+		if (objective != null) {
+			for (PlayerScoreEntry entry : board.listPlayerScores(objective)) {
+				PlayerTeam team = board.getPlayersTeam(entry.owner());
+				sb.append("\n  ").append(PlayerTeam.formatNameForTeam(team, Component.literal(entry.owner())).getString());
+			}
+		}
+		FancyBarsMod.LOGGER.info(sb.toString());
+		mc.player.sendSystemMessage(Theme.chatPrefix().append(Component.literal("In the Mist: " + inMist() + ", purse read: " + purse(mc)
+				+ ", coins counted: " + comma(coins) + " (" + coinPickups + " times)").withStyle(ChatFormatting.GRAY)));
+		mc.player.sendSystemMessage(Theme.chatPrefix().append(Component.literal("Full details written to logs/latest.log").withStyle(ChatFormatting.DARK_GRAY)));
 	}
 
 	/** The purse from the sidebar ("Purse: 1,234,567"), or -1. */
@@ -309,7 +391,8 @@ public final class Ghosts {
 			PlayerTeam team = board.getPlayersTeam(entry.owner());
 			String line = ChatFormatting.stripFormatting(PlayerTeam.formatNameForTeam(team, Component.literal(entry.owner())).getString());
 			if (line == null) continue;
-			Matcher m = PURSE.matcher(line.trim());
+			// Hypixel splits the number with made-up codes ("795,576§t§6,264") that the normal colour stripping leaves in
+			Matcher m = PURSE.matcher(NON_TEXT.matcher(line.replaceAll("§.", "")).replaceAll("").trim());
 			if (m.find()) return Long.parseLong(m.group(1).replace(",", ""));
 		}
 		return -1;
@@ -339,10 +422,14 @@ public final class Ghosts {
 		ItemRepo.Entry e = entry(name);
 		String id = e != null ? e.id() : name.toUpperCase(Locale.ROOT).replace(' ', '_');
 		double v = ItemValue.valueOf(id);
+		// shards are on the bazaar as SHARD_GHOST, not GHOST_SHARD
+		if (v <= 0 && name.endsWith(" Shard")) v = ItemValue.valueOf("SHARD_" + name.substring(0, name.length() - 6).toUpperCase(Locale.ROOT).replace(' ', '_'));
 		return v > 0 ? v : 0;
 	}
 
 	private static int colorOf(String name) {
+		// shards aren't in the item list by name: Ghost Shards are EPIC (purple), like Hypixel's own message
+		if (name.endsWith(" Shard")) return 0xAA00AA;
 		ItemRepo.Entry e = entry(name);
 		if (e != null) {
 			TextColor c = e.stack().getHoverName().getStyle().getColor();
@@ -382,6 +469,8 @@ public final class Ghosts {
 
 	private record Row(String name, long count, double value) {}
 
+	private static final String MILLION_ROW = "1M Coin Drop";
+
 	private static void rebuild() {
 		ItemValue.ensureLoaded();
 		ItemRepo.ensureLoaded();
@@ -394,20 +483,23 @@ public final class Ghosts {
 			profit += value;
 			rows.add(new Row(e.getKey(), e.getValue()[0], value));
 		}
-		profit += coins;
+		profit += coins + millionCoins;
 		rows.sort((a, b) -> Double.compare(b.value(), a.value()));
 		List<Component> out = new ArrayList<>();
 		out.add(Component.literal("Ghost Profit Tracker").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
 		List<Row> withCoins = new ArrayList<>(rows);
 		if (coins > 0) withCoins.add(new Row("Dropped Coins", coinPickups, coins));
+		if (millionDrops > 0) withCoins.add(new Row(MILLION_ROW, millionDrops, millionCoins));
 		withCoins.sort((a, b) -> Double.compare(b.value(), a.value()));
 		// Show less: only the 5 most valuable drops; Show more: all of them
 		boolean all = FancyBarsConfig.get().ghostTrackerShowAll;
 		int shown = all ? withCoins.size() : Math.min(TOP, withCoins.size());
 		for (Row r : withCoins.subList(0, shown)) {
 			boolean isCoins = r.name().equals("Dropped Coins");
-			MutableComponent line = Component.literal(comma(r.count()) + "x ").withStyle(ChatFormatting.GRAY);
-			line.append(Component.literal(r.name().replace("Gemstone", "Gem")).withColor(isCoins ? 0xFFAA00 : colorOf(r.name())));
+			boolean isMillion = r.name().equals(MILLION_ROW);
+			// coins have no count worth showing (it would only be how often the purse changed)
+			MutableComponent line = Component.literal(isCoins ? "" : comma(r.count()) + "x ").withStyle(ChatFormatting.GRAY);
+			line.append(Component.literal(r.name().replace("Gemstone", "Gem")).withColor(isCoins || isMillion ? 0xFFAA00 : colorOf(r.name())));
 			line.append(Component.literal(" " + shortNumber(r.value())).withStyle(ChatFormatting.GOLD));
 			out.add(line);
 		}
