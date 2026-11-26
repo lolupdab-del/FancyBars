@@ -233,6 +233,20 @@ public final class BestiaryTracker {
 		FancyBarsConfig.save();
 	}
 
+	/** Your saved bestiary kills for this mob, or null if its /be page hasn't been opened on this profile yet. */
+	public static @Nullable Long kills(Mob mob) {
+		return KILLS.get(mob.name());
+	}
+
+	/** "1,793 kills · IV" (or "MAX") for the mob list, or null when the kills aren't known. */
+	public static @Nullable Component killsText(Mob mob) {
+		Long kills = KILLS.get(mob.name());
+		if (kills == null) return null;
+		int tier = mob.tier(kills);
+		return Component.literal(comma(kills) + " kills ").withStyle(ChatFormatting.WHITE)
+				.append(Component.literal(tier >= mob.tiers().length ? "MAX" : roman(tier)).withStyle(tier >= mob.tiers().length ? ChatFormatting.GOLD : ChatFormatting.GRAY));
+	}
+
 	public static int trackedCount() {
 		return FancyBarsConfig.get().bestiaryTracked.size();
 	}
@@ -652,7 +666,7 @@ public final class BestiaryTracker {
 		if (kills == null) {
 			long session = session(mob)[0];
 			return Component.literal(comma(session) + " kills ").withStyle(ChatFormatting.WHITE)
-					.append(Component.literal("(open /be to sync)").withStyle(ChatFormatting.DARK_GRAY));
+					.append(Component.literal("(open its /be page)").withStyle(ChatFormatting.DARK_GRAY));
 		}
 		int tier = mob.tier(kills);
 		if (tier >= mob.tiers().length) return Component.literal(comma(kills) + " kills").withStyle(ChatFormatting.GOLD);

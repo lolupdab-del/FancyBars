@@ -1117,6 +1117,12 @@ public class BarsMenuScreen extends Screen {
 			}
 			case SCREEN -> {
 				// Minecraft's own HUD pieces: hide them, or move titles, the boss bar, the hotbar and item names
+				list.add(new HeaderItem(Component.translatable("fancybars.category.islandScoreboard"), null));
+				list.add(new ToggleItem("islandScoreboard", () -> config.islandScoreboard, value -> config.islandScoreboard = value));
+				list.add(new ToggleItem("islandScoreboardAnimations", () -> config.islandScoreboardAnimations, value -> config.islandScoreboardAnimations = value));
+				list.add(new ButtonRowItem(
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.move"), ModernButton.Style.PRIMARY, () -> minecraft.gui.setScreen(BarEditorScreen.only(BarsMenuScreen.this, MovableElement.SCOREBOARD))),
+						new ModernButton(10, 20, Component.translatable("fancybars.heldItem.reset"), () -> MovableElement.SCOREBOARD.reset())));
 				list.add(new HeaderItem(Component.translatable("fancybars.category.compactTab"), null));
 				list.add(new ToggleItem("compactTabEnabled", () -> config.compactTabEnabled, value -> config.compactTabEnabled = value));
 				list.add(new ToggleItem("compactTabHideAds", () -> config.compactTabHideAds, value -> config.compactTabHideAds = value));
@@ -2159,9 +2165,13 @@ public class BarsMenuScreen extends Screen {
 			row(graphics, x, y, w, height, hovered);
 			graphics.item(mob.icon(), x + 5, y + (height - 16) / 2);
 			Component name = Component.literal(mob.color() + mob.name());
-			Theme.textInBox(graphics, font, clip(name, w - 130), x + 27, y, height, 0xFFFFFFFF);
+			// the kills remembered from /be, next to the name
+			Component kills = dev.fancybars.combat.BestiaryTracker.killsText(mob);
+			if (kills != null) name = name.copy().append(Component.literal("  ")).append(kills);
 			Component island = Component.literal(mob.island());
-			Theme.textInBox(graphics, font, clip(island, 90), toggle.getX() - Math.min(90, Theme.width(font, island)) - 10, y, height, Theme.TEXT_MUTED);
+			int islandX = toggle.getX() - Math.min(90, Theme.width(font, island)) - 10;
+			Theme.textInBox(graphics, font, clip(name, islandX - (x + 27) - 6), x + 27, y, height, 0xFFFFFFFF);
+			Theme.textInBox(graphics, font, clip(island, 90), islandX, y, height, Theme.TEXT_MUTED);
 			if (hovered) graphics.requestCursor(CursorTypes.POINTING_HAND);
 		}
 

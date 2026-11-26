@@ -156,6 +156,15 @@ public class FancyBarsConfig {
 	/** /gfs suggestions: item names and amounts as you type. */
 	public boolean gfsSuggestions = true;
 	/** Compact Tab List (SkyHanni / Skytils style). */
+	/** Island Scoreboard: the sidebar themed after the island you're on, with a few slow particles. */
+	public boolean islandScoreboard = false;
+	public boolean islandScoreboardAnimations = true;
+	/** The scoreboard, movable like the other HUD pieces: -1 is where Minecraft puts it. X is its right edge when {@code scoreboardRight}. */
+	public boolean scoreboardShown = true;
+	public float scoreboardX = -1;
+	public float scoreboardY = -1;
+	public boolean scoreboardRight = true;
+	public float scoreboardScale = 1;
 	public boolean compactTabEnabled = true;
 	public boolean compactTabHideAds = false;
 	public boolean compactTabBackground = true;

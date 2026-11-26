@@ -118,6 +118,7 @@ public class FancyBarsMod implements ClientModInitializer {
 		dev.fancybars.util.Perf.init();
 		dev.fancybars.hud.PetHud.init();
 		dev.fancybars.hud.CompactTabList.init();
+		dev.fancybars.hud.IslandScoreboard.init();
 		dev.fancybars.util.gui.Chroma.init();
 		dev.fancybars.util.gui.SharpItem.init();
 		dev.fancybars.util.SkyblockLocation.onLocationChange(dev.fancybars.hud.PerformanceHud::reset);

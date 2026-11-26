@@ -41,7 +41,7 @@ import dev.fancybars.FancyBarsMod;
  * </pre>
  */
 public final class SharedNames {
-	public static final String LIST_URL = "https://raw.githubusercontent.com/lolupdab-del/FancyBars/main/names.json";
+	public static final String LIST_URL = "https://raw.githubusercontent.com/lolupdab-del/SkyblockGuiUtils/main/names.json";
 	private static final long REFRESH_TICKS = 20 * 60 * 5;
 
 	/** One custom name, already parsed. Colours are RGB; empty {@code colors} means "keep their usual colour". */
@@ -62,7 +62,7 @@ public final class SharedNames {
 	/** IGN → the name's text as it shows on screen (lowercase, colour codes removed). */
 	private static volatile Map<String, String> shown = Map.of();
 	private static long ticks = REFRESH_TICKS - 60;
-	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
 
 	private SharedNames() {}
 

@@ -1512,5 +1512,64 @@ public interface MovableElement {
 		}
 	};
 
-	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, GHOSTS, FORGE, BESTIARY, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET};
+	// ---------------------------------------------------------------- Scoreboard
+
+	MovableElement SCOREBOARD = new MovableElement() {
+		@Override
+		public float[] rect(int screenW, int screenH) {
+			dev.fancybars.hud.IslandScoreboard.Layout l = dev.fancybars.hud.IslandScoreboard.shownLayout();
+			float[] pos = dev.fancybars.hud.IslandScoreboard.position(screenW, screenH, l);
+			float s = scale();
+			return new float[]{pos[0], pos[1], l.w() * s, l.h() * s};
+		}
+
+		@Override
+		public void drawPreview(GuiGraphicsExtractor graphics, int screenW, int screenH) {
+			dev.fancybars.hud.IslandScoreboard.Layout l = dev.fancybars.hud.IslandScoreboard.shownLayout();
+			float[] pos = dev.fancybars.hud.IslandScoreboard.position(screenW, screenH, l);
+			dev.fancybars.hud.IslandScoreboard.renderAt(graphics, pos[0], pos[1], scale(), l, enabled() ? 1 : 0.35f);
+		}
+
+		@Override
+		public void moveTo(float x, float y, int screenW, int screenH) {
+			dev.fancybars.hud.IslandScoreboard.moveTo(x, y, screenW, screenH);
+		}
+
+		@Override
+		public float scale() {
+			return FancyBarsConfig.get().scoreboardScale;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			FancyBarsConfig.get().scoreboardScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return FancyBarsConfig.get().scoreboardShown;
+		}
+
+		@Override
+		public void setEnabled(boolean enabled) {
+			FancyBarsConfig.get().scoreboardShown = enabled;
+		}
+
+		@Override
+		public void reset() {
+			dev.fancybars.hud.IslandScoreboard.reset();
+		}
+
+		@Override
+		public Component name() {
+			return Component.translatable("fancybars.editor.element.scoreboard");
+		}
+
+		@Override
+		public boolean snapsToCenter() {
+			return false;
+		}
+	};
+
+	MovableElement[] ALL = {HELD_ITEM, SECRETS, ACTION_BAR, RARE_DROPS, INVENTORY, KEYSTROKES, COMMISSIONS, GHOSTS, FORGE, BESTIARY, WALL_LICKER, TITLE, BOSS_BAR, HOTBAR, SPOTIFY, MELODY, TERM_INFO, PERFORMANCE, ARMOR, PET, SCOREBOARD};
 }

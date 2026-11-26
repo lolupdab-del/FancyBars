@@ -27,7 +27,7 @@ import dev.fancybars.config.FancyBarsConfig;
  * every SkyblockGuiUtils user sees the same sizes. Purely visual: hitboxes don't change.
  */
 public final class PlayerSizes {
-	public static final String LIST_URL = "https://raw.githubusercontent.com/lolupdab-del/FancyBars/main/sizes.json";
+	public static final String LIST_URL = "https://raw.githubusercontent.com/lolupdab-del/SkyblockGuiUtils/main/sizes.json";
 	private static final long REFRESH_TICKS = 20 * 60 * 5;
 	public static final float MIN = 0.25f;
 	public static final float MAX = 3f;
@@ -36,7 +36,7 @@ public final class PlayerSizes {
 	private static final Map<String, float[]> SHARED = new ConcurrentHashMap<>();
 	private static final float[] NORMAL = {1, 1, 1};
 	private static long ticks = REFRESH_TICKS - 40;
-	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+	private static final HttpClient HTTP = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build();
 
 	private PlayerSizes() {}
 
